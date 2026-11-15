@@ -28,12 +28,19 @@ export const metadata: Metadata = {
     "Make a free online catalog for your shop in 2 minutes. Share one link, get orders on WhatsApp. Find local shops in your city.",
   applicationName: SITE_NAME,
   manifest: "/manifest.webmanifest",
-  icons: { icon: "/app-icon/192", apple: "/app-icon/180" },
+  icons: {
+    icon: [
+      { url: "/favicon.svg", type: "image/svg+xml" },
+      { url: "/favicon.ico", sizes: "any" },
+      { url: "/favicon-32.png", sizes: "32x32", type: "image/png" },
+    ],
+    apple: "/apple-touch-icon.png",
+  },
   openGraph: { siteName: SITE_NAME, type: "website", locale: "en_IN" },
 };
 
 export const viewport: Viewport = {
-  themeColor: "#1e3fae",
+  themeColor: "#1B2340",
   width: "device-width",
   initialScale: 1,
 };
