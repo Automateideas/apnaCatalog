@@ -1,4 +1,3 @@
-import type { CSSProperties } from "react";
 import type { Metadata, Viewport } from "next";
 import Link from "next/link";
 import { notFound } from "next/navigation";
@@ -6,15 +5,18 @@ import { and, asc, desc, eq } from "drizzle-orm";
 import { db } from "@/db";
 import { categories, items, reviews } from "@/db/schema";
 import { Avatar } from "@/components/Avatar";
+import { ShopHeader } from "@/components/catalog/ShopHeader";
 import { Catalog } from "@/components/catalog/Catalog";
 import { InstallHint } from "@/components/InstallHint";
 import { ratingOf, Stars } from "@/components/Stars";
-import { effectiveTheme, getBusinessType, isPaid } from "@/lib/catalog-config";
+import { getBusinessType, isPaid } from "@/lib/catalog-config";
+import { themeCss } from "@/lib/theme-style";
+import { resolveTheme } from "@/lib/themes";
+import { cx } from "@/lib/utils";
 import { getPublicShop } from "@/lib/shop-data";
 import { directionsUrl, formatDate, SITE_NAME, siteUrl, waLink } from "@/lib/utils";
 import { Icon } from "@/components/Icon";
 import { buttonVariants } from "@/components/ui/button";
-import { Card } from "@/components/ui/card";
 
 export const dynamic = "force-dynamic";
 
@@ -50,7 +52,10 @@ export async function generateMetadata({ params }: PageProps<"/[slug]">): Promis
 export async function generateViewport({ params }: PageProps<"/[slug]">): Promise<Viewport> {
   const { slug } = await params;
   const shop = await getPublicShop(slug);
-  return { themeColor: shop ? effectiveTheme(shop).palette.primary : "#1b2340" };
+  if (!shop) return { themeColor: "#1b2340" };
+  const { theme, accent } = resolveTheme(shop);
+  // Phone status bar: dark headers keep it dark, the others use the shop colour.
+  return { themeColor: theme.header === "hero" ? "#0b0f19" : theme.header === "banner" ? accent.primary : theme.colors.bg };
 }
 
 export default async function ShopPage({ params }: PageProps<"/[slug]">) {
@@ -95,7 +100,7 @@ export default async function ShopPage({ params }: PageProps<"/[slug]">) {
   ]);
 
   const type = getBusinessType(shop.businessType);
-  const { layout, palette } = effectiveTheme(shop);
+  const { theme, accent } = resolveTheme(shop);
   const paid = isPaid(shop);
   const rating = ratingOf(shop);
   const directions = directionsUrl(shop);
@@ -125,93 +130,76 @@ export default async function ShopPage({ params }: PageProps<"/[slug]">) {
         : undefined,
   };
 
-  const theme = {
-    "--p": palette.primary,
-    "--pd": palette.dark,
-    "--ps": palette.soft,
-  } as CSSProperties;
+  const action = "t-btn gap-1 px-1";
 
   return (
-    <div style={theme} className="flex flex-1 flex-col">
+    <div className="t-page flex flex-1 flex-col">
       <script
         type="application/ld+json"
         dangerouslySetInnerHTML={{ __html: JSON.stringify(jsonLd).replace(/</g, "\\u003c") }}
       />
 
-      {/* Sheets are drawn outside this wrapper, so the shop colours are also set on the page root. */}
-      <style>{`:root{--p:${palette.primary};--pd:${palette.dark};--ps:${palette.soft}}`}</style>
+      {/* Sheets and dialogs are drawn outside this wrapper, so the theme is set on the page root. */}
+      <style>{`${themeCss(":root", theme, accent)}body{background:var(--t-bg)}`}</style>
 
-      <header className="bg-(--p) text-white">
-        <div className="mx-auto w-full max-w-3xl px-4 pt-6 pb-5">
-          <div className="flex items-center gap-4">
-            <Avatar
-              name={shop.name}
-              src={shop.logoUrl}
-              color={palette.dark}
-              className="h-20 w-20 border-2 border-white/70 text-2xl shadow"
-            />
-            <div className="min-w-0">
-              <h1 className="text-2xl leading-tight font-bold">{shop.name}</h1>
-              <p className="mt-0.5 text-sm text-white/90">
-                {type.name}, {shop.city}
-              </p>
-              {shop.ratingCount > 0 && (
-                <a href="#reviews" className="mt-1 inline-flex items-center gap-1.5 text-sm">
-                  <Stars value={rating} className="text-amber-300" />
-                  <span className="font-semibold">{rating.toFixed(1)}</span>
-                  <span className="text-white/85">
-                    ({shop.ratingCount} {shop.ratingCount === 1 ? "review" : "reviews"})
-                  </span>
-                </a>
-              )}
-            </div>
-          </div>
-          {shop.description && <p className="mt-4 text-sm text-white/95">{shop.description}</p>}
-        </div>
-      </header>
+      <ShopHeader
+        theme={theme}
+        name={shop.name}
+        logoUrl={shop.logoUrl}
+        subtitle={`${type.name}, ${shop.city}`}
+        description={shop.description}
+        rating={rating}
+        ratingCount={shop.ratingCount}
+      />
 
       <main className="mx-auto w-full max-w-3xl flex-1 px-4 pb-10">
-        <div className="no-print -mt-3 grid grid-cols-3 gap-2 whitespace-nowrap">
+        <div
+          className={cx(
+            "no-print grid grid-cols-3 gap-2 whitespace-nowrap",
+            // Overlap the coloured header a little, unless it ends in a decoration.
+            theme.header === "banner" && theme.decor !== "hazard" ? "-mt-4" : "mt-4",
+          )}
+        >
           <a
             href={waLink(shop.whatsapp, `Hi ${shop.name}, I saw your catalog on ${SITE_NAME}.`)}
             target="_blank"
             rel="noopener noreferrer"
-            className={buttonVariants({ variant: "whatsapp", className: "gap-1 px-1" })}
+            className={buttonVariants({ variant: "whatsapp", className: action })}
           >
             WhatsApp
           </a>
-          <a href={`tel:+91${callNumber}`} className={buttonVariants({ variant: "outline", className: "gap-1 px-1" })}>
+          <a href={`tel:+91${callNumber}`} className={buttonVariants({ variant: "outline", className: action })}>
             <Icon name="phone" /> Call
           </a>
           {directions ? (
-            <a href={directions} target="_blank" rel="noopener noreferrer" className={buttonVariants({ variant: "outline", className: "gap-1 px-1" })}>
+            <a href={directions} target="_blank" rel="noopener noreferrer" className={buttonVariants({ variant: "outline", className: action })}>
               <Icon name="pin" /> Directions
             </a>
           ) : (
-            <span className={buttonVariants({ variant: "outline", className: "cursor-default gap-1 truncate px-1 text-slate-400" })}><Icon name="pin" /> {shop.city}</span>
+            <span className={buttonVariants({ variant: "outline", className: cx(action, "cursor-default truncate text-(--t-muted)") })}><Icon name="pin" /> {shop.city}</span>
           )}
         </div>
 
         {(shop.address || shop.ownerName || shop.ownerPhotoUrl) && (
-          <Card className="mt-4 flex items-center gap-3 p-3">
+          <div className="t-card mt-4 flex items-center gap-3 p-3">
             {(shop.ownerName || shop.ownerPhotoUrl) && (
               <Avatar
                 name={shop.ownerName || shop.name}
                 src={shop.ownerPhotoUrl}
-                color={palette.primary}
+                color={accent.primary}
                 round
                 className="h-12 w-12 text-sm"
               />
             )}
             <div className="min-w-0 text-sm">
               {shop.ownerName && (
-                <p className="font-medium text-slate-900">
-                  {shop.ownerName} <span className="font-normal text-slate-500">(owner)</span>
+                <p className="font-medium text-(--t-text)">
+                  {shop.ownerName} <span className="font-normal text-(--t-muted)">(owner)</span>
                 </p>
               )}
-              {shop.address && <p className="text-slate-600">{shop.address}</p>}
+              {shop.address && <p className="text-(--t-muted)">{shop.address}</p>}
             </div>
-          </Card>
+          </div>
         )}
 
         <InstallHint name={shop.name} />
@@ -219,37 +207,37 @@ export default async function ShopPage({ params }: PageProps<"/[slug]">) {
         <div className="mt-5">
           <Catalog
             shop={{ id: shop.id, name: shop.name }}
-            layout={layout}
+            look={{ items: theme.items, center: !!theme.center, chips: theme.chips }}
             items={itemRows}
             categories={cats}
           />
         </div>
 
         <section id="reviews" className="mt-10 scroll-mt-4">
-          <h2 className="text-lg font-bold text-slate-900">Customer reviews</h2>
+          <h2 className="t-head text-xl text-(--t-text)">Customer reviews</h2>
           {reviewRows.length === 0 ? (
-            <p className="mt-2 text-sm text-slate-500">No reviews yet.</p>
+            <p className="mt-2 text-sm text-(--t-muted)">No reviews yet.</p>
           ) : (
             <>
               <div className="mt-2 flex items-center gap-2">
                 <span className="text-3xl font-bold">{rating.toFixed(1)}</span>
                 <div>
                   <Stars value={rating} className="text-lg" />
-                  <p className="text-xs text-slate-500">
+                  <p className="text-xs text-(--t-muted)">
                     {shop.ratingCount} {shop.ratingCount === 1 ? "review" : "reviews"}
                   </p>
                 </div>
               </div>
               <ul className="mt-3 space-y-3">
                 {reviewRows.map((review) => (
-                  <li key={review.id} className="rounded-xl border bg-card p-4">
+                  <li key={review.id} className="t-card p-4">
                     <div className="flex items-center justify-between gap-2">
-                      <p className="font-medium text-slate-900">{review.name}</p>
-                      <time className="text-xs text-slate-400">{formatDate(review.updatedAt)}</time>
+                      <p className="font-medium text-(--t-text)">{review.name}</p>
+                      <time className="text-xs text-(--t-muted)">{formatDate(review.updatedAt)}</time>
                     </div>
                     <Stars value={review.rating} className="mt-1 text-sm" />
                     {review.comment && (
-                      <p className="mt-1.5 text-sm whitespace-pre-line text-slate-700">
+                      <p className="mt-1.5 text-sm whitespace-pre-line text-(--t-text) opacity-90">
                         {review.comment}
                       </p>
                     )}
@@ -262,9 +250,9 @@ export default async function ShopPage({ params }: PageProps<"/[slug]">) {
       </main>
 
       {!(paid && shop.hideBranding) && (
-        <footer className="no-print border-t border-slate-200 bg-white py-4 text-center text-sm text-slate-500">
+        <footer className="no-print border-t border-(--t-border) bg-(--t-surface) py-4 text-center text-sm text-(--t-muted)">
           Catalog made with{" "}
-          <Link href="/" className="font-semibold text-brand hover:underline">
+          <Link href="/" className="font-semibold text-(--t-text) hover:underline">
             {SITE_NAME}
           </Link>
           .{" "}

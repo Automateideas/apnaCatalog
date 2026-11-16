@@ -87,16 +87,67 @@ body {
   -webkit-tap-highlight-color: transparent;
 }
 
-h1,
-h2 {
-  font-family: var(--font-display);
-  letter-spacing: -0.005em;
-  line-height: 1.15;
+/* In the base layer, so a shop theme's heading font (t-head) can replace it. */
+@layer base {
+  h1,
+  h2 {
+    font-family: var(--font-display);
+    letter-spacing: -0.005em;
+    line-height: 1.15;
+  }
 }
 
 :focus-visible {
   outline: 2px solid var(--p, var(--color-brand));
   outline-offset: 2px;
+}
+
+/*
+  Shop themes. Every value comes from variables set by the shop page
+  (see src/lib/theme-style.ts), so one set of components draws all themes.
+*/
+@utility t-page {
+  background: var(--t-bg);
+  color: var(--t-text);
+  font-family: var(--t-font-body);
+}
+@utility t-card {
+  background: var(--t-surface);
+  border: var(--t-card-border);
+  border-radius: var(--t-radius);
+  box-shadow: var(--t-shadow);
+}
+@utility t-head {
+  font-family: var(--t-font-head);
+  font-weight: var(--t-head-weight);
+  text-transform: var(--t-head-case);
+  letter-spacing: var(--t-head-tracking);
+}
+@utility t-photo {
+  border-radius: var(--t-photo-radius);
+  overflow: hidden;
+}
+@utility t-btn {
+  border-radius: var(--t-btn-radius);
+}
+/* Decorations */
+@utility t-garland {
+  height: 14px;
+  background:
+    radial-gradient(circle at 7px 0, var(--p) 6px, transparent 6.5px) 0 0 / 14px 14px repeat-x;
+  opacity: 0.85;
+}
+@utility t-confetti {
+  background-image:
+    radial-gradient(circle, #f59e0b 1.6px, transparent 2px),
+    radial-gradient(circle, #3b82f6 1.6px, transparent 2px),
+    radial-gradient(circle, #ef4444 1.6px, transparent 2px);
+  background-size: 46px 46px, 58px 58px, 70px 70px;
+  background-position: 0 0, 20px 26px, 38px 10px;
+}
+@utility t-hazard {
+  height: 10px;
+  background: repeating-linear-gradient(-45deg, var(--p) 0 12px, #1c1917 12px 24px);
 }
 
 .no-scrollbar {

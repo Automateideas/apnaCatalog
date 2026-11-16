@@ -2,11 +2,10 @@
 
 import { useMemo, useState, useTransition } from "react";
 import { createOrder } from "@/app/actions/orders";
-import type { LayoutId } from "@/lib/catalog-config";
+import type { ItemStyle, Theme } from "@/lib/themes";
 import { useStored } from "@/lib/use-stored";
 import { cx, formatPrice } from "@/lib/utils";
 import { Icon } from "@/components/Icon";
-import { Card } from "@/components/ui/card";
 import { Alert } from "@/components/ui/alert";
 import { Input } from "@/components/ui/input";
 import { Label } from "@/components/ui/label";
@@ -33,7 +32,8 @@ export type CatalogCategory = { id: string; name: string; parentId: string | nul
 
 type Props = {
   shop: { id: string; name: string };
-  layout: LayoutId;
+  /** Layout choices of the shop's theme. Colours and shapes come from CSS variables. */
+  look: { items: ItemStyle; center: boolean; chips: Theme["chips"] };
   items: CatalogItem[];
   categories: CatalogCategory[];
 };
@@ -55,7 +55,8 @@ function parseCart(raw: string | null): Cart {
   }
 }
 
-export function Catalog({ shop, layout, items, categories }: Props) {
+export function Catalog({ shop, look, items, categories }: Props) {
+  const layout = look.items;
   const [rawCart, setRawCart] = useStored(`ac-cart-${shop.id}`);
   const [rawLast, setRawLast] = useStored(`ac-last-order-${shop.id}`);
   const [activeCat, setActiveCat] = useState<string>("all");
@@ -151,7 +152,7 @@ export function Catalog({ shop, layout, items, categories }: Props) {
 
   const stepper = (item: CatalogItem, compact = false) => {
     if (!item.inStock) {
-      return <span className="text-xs font-medium text-slate-400">Out of stock</span>;
+      return <span className="text-xs font-medium text-(--t-muted)">Out of stock</span>;
     }
     const qty = cart[item.id] ?? 0;
     if (qty === 0) {
@@ -160,7 +161,7 @@ export function Catalog({ shop, layout, items, categories }: Props) {
           type="button"
           onClick={() => setQty(item.id, 1)}
           className={cx(
-            "rounded-lg border border-(--p) font-semibold text-(--p) hover:bg-(--ps)",
+            "t-btn border border-(--pa) font-semibold text-(--pa) hover:bg-(--ps)",
             compact ? "px-3 py-1 text-sm" : "w-full py-1.5 text-sm",
           )}
           aria-label={`Add ${item.name}`}
@@ -172,7 +173,7 @@ export function Catalog({ shop, layout, items, categories }: Props) {
     return (
       <div
         className={cx(
-          "flex items-center justify-between rounded-lg bg-(--p) text-white",
+          "t-btn flex items-center justify-between bg-(--p) text-(--pt)",
           compact ? "w-24" : "w-full",
         )}
       >
@@ -201,9 +202,9 @@ export function Catalog({ shop, layout, items, categories }: Props) {
 
   const price = (item: CatalogItem) => (
     <span className="whitespace-nowrap">
-      <span className="font-semibold text-slate-900">{formatPrice(item.price)}</span>
+      <span className="font-semibold text-(--t-text)">{formatPrice(item.price)}</span>
       {item.mrp && item.mrp > item.price && (
-        <span className="ml-1.5 text-xs text-slate-400 line-through">{formatPrice(item.mrp)}</span>
+        <span className="ml-1.5 text-xs text-(--t-muted) line-through">{formatPrice(item.mrp)}</span>
       )}
     </span>
   );
@@ -229,33 +230,43 @@ export function Catalog({ shop, layout, items, categories }: Props) {
     </button>
   );
 
+  const noPhoto = (size: string) => (
+    <div className="flex h-full items-center justify-center bg-(--ps) text-(--pa) opacity-70">
+      <Icon name="bag" className={size} />
+    </div>
+  );
+
   const renderItems = (list: CatalogItem[]) => {
-    if (layout === "grid") {
+    if (layout === "grid" || layout === "portrait") {
+      const tall = layout === "portrait";
       return (
-        <div className="grid grid-cols-2 gap-3 sm:grid-cols-3 lg:grid-cols-4">
+        <div
+          className={cx(
+            "grid",
+            tall ? "grid-cols-2 gap-x-3 gap-y-6 sm:grid-cols-3" : "grid-cols-2 gap-3 sm:grid-cols-3 lg:grid-cols-4",
+          )}
+        >
           {list.map((item) => (
             <article
               key={item.id}
-              className={cx("rounded-xl border bg-card flex flex-col overflow-hidden", !item.inStock && "opacity-60")}
+              className={cx(
+                "flex flex-col",
+                // Portrait themes show the photo on its own, like a fashion catalogue.
+                !tall && "t-card overflow-hidden",
+                look.center && "text-center",
+                !item.inStock && "opacity-60",
+              )}
             >
-              <div className="aspect-square bg-slate-100">
-                {item.imageUrl ? (
-                  photo(item, "h-full w-full")
-                ) : (
-                  <div className="flex h-full items-center justify-center text-slate-300">
-                    <Icon name="bag" className="h-8 w-8" />
-                  </div>
-                )}
+              <div className={cx(tall ? "t-photo aspect-[3/4]" : "aspect-square", "bg-(--ps)")}>
+                {item.imageUrl ? photo(item, "h-full w-full") : noPhoto("h-8 w-8")}
               </div>
-              <div className="flex flex-1 flex-col p-2.5">
-                <h3 className="line-clamp-2 text-sm font-medium text-slate-900">{item.name}</h3>
-                {item.unit && <p className="text-xs text-slate-500">{item.unit}</p>}
-                <div className="mt-1 text-sm">
-                  {price(item)}
-                </div>
-                <div className="mt-auto pt-2">
-                  {stepper(item)}
-                </div>
+              <div className={cx("flex flex-1 flex-col", tall ? "pt-2.5" : "p-2.5")}>
+                <h3 className={cx("line-clamp-2 text-sm font-medium text-(--t-text)", tall && "t-head text-base")}>
+                  {item.name}
+                </h3>
+                {item.unit && <p className="text-xs text-(--t-muted)">{item.unit}</p>}
+                <div className="mt-1 text-sm">{price(item)}</div>
+                <div className="mt-auto pt-2">{stepper(item)}</div>
               </div>
             </article>
           ))}
@@ -265,68 +276,63 @@ export function Catalog({ shop, layout, items, categories }: Props) {
 
     if (layout === "list") {
       return (
-        <Card className="divide-y divide-slate-100">
+        <div className="t-card divide-y divide-(--t-border) overflow-hidden">
           {list.map((item) => (
-            <article
-              key={item.id}
-              className={cx("flex items-center gap-3 p-3", !item.inStock && "opacity-60")}
-            >
-              <div className="h-14 w-14 shrink-0 overflow-hidden rounded-lg bg-slate-100">
-                {item.imageUrl ? (
-                  photo(item, "h-full w-full")
-                ) : (
-                  <div className="flex h-full items-center justify-center text-slate-300">
-                    <Icon name="bag" className="h-6 w-6" />
-                  </div>
-                )}
+            <article key={item.id} className={cx("flex items-center gap-3 p-3", !item.inStock && "opacity-60")}>
+              <div className="t-photo h-14 w-14 shrink-0 bg-(--ps)">
+                {item.imageUrl ? photo(item, "h-full w-full") : noPhoto("h-6 w-6")}
               </div>
               <div className="min-w-0 flex-1">
-                <h3 className="truncate text-sm font-medium text-slate-900">{item.name}</h3>
+                <h3 className="truncate text-sm font-medium text-(--t-text)">{item.name}</h3>
                 <p className="text-sm">
                   {price(item)}
-                  {item.unit && <span className="ml-1.5 text-xs text-slate-500">/ {item.unit}</span>}
+                  {item.unit && <span className="ml-1.5 text-xs text-(--t-muted)">/ {item.unit}</span>}
                 </p>
               </div>
               {stepper(item, true)}
             </article>
           ))}
-        </Card>
+        </div>
       );
     }
 
     return (
-      <Card className="divide-y divide-dashed divide-slate-200 px-4">
+      <div className="t-card divide-y divide-dashed divide-(--t-border) px-4">
         {list.map((item) => (
           <article key={item.id} className={cx("flex gap-3 py-3.5", !item.inStock && "opacity-60")}>
             <div className="min-w-0 flex-1">
               <div className="flex items-baseline gap-2">
-                <h3 className="font-medium text-slate-900">{item.name}</h3>
-                <span className="mb-1 hidden flex-1 border-b border-dotted border-slate-300 sm:block" />
+                <h3 className="t-head text-[1.05rem] text-(--t-text)">{item.name}</h3>
+                <span className="mb-1 hidden flex-1 border-b border-dotted border-(--t-muted) opacity-60 sm:block" />
                 {price(item)}
               </div>
               {(item.description || item.unit) && (
-                <p className="mt-0.5 line-clamp-2 text-sm text-slate-500">
+                <p className="mt-0.5 line-clamp-2 text-sm text-(--t-muted)">
                   {[item.unit, item.description].filter(Boolean).join(" · ")}
                 </p>
               )}
-              <div className="mt-2">
-                {stepper(item, true)}
-              </div>
+              <div className="mt-2">{stepper(item, true)}</div>
             </div>
-            {item.imageUrl && photo(item, "h-20 w-20 shrink-0 overflow-hidden rounded-xl")}
+            {item.imageUrl && photo(item, "t-photo h-20 w-20 shrink-0")}
           </article>
         ))}
-      </Card>
+      </div>
     );
   };
 
   const chip = (active: boolean) =>
-    cx(
-      "rounded-full border px-3 py-1.5 text-sm font-medium whitespace-nowrap",
-      active
-        ? "border-(--p) bg-(--p) text-white"
-        : "border-slate-200 bg-white text-slate-700 hover:border-slate-300",
-    );
+    look.chips === "underline"
+      ? cx(
+          "border-b-2 px-1 py-1.5 text-sm font-medium whitespace-nowrap",
+          active ? "border-(--pa) text-(--t-text)" : "border-transparent text-(--t-muted) hover:text-(--t-text)",
+        )
+      : cx(
+          "border px-3 py-1.5 text-sm font-medium whitespace-nowrap",
+          look.chips === "square" ? "rounded-sm" : "rounded-full",
+          active
+            ? "border-(--p) bg-(--p) text-(--pt)"
+            : "border-(--t-border) bg-(--t-surface) text-(--t-text) hover:border-(--p)",
+        );
 
   return (
     <div className={cartCount > 0 ? "pb-24" : ""}>
@@ -358,7 +364,10 @@ export function Catalog({ shop, layout, items, categories }: Props) {
       {topCats.length > 1 && (
         <nav
           aria-label="Categories"
-          className="no-scrollbar sticky top-0 z-10 -mx-4 flex gap-2 overflow-x-auto bg-cream/95 px-4 py-2 backdrop-blur"
+          className={cx(
+            "no-scrollbar sticky top-0 z-10 -mx-4 flex overflow-x-auto bg-(--t-bg)/95 px-4 py-2 backdrop-blur",
+            look.chips === "underline" ? "gap-4" : "gap-2",
+          )}
         >
           <button
             type="button"
@@ -395,7 +404,7 @@ export function Catalog({ shop, layout, items, categories }: Props) {
               onClick={() => setActiveSub(c.id)}
               className={cx(
                 "rounded-lg px-2.5 py-1 text-xs font-medium whitespace-nowrap",
-                activeSub === c.id ? "bg-(--ps) text-(--pd)" : "text-slate-600 hover:bg-slate-100",
+                activeSub === c.id ? "bg-(--ps) text-(--pa)" : "text-(--t-muted) hover:bg-(--ps)",
               )}
             >
               {c.name}
@@ -405,14 +414,14 @@ export function Catalog({ shop, layout, items, categories }: Props) {
       )}
 
       {visible.length === 0 ? (
-        <p className="rounded-xl border bg-card mt-3 px-4 py-10 text-center text-slate-500">
+        <p className="t-card mt-3 px-4 py-10 text-center text-(--t-muted)">
           {items.length === 0 ? "This shop has not added items yet." : "No items found."}
         </p>
       ) : (
         sections.map((section) => (
           <section key={section.title ?? "all"} className="mt-4">
             {section.title && (
-              <h2 className="mb-2 text-base font-bold text-slate-900">{section.title}</h2>
+              <h2 className={cx("t-head mb-2.5 text-lg text-(--t-text)", look.center && "text-center")}>{section.title}</h2>
             )}
             {renderItems(section.items)}
           </section>
@@ -420,18 +429,18 @@ export function Catalog({ shop, layout, items, categories }: Props) {
       )}
 
       {cartCount > 0 && !cartOpen && (
-        <div className="no-print fixed inset-x-0 bottom-0 z-20 border-t border-slate-200 bg-white p-3 shadow-[0_-4px_16px_rgba(0,0,0,0.08)]">
+        <div className="no-print fixed inset-x-0 bottom-0 z-20 border-t border-(--t-border) bg-(--t-surface) p-3 shadow-[0_-4px_16px_rgba(0,0,0,0.12)]">
           <div className="mx-auto flex w-full max-w-3xl items-center justify-between gap-3">
             <div>
-              <p className="text-sm text-slate-600">
+              <p className="text-sm text-(--t-muted)">
                 {cartCount} {cartCount === 1 ? "item" : "items"}
               </p>
-              <p className="text-lg font-bold text-slate-900">{formatPrice(cartTotal)}</p>
+              <p className="text-lg font-bold text-(--t-text)">{formatPrice(cartTotal)}</p>
             </div>
             <Button
               type="button"
               onClick={() => setCartOpen(true)}
-              className="bg-(--p) px-6 text-white hover:bg-(--pd)"
+              className="t-btn bg-(--p) px-6 text-(--pt) hover:bg-(--pd)"
             >
               View cart
             </Button>
@@ -441,26 +450,26 @@ export function Catalog({ shop, layout, items, categories }: Props) {
 
       {cartOpen && (
         <Sheet open onOpenChange={(open) => !open && setCartOpen(false)}>
-          <SheetContent side="bottom" showCloseButton={false} className="mx-auto w-full max-w-lg gap-0 rounded-t-2xl p-0 text-base max-h-[90dvh]">
-            <div className="flex items-center justify-between border-b border-slate-100 px-5 py-3">
-              <SheetTitle className="text-lg font-bold">Your cart</SheetTitle>
+          <SheetContent side="bottom" showCloseButton={false} className="t-page mx-auto max-h-[90dvh] w-full max-w-lg gap-0 rounded-t-2xl bg-(--t-surface) p-0 text-base">
+            <div className="flex items-center justify-between border-b border-(--t-border) px-5 py-3">
+              <SheetTitle className="t-head text-lg text-(--t-text)">Your cart</SheetTitle>
               <SheetClose
-                render={<Button variant="ghost" size="icon" className="text-slate-500" aria-label="Close cart" />}
+                render={<Button variant="ghost" size="icon" className="text-(--t-muted)" aria-label="Close cart" />}
               >
                 <Icon name="x" />
               </SheetClose>
             </div>
 
             <div className="flex-1 overflow-y-auto px-5 py-3">
-              {cartLines.length === 0 && <p className="py-6 text-center text-slate-500">Your cart is empty.</p>}
-              <ul className="divide-y divide-slate-100">
+              {cartLines.length === 0 && <p className="py-6 text-center text-(--t-muted)">Your cart is empty.</p>}
+              <ul className="divide-y divide-(--t-border)">
                 {cartLines.map(({ item, qty }) => (
                   <li key={item.id} className="flex items-center gap-3 py-2.5">
                     <div className="min-w-0 flex-1">
-                      <p className="truncate text-sm font-medium text-slate-900">{item.name}</p>
-                      <p className="text-xs text-slate-500">
+                      <p className="truncate text-sm font-medium text-(--t-text)">{item.name}</p>
+                      <p className="text-xs text-(--t-muted)">
                         {formatPrice(item.price)} × {qty} ={" "}
-                        <span className="font-semibold text-slate-800">
+                        <span className="font-semibold text-(--t-text)">
                           {formatPrice(item.price * qty)}
                         </span>
                       </p>
@@ -502,10 +511,10 @@ export function Catalog({ shop, layout, items, categories }: Props) {
             </div>
 
             {cartLines.length > 0 && (
-              <div className="border-t border-slate-100 px-5 py-4">
+              <div className="border-t border-(--t-border) px-5 py-4">
                 {error && <Alert variant="destructive" className="mb-3">{error}</Alert>}
                 <div className="mb-3 flex items-baseline justify-between">
-                  <span className="text-slate-600">Total</span>
+                  <span className="text-(--t-muted)">Total</span>
                   <span className="text-xl font-bold">{formatPrice(cartTotal)}</span>
                 </div>
                 <Button
@@ -516,7 +525,7 @@ export function Catalog({ shop, layout, items, categories }: Props) {
                 >
                   {sending ? "Opening WhatsApp..." : "Send order on WhatsApp"}
                 </Button>
-                <p className="mt-2 text-center text-xs text-slate-500">
+                <p className="mt-2 text-center text-xs text-(--t-muted)">
                   No payment now. {shop.name} will confirm the final price and availability on
                   WhatsApp.
                 </p>

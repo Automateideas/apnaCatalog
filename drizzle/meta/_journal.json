@@ -43,6 +43,13 @@
       "when": 1794834156647,
       "tag": "0005_storage_owner_select",
       "breakpoints": true
+    },
+    {
+      "idx": 6,
+      "version": "7",
+      "when": 1794841377095,
+      "tag": "0006_shop_theme",
+      "breakpoints": true
     }
   ]
 }

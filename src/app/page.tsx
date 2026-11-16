@@ -40,6 +40,7 @@ async function loadShops(filters: { city: string; type: string; q: string; page:
         description: shops.description,
         logoUrl: shops.logoUrl,
         palette: shops.palette,
+        theme: shops.theme,
         itemCount: shops.itemCount,
         ratingSum: shops.ratingSum,
         ratingCount: shops.ratingCount,

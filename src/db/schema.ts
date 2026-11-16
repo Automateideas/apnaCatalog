@@ -47,8 +47,12 @@ export const shops = pgTable(
     lat: doublePrecision("lat"),
     lng: doublePrecision("lng"),
     mapsUrl: text("maps_url"),
+    /** Old layout choice. Still written so older app versions keep working; themes replaced it. */
     layout: text("layout").notNull(),
+    /** Colour id within the theme ("accent"). Unknown ids fall back to the theme's first colour. */
     palette: text("palette").notNull(),
+    /** Chosen theme id. Null means the theme made for the shop's business type. */
+    theme: text("theme"),
     hideBranding: boolean("hide_branding").notNull().default(false),
     plan: text("plan").notNull().default("free"),
     planExpiresAt: timestamp("plan_expires_at", { withTimezone: true }),

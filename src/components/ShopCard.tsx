@@ -1,7 +1,7 @@
 import Link from "next/link";
 import { Avatar } from "@/components/Avatar";
 import { ratingOf, Stars } from "@/components/Stars";
-import { getBusinessType, PALETTES } from "@/lib/catalog-config";
+import { effectiveTheme, getBusinessType } from "@/lib/catalog-config";
 import { Badge } from "@/components/ui/badge";
 
 export type ShopCardData = {
@@ -12,6 +12,7 @@ export type ShopCardData = {
   description: string | null;
   logoUrl: string | null;
   palette: string;
+  theme: string | null;
   itemCount: number;
   ratingSum: number;
   ratingCount: number;
@@ -20,7 +21,7 @@ export type ShopCardData = {
 
 export function ShopCard({ shop }: { shop: ShopCardData }) {
   const type = getBusinessType(shop.businessType);
-  const color = (PALETTES[shop.palette] ?? PALETTES.saffron).primary;
+  const color = effectiveTheme(shop).palette.primary;
   return (
     <Link
       href={`/${shop.slug}`}

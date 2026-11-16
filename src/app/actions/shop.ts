@@ -10,16 +10,14 @@ import { categories, shops } from "@/db/schema";
 import { getShopByOwner, requireUser } from "@/lib/auth";
 import {
   BUSINESS_TYPE_IDS,
-  freePalettes,
   getBusinessType,
   isPaid,
   LAUNCH_OFFER_DAYS,
   LAUNCH_OFFER_SHOPS,
-  LAYOUTS,
-  PALETTES,
   RESERVED_SLUGS,
 } from "@/lib/catalog-config";
 import { removeUnusedMedia } from "@/lib/media";
+import { getTheme, themeForType } from "@/lib/themes";
 import { isMediaUrl } from "@/lib/supabase/env";
 import {
   citySlugOf,
@@ -113,7 +111,8 @@ export async function createShop(input: z.input<typeof createSchema>): Promise<A
           whatsapp,
           phone: whatsapp,
           layout: type.layout,
-          palette: type.palette,
+          // No theme chosen yet: the shop shows the theme made for its business type.
+          palette: themeForType(type.id).accents[0].id,
           plan: launchOffer ? "paid" : "free",
           planExpiresAt: launchOffer
             ? new Date(Date.now() + LAUNCH_OFFER_DAYS * 24 * 60 * 60 * 1000)
@@ -189,16 +188,13 @@ export async function updateShop(input: z.input<typeof updateSchema>): Promise<A
     return { ok: false, error: "Paste a Google Maps link (it starts with https://maps.app.goo.gl/...)." };
   }
 
-  // On the free plan the theme follows the shop type, so a new type resets it.
-  const typeChanged = data.businessType !== shop.businessType;
+  // Keep the old layout column in step with the type, for older app versions.
   const newType = getBusinessType(data.businessType);
-  const themeReset =
-    typeChanged && !isPaid(shop) ? { layout: newType.layout, palette: newType.palette } : {};
 
   await db
     .update(shops)
     .set({
-      ...themeReset,
+      layout: newType.layout,
       name: data.name,
       businessType: data.businessType,
       description: data.description ?? null,
@@ -225,11 +221,12 @@ export async function updateShop(input: z.input<typeof updateSchema>): Promise<A
 }
 
 const themeSchema = z.object({
-  layout: z.string(),
-  palette: z.string(),
+  theme: z.string(),
+  accent: z.string(),
   hideBranding: z.boolean(),
 });
 
+/** Every shop can use every theme; hiding the Apnacatalog line needs the paid plan. */
 export async function updateTheme(input: z.input<typeof themeSchema>): Promise<ActionResult> {
   const user = await requireUser();
   const shop = await getShopByOwner(user.id);
@@ -237,22 +234,19 @@ export async function updateTheme(input: z.input<typeof themeSchema>): Promise<A
 
   const parsed = themeSchema.safeParse(input);
   if (!parsed.success) return { ok: false, error: "Invalid theme." };
-  const { layout, palette, hideBranding } = parsed.data;
-  if (!(layout in LAYOUTS) || !(palette in PALETTES)) return { ok: false, error: "Invalid theme." };
-
-  const paid = isPaid(shop);
-  if (!paid) {
-    const type = getBusinessType(shop.businessType);
-    if (layout !== type.layout || !freePalettes(shop.businessType).includes(palette) || hideBranding) {
-      return { ok: false, error: "This option is part of the paid plan." };
-    }
+  const theme = getTheme(parsed.data.theme);
+  const accent = theme?.accents.find((a) => a.id === parsed.data.accent);
+  if (!theme || !accent) return { ok: false, error: "Invalid theme." };
+  if (parsed.data.hideBranding && !isPaid(shop)) {
+    return { ok: false, error: "Hiding the Apnacatalog line needs the paid plan." };
   }
 
   await db
     .update(shops)
-    .set({ layout, palette, hideBranding, updatedAt: new Date() })
+    .set({ theme: theme.id, palette: accent.id, hideBranding: parsed.data.hideBranding, updatedAt: new Date() })
     .where(eq(shops.id, shop.id));
 
   revalidatePath("/dashboard", "layout");
+  revalidatePath(`/${shop.slug}`);
   return { ok: true };
 }

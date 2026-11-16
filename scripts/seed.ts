@@ -10,6 +10,7 @@ import { drizzle } from "drizzle-orm/postgres-js";
 import postgres from "postgres";
 import { categories, items, reviews, shops } from "../src/db/schema";
 import { getBusinessType } from "../src/lib/catalog-config";
+import { themeForType } from "../src/lib/themes";
 
 config({ path: ".env.local" });
 config({ path: ".env" });
@@ -116,7 +117,7 @@ async function main() {
         lat: 30.3165,
         lng: 78.0322,
         layout: type.layout,
-        palette: type.palette,
+        palette: themeForType(type.id).accents[0].id,
         plan: demo.paid ? "paid" : "free",
         reviewToken: randomBytes(12).toString("base64url"),
       })
