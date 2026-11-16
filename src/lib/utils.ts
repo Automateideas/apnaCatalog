@@ -1,7 +1,10 @@
 export const SITE_NAME = "Apnacatalog";
 
 export function siteUrl(): string {
-  return (process.env.NEXT_PUBLIC_SITE_URL || "http://localhost:3000").replace(/\/+$/, "");
+  return (process.env.NEXT_PUBLIC_SITE_URL || "http://localhost:3210").replace(
+    /\/+$/,
+    "",
+  );
 }
 
 export function slugify(input: string): string {
@@ -21,13 +24,17 @@ export function slugify(input: string): string {
  * for cities written in Hindi or another non-Latin script.
  */
 export function citySlugOf(name: string): string {
-  return slugify(name) || name.trim().toLowerCase().replace(/\s+/g, "-").slice(0, 50);
+  return (
+    slugify(name) || name.trim().toLowerCase().replace(/\s+/g, "-").slice(0, 50)
+  );
 }
 
 export const SLUG_PATTERN = /^[a-z0-9][a-z0-9-]{1,48}[a-z0-9]$/;
 
 /** Returns a 10-digit Indian mobile number, or null if the input is not one. */
-export function normalizePhone(input: string | null | undefined): string | null {
+export function normalizePhone(
+  input: string | null | undefined,
+): string | null {
   if (!input) return null;
   let digits = input.replace(/\D/g, "");
   if (digits.length === 12 && digits.startsWith("91")) digits = digits.slice(2);
@@ -46,7 +53,10 @@ export function waShareLink(text: string): string {
 }
 
 const inrWhole = new Intl.NumberFormat("en-IN", { maximumFractionDigits: 0 });
-const inrPaise = new Intl.NumberFormat("en-IN", { minimumFractionDigits: 2, maximumFractionDigits: 2 });
+const inrPaise = new Intl.NumberFormat("en-IN", {
+  minimumFractionDigits: 2,
+  maximumFractionDigits: 2,
+});
 
 /** Formats paise as rupees: 124000 -> "₹1,240", 24950 -> "₹249.50". */
 export function formatPrice(paise: number): string {
@@ -78,7 +88,10 @@ export function formatDateTime(date: Date): string {
 
 export function initials(name: string): string {
   const words = name.trim().split(/\s+/).filter(Boolean);
-  const letters = words.length > 1 ? words[0][0] + words[1][0] : (words[0] ?? "A").slice(0, 2);
+  const letters =
+    words.length > 1
+      ? words[0][0] + words[1][0]
+      : (words[0] ?? "A").slice(0, 2);
   return letters.toUpperCase();
 }
 

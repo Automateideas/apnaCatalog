@@ -49,6 +49,36 @@ export async function adminSetShopPlan(id: string, months: number): Promise<Acti
   return { ok: true };
 }
 
+const MAX_PLAN_YEARS = 5;
+
+/**
+ * Sets the paid plan to end on a chosen day (YYYY-MM-DD), replacing the current end date.
+ * The plan lasts until the end of that day in India.
+ */
+export async function adminSetShopPlanUntil(id: string, date: string): Promise<ActionResult> {
+  await requireAdmin();
+  if (!z.uuid().safeParse(id).success) return { ok: false, error: "Shop not found." };
+  if (!z.iso.date().safeParse(date).success) return { ok: false, error: "Choose a valid date." };
+
+  const expires = new Date(`${date}T23:59:59+05:30`);
+  const latest = new Date();
+  latest.setFullYear(latest.getFullYear() + MAX_PLAN_YEARS);
+  if (expires <= new Date()) return { ok: false, error: "Choose today or a later date." };
+  if (expires > latest) {
+    return { ok: false, error: `The date can be at most ${MAX_PLAN_YEARS} years from today.` };
+  }
+
+  const updated = await db
+    .update(shops)
+    .set({ plan: "paid", planExpiresAt: expires })
+    .where(eq(shops.id, id))
+    .returning({ id: shops.id });
+  if (updated.length === 0) return { ok: false, error: "Shop not found." };
+
+  revalidatePath("/admin");
+  return { ok: true };
+}
+
 export async function adminSetReviewHidden(id: string, hidden: boolean): Promise<ActionResult> {
   await requireAdmin();
   if (!z.uuid().safeParse(id).success) return { ok: false, error: "Review not found." };

@@ -19,8 +19,8 @@ import {
   PALETTES,
   RESERVED_SLUGS,
 } from "@/lib/catalog-config";
+import { removeUnusedMedia } from "@/lib/media";
 import { isMediaUrl } from "@/lib/supabase/env";
-import { setPendingOwner } from "@/lib/owner-change";
 import {
   citySlugOf,
   normalizePhone,
@@ -217,6 +217,9 @@ export async function updateShop(input: z.input<typeof updateSchema>): Promise<A
     })
     .where(eq(shops.id, shop.id));
 
+  // A replaced or removed logo / owner photo is deleted from storage.
+  await removeUnusedMedia(shop.id, [shop.logoUrl, shop.ownerPhotoUrl]);
+
   revalidatePath("/dashboard", "layout");
   return { ok: true };
 }
@@ -252,18 +255,4 @@ export async function updateTheme(input: z.input<typeof themeSchema>): Promise<A
 
   revalidatePath("/dashboard", "layout");
   return { ok: true };
-}
-
-/**
- * Starts moving the shop to another Google account. Nothing changes until that
- * account logs in; until then the current owner can cancel. Empty email cancels.
- */
-export async function changeLoginEmail(email: string): Promise<ActionResult> {
-  const user = await requireUser();
-  const shop = await getShopByOwner(user.id);
-  if (!shop) return { ok: false, error: "Shop not found." };
-
-  const result = await setPendingOwner(shop, email);
-  if (result.ok) revalidatePath("/dashboard", "layout");
-  return result;
 }

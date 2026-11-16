@@ -13,6 +13,7 @@ import { Label } from "@/components/ui/label";
 import { Textarea } from "@/components/ui/textarea";
 import { Button } from "@/components/ui/button";
 import { Sheet, SheetClose, SheetContent, SheetTitle } from "@/components/ui/sheet";
+import { PhotoViewer } from "./PhotoViewer";
 
 export type CatalogItem = {
   id: string;
@@ -22,6 +23,8 @@ export type CatalogItem = {
   mrp: number | null;
   unit: string | null;
   imageUrl: string | null;
+  /** All photos, main photo first. */
+  imageUrls: string[];
   inStock: boolean;
   categoryId: string | null;
 };
@@ -59,6 +62,7 @@ export function Catalog({ shop, layout, items, categories }: Props) {
   const [activeSub, setActiveSub] = useState<string | null>(null);
   const [query, setQuery] = useState("");
   const [cartOpen, setCartOpen] = useState(false);
+  const [viewing, setViewing] = useState<CatalogItem | null>(null);
   const [name, setName] = useState("");
   const [note, setNote] = useState("");
   const [error, setError] = useState<string | null>(null);
@@ -204,6 +208,27 @@ export function Catalog({ shop, layout, items, categories }: Props) {
     </span>
   );
 
+  /** An item's main photo. Tapping it opens all of the item's photos. */
+  const photo = (item: CatalogItem, className: string) => (
+    <button
+      type="button"
+      onClick={() => setViewing(item)}
+      className={cx("relative block cursor-zoom-in", className)}
+      aria-label={
+        item.imageUrls.length > 1
+          ? `View ${item.imageUrls.length} photos of ${item.name}`
+          : `View photo of ${item.name}`
+      }
+    >
+      <img src={item.imageUrl ?? ""} alt="" loading="lazy" className="h-full w-full object-cover" />
+      {item.imageUrls.length > 1 && (
+        <span className="absolute right-1 bottom-1 rounded bg-black/60 px-1.5 py-0.5 text-[10px] font-medium text-white">
+          {item.imageUrls.length} photos
+        </span>
+      )}
+    </button>
+  );
+
   const renderItems = (list: CatalogItem[]) => {
     if (layout === "grid") {
       return (
@@ -215,12 +240,7 @@ export function Catalog({ shop, layout, items, categories }: Props) {
             >
               <div className="aspect-square bg-slate-100">
                 {item.imageUrl ? (
-                  <img
-                    src={item.imageUrl}
-                    alt={item.name}
-                    loading="lazy"
-                    className="h-full w-full object-cover"
-                  />
+                  photo(item, "h-full w-full")
                 ) : (
                   <div className="flex h-full items-center justify-center text-slate-300">
                     <Icon name="bag" className="h-8 w-8" />
@@ -253,12 +273,7 @@ export function Catalog({ shop, layout, items, categories }: Props) {
             >
               <div className="h-14 w-14 shrink-0 overflow-hidden rounded-lg bg-slate-100">
                 {item.imageUrl ? (
-                  <img
-                    src={item.imageUrl}
-                    alt={item.name}
-                    loading="lazy"
-                    className="h-full w-full object-cover"
-                  />
+                  photo(item, "h-full w-full")
                 ) : (
                   <div className="flex h-full items-center justify-center text-slate-300">
                     <Icon name="bag" className="h-6 w-6" />
@@ -298,14 +313,7 @@ export function Catalog({ shop, layout, items, categories }: Props) {
                 {stepper(item, true)}
               </div>
             </div>
-            {item.imageUrl && (
-              <img
-                src={item.imageUrl}
-                alt={item.name}
-                loading="lazy"
-                className="h-20 w-20 shrink-0 rounded-xl object-cover"
-              />
-            )}
+            {item.imageUrl && photo(item, "h-20 w-20 shrink-0 overflow-hidden rounded-xl")}
           </article>
         ))}
       </Card>
@@ -516,6 +524,14 @@ export function Catalog({ shop, layout, items, categories }: Props) {
             )}
           </SheetContent>
         </Sheet>
+      )}
+
+      {viewing && (
+        <PhotoViewer
+          name={viewing.name}
+          urls={viewing.imageUrls.length > 0 ? viewing.imageUrls : [viewing.imageUrl ?? ""]}
+          onClose={() => setViewing(null)}
+        />
       )}
     </div>
   );

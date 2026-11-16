@@ -9,7 +9,9 @@ import {
   adminSetShopPlan,
 } from "@/app/actions/admin";
 import { ActionButton } from "@/components/ActionButton";
+import { Feedback } from "@/components/dialogs";
 import { LoginEmailButton } from "./LoginEmailButton";
+import { PlanDateButton } from "./PlanDateButton";
 import { Logo } from "@/components/SiteChrome";
 import { Stars } from "@/components/Stars";
 import { requireAdmin } from "@/lib/auth";
@@ -23,6 +25,11 @@ import { Badge } from "@/components/ui/badge";
 
 export const dynamic = "force-dynamic";
 export const metadata: Metadata = { title: "Admin", robots: { index: false, follow: false } };
+
+/** A date as YYYY-MM-DD in India time, the format a date input uses. */
+function dateInIndia(date: Date): string {
+  return new Intl.DateTimeFormat("en-CA", { timeZone: "Asia/Kolkata" }).format(date);
+}
 
 export default async function AdminPage({ searchParams }: PageProps<"/admin">) {
   await requireAdmin();
@@ -209,22 +216,31 @@ export default async function AdminPage({ searchParams }: PageProps<"/admin">) {
                           <ActionButton
                             size="xs"
                             action={adminSetShopPlan.bind(null, shop.id, 1)}
-                            confirm={`Give ${shop.name} the paid plan for 1 month from today?`}
+                            confirm={`Add 1 month of the paid plan to ${shop.name}?`}
+                            success={`Added 1 month to ${shop.name}.`}
                           >
                             Paid 1 mo
                           </ActionButton>
                           <ActionButton
                             size="xs"
                             action={adminSetShopPlan.bind(null, shop.id, 12)}
-                            confirm={`Give ${shop.name} the paid plan for 1 year from today?`}
+                            confirm={`Add 1 year of the paid plan to ${shop.name}?`}
+                            success={`Added 1 year to ${shop.name}.`}
                           >
                             Paid 1 yr
                           </ActionButton>
+                          <PlanDateButton
+                            shopId={shop.id}
+                            shopName={shop.name}
+                            currentDate={paid && shop.planExpiresAt ? dateInIndia(shop.planExpiresAt) : null}
+                          />
                           {shop.plan === "paid" && (
                             <ActionButton
                               size="xs"
                               action={adminSetShopPlan.bind(null, shop.id, 0)}
                               confirm={`Move ${shop.name} to the free plan now?`}
+                              destructive
+                              success={`${shop.name} is now on the free plan.`}
                             >
                               Make free
                             </ActionButton>
@@ -237,6 +253,7 @@ export default async function AdminPage({ searchParams }: PageProps<"/admin">) {
                                 ? `Show ${shop.name} to the public again?`
                                 : `Hide ${shop.name}? Customers will not be able to open it.`
                             }
+                            destructive={!shop.isHidden}
                           >
                             {shop.isHidden ? "Unhide" : "Hide"}
                           </ActionButton>
@@ -263,6 +280,7 @@ export default async function AdminPage({ searchParams }: PageProps<"/admin">) {
           <p className="mt-2 text-xs text-slate-500">Showing the newest 100 shops. Use search to find others.</p>
         </section>
       </main>
+      <Feedback />
     </>
   );
 }

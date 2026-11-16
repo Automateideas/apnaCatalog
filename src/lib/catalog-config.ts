@@ -66,6 +66,8 @@ export const LAUNCH_OFFER_SHOPS = 100;
 export const LAUNCH_OFFER_DAYS = 90;
 export const PRICE_MONTHLY = 99;
 export const PRICE_YEARLY = 999;
+/** Photos allowed on one item. The first one is the main photo. */
+export const MAX_ITEM_PHOTOS = 5;
 /** A shop appears on the home page once it has this many items and a photo. */
 export const MIN_ITEMS_TO_LIST = 3;
 

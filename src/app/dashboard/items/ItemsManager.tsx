@@ -3,6 +3,7 @@
 import { useState, useTransition } from "react";
 import Link from "next/link";
 import { useRouter } from "next/navigation";
+import { toast } from "sonner";
 import {
   deleteCategory,
   deleteItem,
@@ -10,7 +11,9 @@ import {
   saveItem,
   setItemStock,
 } from "@/app/actions/items";
-import { ImageUpload } from "@/components/ImageUpload";
+import { confirmDialog, promptDialog } from "@/components/dialogs";
+import { ItemPhotos } from "@/components/ItemPhotos";
+import { discardUploads } from "@/lib/upload";
 import { cx, formatPrice, type ActionResult } from "@/lib/utils";
 import { Icon, IconBadge } from "@/components/Icon";
 import { Button } from "@/components/ui/button";
@@ -31,6 +34,7 @@ type Item = {
   mrp: number | null;
   unit: string | null;
   imageUrl: string | null;
+  imageUrls: string[];
   inStock: boolean;
   categoryId: string | null;
 };
@@ -42,7 +46,9 @@ type Draft = {
   price: string;
   mrp: string;
   unit: string;
-  imageUrl: string | null;
+  imageUrls: string[];
+  /** Photos the saved item has. Any other photo in imageUrls was uploaded in this form. */
+  savedImageUrls: string[];
   inStock: boolean;
   categoryId: string;
 };
@@ -53,7 +59,8 @@ const emptyDraft: Draft = {
   price: "",
   mrp: "",
   unit: "",
-  imageUrl: null,
+  imageUrls: [],
+  savedImageUrls: [],
   inStock: true,
   categoryId: "",
 };
@@ -73,10 +80,11 @@ export function ItemsManager({
   const router = useRouter();
   const [draft, setDraft] = useState<Draft | null>(null);
   const [formError, setFormError] = useState<string | null>(null);
-  const [error, setError] = useState<string | null>(null);
   const [newCategory, setNewCategory] = useState("");
   const [filter, setFilter] = useState("");
   const [pending, startTransition] = useTransition();
+  // Saving waits for photo uploads, so no photo is left out of the save.
+  const [uploading, setUploading] = useState(false);
 
   const topCats = categories.filter((c) => !c.parentId);
   const subsOf = (id: string) => categories.filter((c) => c.parentId === id);
@@ -91,20 +99,27 @@ export function ItemsManager({
 
   /** Runs a server action, shows its error, and reloads the data. */
   const run = (action: () => Promise<ActionResult>, onDone?: () => void) => {
-    setError(null);
     startTransition(async () => {
       try {
         const result = await action();
         if (!result.ok) {
-          setError(result.error);
+          toast.error(result.error);
           return;
         }
         onDone?.();
         router.refresh();
       } catch {
-        setError("Something went wrong. Check your internet and try again.");
+        toast.error("Something went wrong. Check your internet and try again.");
       }
     });
+  };
+
+  /** Closes the item form without saving, and deletes the photos uploaded in it. */
+  const closeForm = () => {
+    if (draft) {
+      void discardUploads(draft.imageUrls.filter((url) => !draft.savedImageUrls.includes(url)));
+    }
+    setDraft(null);
   };
 
   const submitItem = (event: React.FormEvent) => {
@@ -131,7 +146,7 @@ export function ItemsManager({
           mrp,
           unit: draft.unit,
           categoryId: draft.categoryId || null,
-          imageUrl: draft.imageUrl,
+          imageUrls: draft.imageUrls,
           inStock: draft.inStock,
         });
         if (!result.ok) {
@@ -155,7 +170,8 @@ export function ItemsManager({
       price: String(item.price / 100),
       mrp: item.mrp ? String(item.mrp / 100) : "",
       unit: item.unit ?? "",
-      imageUrl: item.imageUrl,
+      imageUrls: item.imageUrls,
+      savedImageUrls: item.imageUrls,
       inStock: item.inStock,
       categoryId: item.categoryId ?? "",
     });
@@ -196,8 +212,6 @@ export function ItemsManager({
         </p>
       )}
 
-      {error && <Alert variant="destructive">{error}</Alert>}
-
       <details className="rounded-xl border bg-card p-4">
         <summary className="cursor-pointer font-semibold text-slate-900">
           Categories ({topCats.length})
@@ -212,9 +226,14 @@ export function ItemsManager({
                     type="button"
                     className="rounded px-2 py-1 text-slate-600 hover:bg-slate-100"
                     disabled={pending}
-                    onClick={() => {
-                      const name = window.prompt("Subcategory name", "");
-                      if (name?.trim()) run(() => saveCategory({ name, parentId: cat.id }));
+                    onClick={async () => {
+                      const name = await promptDialog({
+                        title: `New subcategory in ${cat.name}`,
+                        label: "Subcategory name",
+                        maxLength: 40,
+                        confirmLabel: "Add",
+                      });
+                      if (name) run(() => saveCategory({ name, parentId: cat.id }));
                     }}
                   >
                     + Sub
@@ -223,9 +242,14 @@ export function ItemsManager({
                     type="button"
                     className="rounded px-2 py-1 text-slate-600 hover:bg-slate-100"
                     disabled={pending}
-                    onClick={() => {
-                      const name = window.prompt("Category name", cat.name);
-                      if (name?.trim()) run(() => saveCategory({ id: cat.id, name }));
+                    onClick={async () => {
+                      const name = await promptDialog({
+                        title: "Rename category",
+                        label: "Category name",
+                        defaultValue: cat.name,
+                        maxLength: 40,
+                      });
+                      if (name) run(() => saveCategory({ id: cat.id, name }));
                     }}
                   >
                     Rename
@@ -234,14 +258,15 @@ export function ItemsManager({
                     type="button"
                     className="rounded px-2 py-1 text-red-600 hover:bg-red-50"
                     disabled={pending}
-                    onClick={() => {
-                      if (
-                        window.confirm(
-                          `Delete "${cat.name}" and its subcategories? Items in it are kept without a category.`,
-                        )
-                      ) {
-                        run(() => deleteCategory(cat.id));
-                      }
+                    onClick={async () => {
+                      const ok = await confirmDialog({
+                        title: `Delete "${cat.name}"?`,
+                        description:
+                          "Its subcategories are deleted too. Items in it are kept, without a category.",
+                        confirmLabel: "Delete",
+                        destructive: true,
+                      });
+                      if (ok) run(() => deleteCategory(cat.id));
                     }}
                   >
                     Delete
@@ -259,9 +284,14 @@ export function ItemsManager({
                         type="button"
                         disabled={pending}
                         title="Rename"
-                        onClick={() => {
-                          const name = window.prompt("Subcategory name", sub.name);
-                          if (name?.trim()) run(() => saveCategory({ id: sub.id, name }));
+                        onClick={async () => {
+                          const name = await promptDialog({
+                            title: "Rename subcategory",
+                            label: "Subcategory name",
+                            defaultValue: sub.name,
+                            maxLength: 40,
+                          });
+                          if (name) run(() => saveCategory({ id: sub.id, name }));
                         }}
                       >
                         {sub.name}
@@ -271,10 +301,14 @@ export function ItemsManager({
                         className="flex h-6 w-6 items-center justify-center rounded-full text-slate-500 hover:bg-slate-200"
                         aria-label={`Delete ${sub.name}`}
                         disabled={pending}
-                        onClick={() => {
-                          if (window.confirm(`Delete subcategory "${sub.name}"?`)) {
-                            run(() => deleteCategory(sub.id));
-                          }
+                        onClick={async () => {
+                          const ok = await confirmDialog({
+                            title: `Delete subcategory "${sub.name}"?`,
+                            description: "Items in it are kept, without a category.",
+                            confirmLabel: "Delete",
+                            destructive: true,
+                          });
+                          if (ok) run(() => deleteCategory(sub.id));
                         }}
                       >
                         <Icon name="x" className="h-3.5 w-3.5" />
@@ -330,7 +364,12 @@ export function ItemsManager({
         <ul className="rounded-xl border bg-card divide-y divide-slate-100">
           {shown.map((item) => (
             <li key={item.id} className="flex items-center gap-3 p-3">
-              <div className="h-14 w-14 shrink-0 overflow-hidden rounded-lg bg-slate-100">
+              <div className="relative h-14 w-14 shrink-0 overflow-hidden rounded-lg bg-slate-100">
+                {item.imageUrls.length > 1 && (
+                  <span className="absolute right-0.5 bottom-0.5 rounded bg-black/60 px-1 text-[10px] font-medium text-white">
+                    {item.imageUrls.length}
+                  </span>
+                )}
                 {item.imageUrl ? (
                   <img src={item.imageUrl} alt="" loading="lazy" className="h-full w-full object-cover" />
                 ) : (
@@ -374,8 +413,13 @@ export function ItemsManager({
                     type="button"
                     className="rounded px-2 py-1 text-red-600 hover:bg-red-50"
                     disabled={pending}
-                    onClick={() => {
-                      if (window.confirm(`Delete "${item.name}"?`)) run(() => deleteItem(item.id));
+                    onClick={async () => {
+                      const ok = await confirmDialog({
+                        title: `Delete "${item.name}"?`,
+                        confirmLabel: "Delete",
+                        destructive: true,
+                      });
+                      if (ok) run(() => deleteItem(item.id));
                     }}
                   >
                     Delete
@@ -389,7 +433,7 @@ export function ItemsManager({
       )}
 
       {draft && (
-        <Sheet open onOpenChange={(open) => !open && setDraft(null)}>
+        <Sheet open onOpenChange={(open) => !open && closeForm()}>
           <SheetContent side="bottom" showCloseButton={false} className="mx-auto w-full max-w-lg gap-0 rounded-t-2xl p-0 text-base max-h-[92dvh]">
           <form onSubmit={submitItem} className="flex min-h-0 flex-1 flex-col">
             <div className="flex items-center justify-between border-b border-slate-100 px-5 py-3">
@@ -402,12 +446,15 @@ export function ItemsManager({
             </div>
 
             <div className="flex-1 space-y-4 overflow-y-auto px-5 py-4">
-              <ImageUpload
-                label="Photo"
-                kind="item"
+              <ItemPhotos
                 userId={userId}
-                value={draft.imageUrl}
-                onChange={(imageUrl) => setDraft({ ...draft, imageUrl })}
+                value={draft.imageUrls}
+                savedUrls={draft.savedImageUrls}
+                onBusyChange={setUploading}
+                onAdd={(url) =>
+                  setDraft((d) => (d ? { ...d, imageUrls: [...d.imageUrls, url] } : d))
+                }
+                onChange={(imageUrls) => setDraft((d) => (d ? { ...d, imageUrls } : d))}
               />
               <div>
                 <Label htmlFor="item-name">
@@ -512,8 +559,8 @@ export function ItemsManager({
 
             <div className="border-t border-slate-100 px-5 py-4">
               {formError && <Alert variant="destructive" className="mb-3">{formError}</Alert>}
-              <Button type="submit" className="w-full text-base" disabled={pending}>
-                {pending ? "Saving..." : "Save item"}
+              <Button type="submit" className="w-full text-base" disabled={pending || uploading}>
+                {pending ? "Saving..." : uploading ? "Uploading photos..." : "Save item"}
               </Button>
             </div>
           </form>

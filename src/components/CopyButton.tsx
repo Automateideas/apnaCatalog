@@ -1,6 +1,7 @@
 "use client";
 
 import { useState } from "react";
+import { toast } from "sonner";
 import { Button } from "@/components/ui/button";
 
 type ButtonProps = React.ComponentProps<typeof Button>;
@@ -31,7 +32,11 @@ export function CopyButton({
           setCopied(true);
           setTimeout(() => setCopied(false), 2000);
         } catch {
-          window.prompt("Copy this link:", text);
+          // Clipboard is blocked (old browser or no permission): show the link to copy by hand.
+          toast.error("Could not copy. Long-press the link to copy it.", {
+            description: text,
+            duration: 15000,
+          });
         }
       }}
     >

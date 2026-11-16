@@ -1,3 +1,4 @@
+import { sql } from "drizzle-orm";
 import {
   boolean,
   doublePrecision,
@@ -104,7 +105,13 @@ export const items = pgTable(
     /** Optional MRP in paise, shown struck through. */
     mrp: integer("mrp"),
     unit: text("unit"),
+    /** The main photo: always the first of imageUrls. Kept as its own column for lists and counts. */
     imageUrl: text("image_url"),
+    /** All photos of the item, main photo first. At most MAX_ITEM_PHOTOS. */
+    imageUrls: text("image_urls")
+      .array()
+      .notNull()
+      .default(sql`'{}'::text[]`),
     inStock: boolean("in_stock").notNull().default(true),
     createdAt: timestamp("created_at", { withTimezone: true }).notNull().defaultNow(),
     updatedAt: timestamp("updated_at", { withTimezone: true }).notNull().defaultNow(),

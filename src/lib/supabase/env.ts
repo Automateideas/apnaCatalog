@@ -16,6 +16,13 @@ export function isMediaUrl(url: string): boolean {
   return url.startsWith(`${SUPABASE_URL}/storage/v1/object/public/${MEDIA_BUCKET}/`) && !url.includes("..");
 }
 
+/** The path of one of our photos inside the bucket ("<userId>/<file>"), or null for any other URL. */
+export function mediaPathOf(url: string): string | null {
+  if (!isMediaUrl(url)) return null;
+  const path = url.slice(`${SUPABASE_URL}/storage/v1/object/public/${MEDIA_BUCKET}/`.length).split("?")[0];
+  return path ? decodeURIComponent(path) : null;
+}
+
 /** Public URL prefix of files a given user uploaded. */
 export function mediaPrefix(userId: string): string {
   return `${SUPABASE_URL}/storage/v1/object/public/${MEDIA_BUCKET}/${userId}/`;

@@ -4,6 +4,7 @@ import { count, eq } from "drizzle-orm";
 import { db } from "@/db";
 import { orders } from "@/db/schema";
 import { CopyButton } from "@/components/CopyButton";
+import { SendToNumberButton } from "@/components/SendToNumberButton";
 import { ratingOf } from "@/components/Stars";
 import { requireShop } from "@/lib/auth";
 import { FREE_ITEM_LIMIT, isPaid, MIN_ITEMS_TO_LIST } from "@/lib/catalog-config";
@@ -81,6 +82,9 @@ export default async function DashboardHome({ searchParams }: PageProps<"/dashbo
           >
             Share on WhatsApp
           </a>
+          <SendToNumberButton
+            text={`See the catalog of ${shop.name} and order on WhatsApp:\n${shopUrl}`}
+          />
         </div>
       </Card>
 

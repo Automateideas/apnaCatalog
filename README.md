@@ -18,8 +18,8 @@ to the shop on WhatsApp. The home page lists shops by city and type.
   get paid features free for 90 days. There is no payment gateway yet: shopkeepers message you on
   WhatsApp and you switch the plan in `/admin`.
 - **Admin** (`/admin`): hide shops, set plans, hide reported reviews, change a shop's login email.
-- **Changing login email**: a shopkeeper (Shop details) or the admin enters the new Google email.
-  The shop moves when that account logs in; until then it can be cancelled.
+- **Changing login email**: only the admin can do this. In `/admin` enter the shop's new Google email.
+  The shop moves when that account logs in; until then the admin can cancel it.
 - **PWA**: installable. Each shop has its own manifest and icon, so a customer can add one shop
   to their home screen.
 

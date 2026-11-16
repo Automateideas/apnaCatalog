@@ -6,7 +6,8 @@ import { z } from "zod";
 import { db } from "@/db";
 import { categories, items } from "@/db/schema";
 import { getShopByOwner, requireUser } from "@/lib/auth";
-import { FREE_ITEM_LIMIT, isPaid } from "@/lib/catalog-config";
+import { FREE_ITEM_LIMIT, isPaid, MAX_ITEM_PHOTOS } from "@/lib/catalog-config";
+import { removeUnusedMedia } from "@/lib/media";
 import { refreshShopStats } from "@/lib/shop-stats";
 import { isMediaUrl } from "@/lib/supabase/env";
 import { rupeesToPaise, type ActionResult } from "@/lib/utils";
@@ -25,7 +26,8 @@ const itemSchema = z.object({
   mrp: z.number().min(0).max(10_000_000).optional().nullable(),
   unit: z.string().trim().max(20).optional().nullable(),
   categoryId: z.uuid().optional().nullable(),
-  imageUrl: z.string().optional().nullable(),
+  /** Main photo first. */
+  imageUrls: z.array(z.string().max(500)).max(20).optional(),
   inStock: z.boolean(),
 });
 
@@ -48,7 +50,11 @@ export async function saveItem(input: z.input<typeof itemSchema>): Promise<Actio
 
   const price = rupeesToPaise(data.price);
   const mrp = data.mrp && rupeesToPaise(data.mrp) > price ? rupeesToPaise(data.mrp) : null;
-  const imageUrl = data.imageUrl && isMediaUrl(data.imageUrl) ? data.imageUrl : null;
+  // Only photos from our own storage, no repeats, main photo first.
+  const imageUrls = [...new Set((data.imageUrls ?? []).filter(isMediaUrl))];
+  if (imageUrls.length > MAX_ITEM_PHOTOS) {
+    return { ok: false, error: `An item can have at most ${MAX_ITEM_PHOTOS} photos.` };
+  }
 
   const values = {
     name: data.name,
@@ -57,15 +63,20 @@ export async function saveItem(input: z.input<typeof itemSchema>): Promise<Actio
     mrp,
     unit: data.unit || null,
     categoryId: data.categoryId ?? null,
-    imageUrl,
+    imageUrl: imageUrls[0] ?? null,
+    imageUrls,
     inStock: data.inStock,
   };
 
+  // Photos the item had before this save, to delete the ones that were taken off.
+  let oldImageUrls: string[] = [];
+
   if (data.id) {
-    await db
-      .update(items)
-      .set({ ...values, updatedAt: new Date() })
-      .where(and(eq(items.id, data.id), eq(items.shopId, shop.id)));
+    const mine = and(eq(items.id, data.id), eq(items.shopId, shop.id));
+    const [existing] = await db.select({ imageUrls: items.imageUrls }).from(items).where(mine).limit(1);
+    if (!existing) return { ok: false, error: "Item not found." };
+    oldImageUrls = existing.imageUrls;
+    await db.update(items).set({ ...values, updatedAt: new Date() }).where(mine);
   } else {
     if (!isPaid(shop)) {
       const [{ total }] = await db
@@ -82,6 +93,10 @@ export async function saveItem(input: z.input<typeof itemSchema>): Promise<Actio
     await db.insert(items).values({ ...values, shopId: shop.id });
   }
 
+  await removeUnusedMedia(
+    shop.id,
+    oldImageUrls.filter((url) => !imageUrls.includes(url)),
+  );
   await refreshShopStats(shop.id);
   revalidatePath("/dashboard", "layout");
   return { ok: true };
@@ -92,7 +107,15 @@ export async function deleteItem(id: string): Promise<ActionResult> {
   if (!shop) return { ok: false, error: "Shop not found." };
   if (!z.uuid().safeParse(id).success) return { ok: false, error: "Item not found." };
 
-  await db.delete(items).where(and(eq(items.id, id), eq(items.shopId, shop.id)));
+  const deleted = await db
+    .delete(items)
+    .where(and(eq(items.id, id), eq(items.shopId, shop.id)))
+    .returning({ imageUrls: items.imageUrls });
+  // The item's photos go with it, so they do not pile up in storage.
+  await removeUnusedMedia(
+    shop.id,
+    deleted.flatMap((row) => row.imageUrls),
+  );
   await refreshShopStats(shop.id);
   revalidatePath("/dashboard", "layout");
   return { ok: true };

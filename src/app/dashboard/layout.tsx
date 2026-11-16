@@ -1,5 +1,6 @@
 import type { Metadata } from "next";
 import Link from "next/link";
+import { Feedback } from "@/components/dialogs";
 import { Logo } from "@/components/SiteChrome";
 import { getShopByOwner, isAdminEmail, requireUser } from "@/lib/auth";
 import { DashboardNav } from "./DashboardNav";
@@ -48,6 +49,7 @@ export default async function DashboardLayout({ children }: LayoutProps<"/dashbo
         {shop && <DashboardNav />}
       </header>
       <main className="mx-auto w-full max-w-4xl flex-1 px-4 py-6">{children}</main>
+      <Feedback />
     </>
   );
 }

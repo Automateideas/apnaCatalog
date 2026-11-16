@@ -23,6 +23,7 @@ export default async function ItemsPage() {
         mrp: items.mrp,
         unit: items.unit,
         imageUrl: items.imageUrl,
+        imageUrls: items.imageUrls,
         inStock: items.inStock,
         categoryId: items.categoryId,
       })
