@@ -1,8 +1,6 @@
 @import "tailwindcss";
 @import "tw-animate-css";
 @import "shadcn/tailwind.css";
-@custom-variant dark (&:is(.dark *));
-
 /*
   Design system
   -------------
@@ -19,7 +17,8 @@
 */
 @theme inline {
   --font-sans: var(--font-mukta), ui-sans-serif, system-ui, sans-serif;
-  --font-display: var(--font-baloo), var(--font-mukta), ui-sans-serif, system-ui, sans-serif;
+  --font-display:
+    var(--font-baloo), var(--font-mukta), ui-sans-serif, system-ui, sans-serif;
   --font-heading: var(--font-display);
   --color-brand: #1b2340;
   --color-brand-dark: #10162b;
@@ -99,7 +98,6 @@ h2 {
   outline: 2px solid var(--p, var(--color-brand));
   outline-offset: 2px;
 }
-
 
 .no-scrollbar {
   scrollbar-width: none;
