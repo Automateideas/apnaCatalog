@@ -3,6 +3,7 @@ import { Baloo_2, Mukta } from "next/font/google";
 import { ServiceWorker } from "@/components/ServiceWorker";
 import { SITE_NAME, siteUrl } from "@/lib/utils";
 import "./globals.css";
+import { SpeedInsights } from "@vercel/speed-insights/next";
 
 // Both families include Devanagari, so Hindi shop and item names match the Latin text.
 const baloo = Baloo_2({
@@ -57,6 +58,7 @@ export default function RootLayout({ children }: LayoutProps<"/">) {
         data-new-gr-c-s-check-loaded="14.1347.0"
         data-gr-ext-installed=""
       >
+        <SpeedInsights />
         {children}
         <ServiceWorker />
       </body>
