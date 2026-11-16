@@ -12,6 +12,8 @@ type Props = {
   description: string | null;
   rating: number;
   ratingCount: number;
+  /** The shop's first photo, used by the "cover" header. */
+  coverUrl?: string | null;
 };
 
 function RatingLink({ rating, count, className }: { rating: number; count: number; className?: string }) {
@@ -27,8 +29,19 @@ function RatingLink({ rating, count, className }: { rating: number; count: numbe
   );
 }
 
-/** The top of a shop page. Each theme picks one of five designs. */
-export function ShopHeader({ theme, name, logoUrl, subtitle, description, rating, ratingCount }: Props) {
+/** The top of a shop page, with the theme's awning above it when it has one. */
+export function ShopHeader(props: Props) {
+  if (props.theme.decor !== "awning") return <HeaderBody {...props} />;
+  return (
+    <>
+      <div className="t-awning" aria-hidden="true" />
+      <HeaderBody {...props} />
+    </>
+  );
+}
+
+/** Each theme picks one of six designs. */
+function HeaderBody({ theme, name, logoUrl, subtitle, description, rating, ratingCount, coverUrl }: Props) {
   const logo = (className: string, round = false) => (
     <Avatar
       name={name}
@@ -80,6 +93,42 @@ export function ShopHeader({ theme, name, logoUrl, subtitle, description, rating
             <h1 className="t-head mt-5 text-4xl leading-[1.05] sm:text-5xl">{name}</h1>
             <RatingLink rating={rating} count={ratingCount} />
             {description && <p className="mt-4 max-w-xl text-sm text-white/85">{description}</p>}
+          </div>
+        </header>
+      );
+
+    case "cover":
+      // The shop's own photo, darkened at the bottom so the name stays readable.
+      // Without a photo, a deep wash of the shop colour stands in.
+      return (
+        <header className="relative isolate overflow-hidden bg-[#111] text-white">
+          {coverUrl ? (
+            <img src={coverUrl} alt="" className="absolute inset-0 -z-10 h-full w-full object-cover" />
+          ) : (
+            <div
+              className="absolute inset-0 -z-10"
+              style={{ background: "radial-gradient(120% 120% at 100% 0%, var(--pd), #111 70%)" }}
+            />
+          )}
+          <div className="absolute inset-0 -z-10 bg-linear-to-t from-black/85 via-black/45 to-black/10" />
+          <div
+            className={cx(
+              "mx-auto w-full max-w-3xl px-4 pt-28 pb-7 sm:pt-40",
+              theme.center && "flex flex-col items-center text-center",
+            )}
+          >
+            {logo("h-14 w-14 border border-white/50 text-lg shadow-lg")}
+            <h1 className="t-head mt-3 text-4xl leading-[1.05] drop-shadow sm:text-5xl">{name}</h1>
+            <p className="mt-1.5 text-sm text-white/80">{subtitle}</p>
+            <RatingLink rating={rating} count={ratingCount} />
+            {theme.decor === "diamond" && (
+              <div className="mt-3 flex w-40 items-center gap-3 text-(--p)" aria-hidden="true">
+                <span className="h-px flex-1 bg-(--p) opacity-70" />
+                <span className="text-xs">◆</span>
+                <span className="h-px flex-1 bg-(--p) opacity-70" />
+              </div>
+            )}
+            {description && <p className="mt-3 max-w-xl text-sm text-white/85">{description}</p>}
           </div>
         </header>
       );

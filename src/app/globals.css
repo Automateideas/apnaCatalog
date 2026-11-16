@@ -148,6 +148,15 @@ body {
   background-size: 46px 46px, 58px 58px, 70px 70px;
   background-position: 0 0, 20px 26px, 38px 10px;
 }
+/* Shop-front awning: stripes with a scalloped edge. */
+@utility t-awning {
+  height: 26px;
+  background:
+    radial-gradient(circle at 12px 16px, var(--p) 10px, transparent 10.5px) 0 0 / 48px 26px repeat-x,
+    radial-gradient(circle at 36px 16px, #ffffff 10px, transparent 10.5px) 0 0 / 48px 26px repeat-x,
+    repeating-linear-gradient(90deg, var(--p) 0 24px, #ffffff 24px 48px) 0 0 / 100% 16px no-repeat;
+  filter: drop-shadow(0 2px 1px rgb(0 0 0 / 0.08));
+}
 @utility t-hazard {
   height: 10px;
   background: repeating-linear-gradient(-45deg, var(--p) 0 12px, #1c1917 12px 24px);

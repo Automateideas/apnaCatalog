@@ -57,7 +57,17 @@ export async function generateViewport({ params }: PageProps<"/[slug]">): Promis
   if (!shop) return { themeColor: "#1b2340" };
   const { theme, accent } = resolveTheme(shop);
   // Phone status bar: dark headers keep it dark, the others use the shop colour.
-  return { themeColor: theme.header === "hero" ? "#0b0f19" : theme.header === "banner" ? accent.primary : theme.colors.bg };
+  const color =
+    theme.decor === "awning"
+      ? accent.primary
+      : theme.header === "hero"
+        ? "#0b0f19"
+        : theme.header === "cover"
+          ? "#111111"
+          : theme.header === "banner"
+            ? theme.decor === "hazard" ? "#1c1917" : accent.primary
+            : theme.colors.bg;
+  return { themeColor: color };
 }
 
 export default async function ShopPage({ params }: PageProps<"/[slug]">) {
@@ -155,6 +165,7 @@ export default async function ShopPage({ params }: PageProps<"/[slug]">) {
         description={shop.description}
         rating={rating}
         ratingCount={shop.ratingCount}
+        coverUrl={shop.shopPhotoUrls[0] ?? null}
       />
 
       <main className="mx-auto w-full max-w-3xl flex-1 px-4 pb-10">

@@ -1,10 +1,15 @@
 import {
   Baloo_2,
+  Bebas_Neue,
   Cormorant_Garamond,
+  DM_Serif_Display,
   Fredoka,
   Hind,
   Inter,
+  Kalam,
+  Laila,
   Mukta,
+  Nunito,
   Oswald,
   Playfair_Display,
   Poppins,
@@ -32,8 +37,15 @@ const rozha = Rozha_One({ display: "swap", preload: false, subsets: ["latin", "d
 const poppins = Poppins({ display: "swap", preload: false, subsets: ["latin", "devanagari"], weight: ["400", "500", "600"] });
 const hind = Hind({ display: "swap", preload: false, subsets: ["latin", "devanagari"], weight: ["400", "500", "600"] });
 
+const kalam = Kalam({ display: "swap", preload: false, subsets: ["latin", "devanagari"], weight: ["400", "700"] });
+const dmserif = DM_Serif_Display({ display: "swap", preload: false, subsets: ["latin"], weight: "400" });
+const bebas = Bebas_Neue({ display: "swap", preload: false, subsets: ["latin"], weight: "400" });
+const nunito = Nunito({ display: "swap", preload: false, subsets: ["latin"] });
+const laila = Laila({ display: "swap", preload: false, subsets: ["latin", "devanagari"], weight: ["500", "600", "700"] });
+
 const FONTS: Record<FontKey, { style: { fontFamily: string } }> = {
   baloo, mukta, yatra, playfair, inter, cormorant, grotesk, fredoka, oswald, rozha, poppins, hind,
+  kalam, dmserif, bebas, nunito, laila,
 };
 
 /** True for dark colours like #1c1917, by perceived brightness. */

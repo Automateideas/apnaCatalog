@@ -17,6 +17,38 @@ const SAMPLES: Record<string, [string, string][]> = {
   workshop: [["Hammer 500 g", "₹240"], ["PVC pipe 1 in", "₹95"], ["Asian paint 1 L", "₹410"]],
   dhaba: [["Paneer tikka", "₹220"], ["Dal makhani", "₹180"], ["Butter naan", "₹45"]],
   glow: [["Matte lipstick", "₹349"], ["Vitamin C serum", "₹499"]],
+  street: [["Paneer roll", "₹90"], ["Veg momos", "₹70"], ["Pav bhaji", "₹110"]],
+  quick: [["Veg burger", "₹79"], ["Cold coffee", "₹99"], ["Fries", "₹69"]],
+  thali: [["Special thali", "₹249"], ["Mini thali", "₹149"]],
+  cafe: [["Cappuccino", "₹140"], ["Masala chai", "₹40"], ["Brownie", "₹120"]],
+  family: [["Shahi paneer", "₹280"], ["Veg biryani", "₹240"]],
+  fine: [["Truffle risotto", "₹890"], ["Burrata salad", "₹740"], ["Tiramisu", "₹520"]],
+  halwai: [["Jalebi", "₹200/kg"], ["Samosa", "₹15"], ["Rasgulla", "₹320/kg"]],
+  shahi: [["Kaju pista roll", "₹1,600/kg"], ["Royal gift box", "₹2,499"]],
+  homebaker: [["Choco truffle cake", "₹650"], ["Banana bread", "₹280"], ["Cookies box", "₹350"]],
+  patisserie: [["Macarons box", "₹890"], ["Fruit tart", "₹320"]],
+  deals: [["Pressure cooker", "₹899"], ["Dinner set", "₹649"]],
+  supermart: [["Amul butter", "₹56"], ["Basmati rice 5 kg", "₹549"]],
+  fresh: [["Cold-pressed oil", "₹420"], ["Organic honey", "₹380"]],
+  ayur: [["Ashwagandha", "₹299"], ["Chyawanprash", "₹345"], ["Neem soap", "₹60"]],
+  pharma: [["Glucometer", "₹899"], ["Multivitamin", "₹420"]],
+  notebook: [["Classmate notebook", "₹55"], ["Gel pen pack", "₹100"], ["Geometry box", "₹120"]],
+  bookhouse: [["Godaan", "₹199"], ["Leather diary", "₹650"], ["Fountain pen", "₹890"]],
+  paints: [["Royale 4 L", "₹2,150"], ["Wall putty 20 kg", "₹780"]],
+  protools: [["Bosch drill", "₹3,499"], ["Tool kit 108 pc", "₹4,250"]],
+  neon: [["Gaming mouse", "₹1,499"], ["RGB keyboard", "₹2,299"]],
+  showroom: [["Smart TV 43 in", "₹27,990"], ["Soundbar", "₹8,999"]],
+  fashionstreet: [["Printed top", "₹399"], ["Denim jeans", "₹699"]],
+  urban: [["Oversized tee", "₹799"], ["Cargo pants", "₹1,499"]],
+  ethnic: [["Banarasi saree", "₹4,999"], ["Lehenga", "₹8,499"]],
+  couture: [["Silk gown", "₹18,900"], ["Wool coat", "₹14,500"]],
+  diamond: [["Solitaire ring", "₹62,000"], ["Diamond studs", "₹38,500"]],
+  spa: [["Facial", "₹1,800"], ["Hair spa", "₹1,200"]],
+  party: [["Balloon pack", "₹149"], ["Birthday kit", "₹499"]],
+  hamper: [["Diwali hamper", "₹2,999"], ["Dry fruit box", "₹1,499"]],
+  nursery: [["Baby romper", "₹499"], ["Soft rattle", "₹299"]],
+  timber: [["Sheesham bed", "₹38,000"], ["Coffee table", "₹9,500"]],
+  nest: [["Cushion set", "₹1,299"], ["Floor lamp", "₹3,499"]],
 };
 
 /** A small picture of a shop page in the given theme. Uses the same CSS as the real page. */
@@ -56,6 +88,19 @@ export function ThemePreview({
           >
             <p className="t-head truncate text-lg leading-none">{shopName}</p>
             <p className="mt-1 text-[9px] text-white/70">Open now · Order on WhatsApp</p>
+          </div>
+        );
+      case "cover":
+        return (
+          <div
+            className={cx("px-3 pt-10 pb-2.5 text-white", theme.center && "text-center")}
+            style={{
+              background:
+                "linear-gradient(to top, rgb(0 0 0 / 0.8), rgb(0 0 0 / 0.15)), radial-gradient(90% 120% at 80% 0%, var(--p), #2a2420 75%)",
+            }}
+          >
+            <p className="t-head truncate text-lg leading-none">{shopName}</p>
+            <p className="mt-1 text-[8px] text-white/75">Your shop photo shows here</p>
           </div>
         );
       case "minimal":
@@ -167,6 +212,11 @@ export function ThemePreview({
       className={cx("t-page pointer-events-none h-52 overflow-hidden select-none", className)}
       aria-hidden="true"
     >
+      {theme.decor === "awning" && (
+        <div className="h-3.5 overflow-hidden">
+          <div className="t-awning w-[200%] origin-top-left scale-50" />
+        </div>
+      )}
       {header}
       {chips}
       {items}
