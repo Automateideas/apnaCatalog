@@ -1,12 +1,14 @@
 import type { Metadata, Viewport } from "next";
 import Link from "next/link";
 import { notFound } from "next/navigation";
+import { MessageCircle } from "lucide-react";
 import { and, asc, desc, eq } from "drizzle-orm";
 import { db } from "@/db";
 import { categories, items, reviews } from "@/db/schema";
 import { Avatar } from "@/components/Avatar";
 import { ShopHeader } from "@/components/catalog/ShopHeader";
 import { Catalog } from "@/components/catalog/Catalog";
+import { ShopPhotos } from "@/components/catalog/ShopPhotos";
 import { InstallHint } from "@/components/InstallHint";
 import { ratingOf, Stars } from "@/components/Stars";
 import { getBusinessType, isPaid } from "@/lib/catalog-config";
@@ -112,7 +114,7 @@ export default async function ShopPage({ params }: PageProps<"/[slug]">) {
     name: shop.name,
     url: `${siteUrl()}/${shop.slug}`,
     description: shop.description ?? undefined,
-    image: shop.logoUrl ?? undefined,
+    image: [shop.logoUrl, ...shop.shopPhotoUrls].filter(Boolean),
     telephone: `+91${callNumber}`,
     address: {
       "@type": "PostalAddress",
@@ -130,7 +132,10 @@ export default async function ShopPage({ params }: PageProps<"/[slug]">) {
         : undefined,
   };
 
-  const action = "t-btn gap-1 px-1";
+  const action = "t-btn h-11 gap-1.5 px-1 text-sm font-semibold";
+  // Drawn over the header's bottom edge, so they need a solid fill and a shadow.
+  const overlap = theme.header === "banner" && theme.decor !== "hazard";
+  const outline = cx(action, "border-(--t-border) bg-(--t-surface) text-(--t-text) hover:bg-(--ps)", overlap && "shadow-md");
 
   return (
     <div className="t-page flex flex-1 flex-col">
@@ -155,30 +160,32 @@ export default async function ShopPage({ params }: PageProps<"/[slug]">) {
       <main className="mx-auto w-full max-w-3xl flex-1 px-4 pb-10">
         <div
           className={cx(
-            "no-print grid grid-cols-3 gap-2 whitespace-nowrap",
+            "no-print relative z-10 grid gap-2 whitespace-nowrap",
+            directions ? "grid-cols-3" : "grid-cols-2",
             // Overlap the coloured header a little, unless it ends in a decoration.
-            theme.header === "banner" && theme.decor !== "hazard" ? "-mt-4" : "mt-4",
+            overlap ? "-mt-5" : "mt-4",
           )}
         >
           <a
             href={waLink(shop.whatsapp, `Hi ${shop.name}, I saw your catalog on ${SITE_NAME}.`)}
             target="_blank"
             rel="noopener noreferrer"
-            className={buttonVariants({ variant: "whatsapp", className: action })}
+            className={buttonVariants({ variant: "whatsapp", className: cx(action, overlap && "shadow-md") })}
           >
-            WhatsApp
+            <MessageCircle className="size-4" /> WhatsApp
           </a>
-          <a href={`tel:+91${callNumber}`} className={buttonVariants({ variant: "outline", className: action })}>
+          <a href={`tel:+91${callNumber}`} className={buttonVariants({ variant: "outline", className: outline })}>
             <Icon name="phone" /> Call
           </a>
-          {directions ? (
-            <a href={directions} target="_blank" rel="noopener noreferrer" className={buttonVariants({ variant: "outline", className: action })}>
+          {/* No map location yet: a button that goes nowhere only confuses, so it is left out. */}
+          {directions && (
+            <a href={directions} target="_blank" rel="noopener noreferrer" className={buttonVariants({ variant: "outline", className: outline })}>
               <Icon name="pin" /> Directions
             </a>
-          ) : (
-            <span className={buttonVariants({ variant: "outline", className: cx(action, "cursor-default truncate text-(--t-muted)") })}><Icon name="pin" /> {shop.city}</span>
           )}
         </div>
+
+        <ShopPhotos name={shop.name} urls={shop.shopPhotoUrls} />
 
         {(shop.address || shop.ownerName || shop.ownerPhotoUrl) && (
           <div className="t-card mt-4 flex items-center gap-3 p-3">
@@ -216,7 +223,9 @@ export default async function ShopPage({ params }: PageProps<"/[slug]">) {
         <section id="reviews" className="mt-10 scroll-mt-4">
           <h2 className="t-head text-xl text-(--t-text)">Customer reviews</h2>
           {reviewRows.length === 0 ? (
-            <p className="mt-2 text-sm text-(--t-muted)">No reviews yet.</p>
+            <p className="mt-3 rounded-(--t-radius) border border-dashed border-(--t-border) px-4 py-6 text-center text-sm text-(--t-muted)">
+              No reviews yet. Bought from {shop.name}? Ask the shop for its review link.
+            </p>
           ) : (
             <>
               <div className="mt-2 flex items-center gap-2">

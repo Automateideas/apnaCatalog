@@ -24,7 +24,7 @@ export async function removeUnusedMedia(shopId: string, urls: (string | null | u
     // Keep anything still shown somewhere in this shop (e.g. the same file used twice).
     const [[shop], itemRows] = await Promise.all([
       db
-        .select({ logoUrl: shops.logoUrl, ownerPhotoUrl: shops.ownerPhotoUrl })
+        .select({ logoUrl: shops.logoUrl, ownerPhotoUrl: shops.ownerPhotoUrl, shopPhotoUrls: shops.shopPhotoUrls })
         .from(shops)
         .where(eq(shops.id, shopId))
         .limit(1),
@@ -36,6 +36,7 @@ export async function removeUnusedMedia(shopId: string, urls: (string | null | u
     const stillUsed = new Set<string | null | undefined>([
       shop?.logoUrl,
       shop?.ownerPhotoUrl,
+      ...(shop?.shopPhotoUrls ?? []),
       ...itemRows.flatMap((row) => row.urls),
     ]);
 

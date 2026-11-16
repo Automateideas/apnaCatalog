@@ -1,6 +1,9 @@
 @import "tailwindcss";
 @import "tw-animate-css";
 @import "shadcn/tailwind.css";
+/* The app is light only. Without this, `dark:` styles in shadcn parts follow the
+   phone's dark mode and make buttons see-through on a light page. */
+@custom-variant dark (&:is(.dark *));
 /*
   Design system
   -------------

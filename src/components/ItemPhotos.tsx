@@ -21,7 +21,14 @@ export function ItemPhotos({
   onChange,
   onBusyChange,
   userId,
+  max = MAX_ITEM_PHOTOS,
+  label = "Photos",
+  hint = `Up to ${max} photos. Customers see the main photo first.`,
 }: {
+  /** Most photos allowed. */
+  max?: number;
+  label?: string;
+  hint?: string;
   value: string[];
   /** Photos the saved item already has. Those are only deleted when the form is saved. */
   savedUrls: string[];
@@ -48,7 +55,7 @@ export function ItemPhotos({
     return () => onBusyChange?.(false);
   }, [busy, onBusyChange]);
 
-  const room = MAX_ITEM_PHOTOS - value.length;
+  const room = max - value.length;
 
   const pick = async (fileList: FileList | null) => {
     const picked = Array.from(fileList ?? []);
@@ -57,7 +64,7 @@ export function ItemPhotos({
 
     const files = picked.slice(0, room);
     if (picked.length > files.length) {
-      toast.info(`Only ${MAX_ITEM_PHOTOS} photos fit on one item. Added the first ${files.length}.`);
+      toast.info(`Only ${max} photos are allowed here. Added the first ${files.length}.`);
     }
 
     let failed = 0;
@@ -96,9 +103,9 @@ export function ItemPhotos({
   return (
     <div>
       <div className="mb-1.5 flex items-baseline justify-between">
-        <span className="text-sm font-medium text-slate-700">Photos</span>
+        <span className="text-sm font-medium text-slate-700">{label}</span>
         <span className="text-xs text-slate-500">
-          {value.length} of {MAX_ITEM_PHOTOS}
+          {value.length} of {max}
         </span>
       </div>
 
@@ -166,9 +173,7 @@ export function ItemPhotos({
         className="hidden"
         onChange={(e) => pick(e.target.files)}
       />
-      <p className="mt-1.5 text-xs text-slate-500">
-        Up to {MAX_ITEM_PHOTOS} photos. Customers see the main photo first.
-      </p>
+      <p className="mt-1.5 text-xs text-slate-500">{hint}</p>
     </div>
   );
 }

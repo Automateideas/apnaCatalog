@@ -5,19 +5,33 @@ import { ChevronLeft, ChevronRight, X } from "lucide-react";
 import { Button } from "@/components/ui/button";
 import { Dialog, DialogClose, DialogContent, DialogTitle } from "@/components/ui/dialog";
 
-/** Full-size photos of one item. Swipe on a phone, arrows on a computer. */
+/** Full-size photos of one item or of the shop. Swipe on a phone, arrows on a computer. */
 export function PhotoViewer({
   name,
   urls,
+  start = 0,
   onClose,
 }: {
   name: string;
   urls: string[];
+  /** The photo to open on. */
+  start?: number;
   onClose: () => void;
 }) {
-  const track = useRef<HTMLDivElement>(null);
-  const [index, setIndex] = useState(0);
+  const track = useRef<HTMLDivElement | null>(null);
+  const [index, setIndex] = useState(start);
   const many = urls.length > 1;
+
+  // Open on the photo that was tapped. The dialog mounts its content late, so this
+  // runs when the photo strip appears rather than when the viewer does.
+  const opened = useRef(false);
+  const attach = (el: HTMLDivElement | null) => {
+    track.current = el;
+    if (el && !opened.current) {
+      opened.current = true;
+      el.scrollTo({ left: start * el.clientWidth, behavior: "instant" });
+    }
+  };
 
   const go = (to: number) => {
     const el = track.current;
@@ -29,7 +43,7 @@ export function PhotoViewer({
       <DialogContent showCloseButton={false} className="gap-0 overflow-hidden p-0 text-base sm:max-w-lg">
         <div className="relative">
           <div
-            ref={track}
+            ref={attach}
             className="no-scrollbar flex snap-x snap-mandatory overflow-x-auto"
             onScroll={(e) => {
               const el = e.currentTarget;
@@ -41,7 +55,7 @@ export function PhotoViewer({
                 <img
                   src={url}
                   alt={many ? `${name}, photo ${i + 1} of ${urls.length}` : name}
-                  loading={i === 0 ? "eager" : "lazy"}
+                  loading={i === start ? "eager" : "lazy"}
                   className="h-full w-full object-contain"
                 />
               </div>

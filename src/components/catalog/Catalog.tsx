@@ -414,9 +414,19 @@ export function Catalog({ shop, look, items, categories }: Props) {
       )}
 
       {visible.length === 0 ? (
-        <p className="t-card mt-3 px-4 py-10 text-center text-(--t-muted)">
-          {items.length === 0 ? "This shop has not added items yet." : "No items found."}
-        </p>
+        items.length === 0 ? (
+          <div className="t-card mt-3 flex flex-col items-center px-6 py-12 text-center">
+            <span className="flex size-14 items-center justify-center rounded-full bg-(--ps) text-(--pa)">
+              <Icon name="box" className="size-7" />
+            </span>
+            <p className="t-head mt-4 text-lg text-(--t-text)">Catalog coming soon</p>
+            <p className="mt-1 max-w-xs text-sm text-(--t-muted)">
+              {shop.name} is adding items. Message them on WhatsApp to ask what is available today.
+            </p>
+          </div>
+        ) : (
+          <p className="t-card mt-3 px-4 py-10 text-center text-(--t-muted)">No items found.</p>
+        )
       ) : (
         sections.map((section) => (
           <section key={section.title ?? "all"} className="mt-4">

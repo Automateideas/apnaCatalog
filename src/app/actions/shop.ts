@@ -14,6 +14,7 @@ import {
   isPaid,
   LAUNCH_OFFER_DAYS,
   LAUNCH_OFFER_SHOPS,
+  MAX_SHOP_PHOTOS,
   RESERVED_SLUGS,
 } from "@/lib/catalog-config";
 import { removeUnusedMedia } from "@/lib/media";
@@ -145,6 +146,7 @@ const updateSchema = z.object({
   ownerName: optionalText(60),
   logoUrl: z.string().nullable().optional(),
   ownerPhotoUrl: z.string().nullable().optional(),
+  shopPhotoUrls: z.array(z.string().max(500)).max(20).optional(),
   lat: z.number().min(-90).max(90).nullable().optional(),
   lng: z.number().min(-180).max(180).nullable().optional(),
   mapsUrl: optionalText(500),
@@ -188,6 +190,11 @@ export async function updateShop(input: z.input<typeof updateSchema>): Promise<A
     return { ok: false, error: "Paste a Google Maps link (it starts with https://maps.app.goo.gl/...)." };
   }
 
+  const shopPhotoUrls = [...new Set((data.shopPhotoUrls ?? []).filter(isMediaUrl))];
+  if (shopPhotoUrls.length > MAX_SHOP_PHOTOS) {
+    return { ok: false, error: `A shop can have at most ${MAX_SHOP_PHOTOS} photos.` };
+  }
+
   // Keep the old layout column in step with the type, for older app versions.
   const newType = getBusinessType(data.businessType);
 
@@ -206,6 +213,7 @@ export async function updateShop(input: z.input<typeof updateSchema>): Promise<A
       ownerName: data.ownerName ?? null,
       logoUrl: ownMedia(data.logoUrl),
       ownerPhotoUrl: ownMedia(data.ownerPhotoUrl),
+      shopPhotoUrls,
       lat: data.lat ?? null,
       lng: data.lng ?? null,
       mapsUrl: data.mapsUrl ?? null,
@@ -213,10 +221,11 @@ export async function updateShop(input: z.input<typeof updateSchema>): Promise<A
     })
     .where(eq(shops.id, shop.id));
 
-  // A replaced or removed logo / owner photo is deleted from storage.
-  await removeUnusedMedia(shop.id, [shop.logoUrl, shop.ownerPhotoUrl]);
+  // A replaced or removed logo, owner photo or shop photo is deleted from storage.
+  await removeUnusedMedia(shop.id, [shop.logoUrl, shop.ownerPhotoUrl, ...shop.shopPhotoUrls]);
 
   revalidatePath("/dashboard", "layout");
+  revalidatePath(`/${shop.slug}`);
   return { ok: true };
 }
 

@@ -44,6 +44,11 @@ export const shops = pgTable(
     logoUrl: text("logo_url"),
     ownerName: text("owner_name"),
     ownerPhotoUrl: text("owner_photo_url"),
+    /** Photos of the shop itself (front, inside), so customers know they found the right place. At most MAX_SHOP_PHOTOS. */
+    shopPhotoUrls: text("shop_photo_urls")
+      .array()
+      .notNull()
+      .default(sql`'{}'::text[]`),
     lat: doublePrecision("lat"),
     lng: doublePrecision("lng"),
     mapsUrl: text("maps_url"),

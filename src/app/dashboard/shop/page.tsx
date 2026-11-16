@@ -20,6 +20,7 @@ export default async function ShopDetailsPage() {
           ownerName: shop.ownerName ?? "",
           logoUrl: shop.logoUrl,
           ownerPhotoUrl: shop.ownerPhotoUrl,
+          shopPhotoUrls: shop.shopPhotoUrls,
           lat: shop.lat,
           lng: shop.lng,
           mapsUrl: shop.mapsUrl ?? "",

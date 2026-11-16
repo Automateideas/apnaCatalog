@@ -128,7 +128,7 @@ export function ShopHeader({ theme, name, logoUrl, subtitle, description, rating
           {theme.decor === "confetti" && (
             <div className="t-confetti pointer-events-none absolute inset-0 opacity-40" aria-hidden="true" />
           )}
-          <div className="relative mx-auto w-full max-w-3xl px-4 pt-6 pb-7">
+          <div className={cx("relative mx-auto w-full max-w-3xl px-4 pt-6 sm:pt-8", theme.decor === "hazard" ? "pb-6" : "pb-10")}>
             <div className="flex items-center gap-4">
               {logo("h-20 w-20 border-2 border-white/70 text-2xl shadow")}
               <div className="min-w-0">

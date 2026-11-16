@@ -1,10 +1,12 @@
 "use client";
 
-import { useState, useTransition } from "react";
+import { useEffect, useRef, useState, useTransition } from "react";
 import { useRouter } from "next/navigation";
 import { updateShop } from "@/app/actions/shop";
 import { ImageUpload } from "@/components/ImageUpload";
-import { BUSINESS_TYPES } from "@/lib/catalog-config";
+import { ItemPhotos } from "@/components/ItemPhotos";
+import { BUSINESS_TYPES, MAX_SHOP_PHOTOS } from "@/lib/catalog-config";
+import { discardUploads } from "@/lib/upload";
 import { Icon } from "@/components/Icon";
 import { Card } from "@/components/ui/card";
 import { Label } from "@/components/ui/label";
@@ -25,6 +27,7 @@ type Values = {
   ownerName: string;
   logoUrl: string | null;
   ownerPhotoUrl: string | null;
+  shopPhotoUrls: string[];
   lat: number | null;
   lng: number | null;
   mapsUrl: string;
@@ -37,6 +40,16 @@ export function ShopForm({ userId, initial }: { userId: string; initial: Values 
   const [saved, setSaved] = useState(false);
   const [locating, setLocating] = useState(false);
   const [pending, startTransition] = useTransition();
+  const [uploading, setUploading] = useState(false);
+  // Shop photos the database has. Others in the list were uploaded here and not saved yet.
+  const [savedShopPhotos, setSavedShopPhotos] = useState(initial.shopPhotoUrls);
+
+  // Leaving the page without saving: delete the shop photos uploaded here, nothing uses them.
+  const unsaved = useRef<string[]>([]);
+  useEffect(() => {
+    unsaved.current = v.shopPhotoUrls.filter((url) => !savedShopPhotos.includes(url));
+  }, [v.shopPhotoUrls, savedShopPhotos]);
+  useEffect(() => () => void discardUploads(unsaved.current), []);
 
   const set = <K extends keyof Values>(key: K, value: Values[K]) => {
     setV((prev) => ({ ...prev, [key]: value }));
@@ -80,6 +93,7 @@ export function ShopForm({ userId, initial }: { userId: string; initial: Values 
           return;
         }
         setSaved(true);
+        setSavedShopPhotos(v.shopPhotoUrls);
         router.refresh();
       } catch {
         setError("Could not save. Check your internet and try again.");
@@ -140,6 +154,27 @@ export function ShopForm({ userId, initial }: { userId: string; initial: Values 
             placeholder="What you sell, since when, home delivery, timings..."
           />
         </div>
+      </Card>
+
+      <Card className="space-y-4 p-5">
+        <h2 className="font-bold text-slate-900">Shop photos</h2>
+        <p className="-mt-2 text-sm text-slate-600">
+          Optional. Photos of your shop front and inside, so customers know they are at the right shop.
+        </p>
+        <ItemPhotos
+          label="Photos of your shop"
+          hint={`Up to ${MAX_SHOP_PHOTOS} photos. The first one is shown first.`}
+          max={MAX_SHOP_PHOTOS}
+          userId={userId}
+          value={v.shopPhotoUrls}
+          savedUrls={savedShopPhotos}
+          onAdd={(url) => {
+            setV((prev) => ({ ...prev, shopPhotoUrls: [...prev.shopPhotoUrls, url] }));
+            setSaved(false);
+          }}
+          onChange={(urls) => set("shopPhotoUrls", urls)}
+          onBusyChange={setUploading}
+        />
       </Card>
 
       <Card className="space-y-4 p-5">
@@ -282,8 +317,8 @@ export function ShopForm({ userId, initial }: { userId: string; initial: Values 
       {error && <Alert variant="destructive">{error}</Alert>}
       {saved && <Alert variant="success">Saved.</Alert>}
 
-      <Button type="submit" className="w-full text-base sm:w-auto" disabled={pending}>
-        {pending ? "Saving..." : "Save changes"}
+      <Button type="submit" className="w-full text-base sm:w-auto" disabled={pending || uploading}>
+        {pending ? "Saving..." : uploading ? "Uploading photos..." : "Save changes"}
       </Button>
     </form>
   );
