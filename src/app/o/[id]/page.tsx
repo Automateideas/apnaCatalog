@@ -6,6 +6,9 @@ import { db } from "@/db";
 import { orders, shops } from "@/db/schema";
 import { PrintButton } from "@/components/PrintButton";
 import { formatDateTime, formatPrice, SITE_NAME } from "@/lib/utils";
+import { Card } from "@/components/ui/card";
+import { buttonVariants } from "@/components/ui/button";
+import { Table, TableBody, TableCell, TableFooter, TableHead, TableHeader, TableRow } from "@/components/ui/table";
 
 export const dynamic = "force-dynamic";
 
@@ -37,7 +40,7 @@ export default async function OrderPage({ params }: PageProps<"/o/[id]">) {
 
   return (
     <main className="mx-auto w-full max-w-2xl flex-1 px-4 py-6">
-      <div className="card p-5 print:border-0 print:shadow-none">
+      <Card className="p-5 print:border-0 print:shadow-none">
         <div className="flex items-start justify-between gap-4 border-b border-slate-200 pb-4">
           <div>
             <h1 className="text-xl font-bold text-slate-900">{row.shopName}</h1>
@@ -67,53 +70,53 @@ export default async function OrderPage({ params }: PageProps<"/o/[id]">) {
           </div>
         )}
 
-        <table className="mt-3 w-full text-sm">
-          <thead>
-            <tr className="border-b border-slate-200 text-left text-slate-500">
-              <th className="py-2 pr-2 font-medium">#</th>
-              <th className="py-2 pr-2 font-medium">Item</th>
-              <th className="py-2 pr-2 text-right font-medium">Price</th>
-              <th className="py-2 pr-2 text-right font-medium">Qty</th>
-              <th className="py-2 text-right font-medium">Amount</th>
-            </tr>
-          </thead>
-          <tbody>
+        <Table className="mt-3 w-full text-sm">
+          <TableHeader>
+            <TableRow className="border-b border-slate-200 text-left text-slate-500">
+              <TableHead className="py-2 pr-2 font-medium">#</TableHead>
+              <TableHead className="py-2 pr-2 font-medium">Item</TableHead>
+              <TableHead className="py-2 pr-2 text-right font-medium">Price</TableHead>
+              <TableHead className="py-2 pr-2 text-right font-medium">Qty</TableHead>
+              <TableHead className="py-2 text-right font-medium">Amount</TableHead>
+            </TableRow>
+          </TableHeader>
+          <TableBody>
             {order.lines.map((line, i) => (
-              <tr key={`${line.itemId}-${i}`} className="border-b border-slate-100 align-top">
-                <td className="py-2 pr-2 text-slate-500">{i + 1}</td>
-                <td className="py-2 pr-2">
+              <TableRow key={`${line.itemId}-${i}`} className="border-b border-slate-100 align-top">
+                <TableCell className="py-2 pr-2 text-slate-500">{i + 1}</TableCell>
+                <TableCell className="py-2 pr-2">
                   {line.name}
                   {line.unit && <span className="text-slate-500"> ({line.unit})</span>}
-                </td>
-                <td className="py-2 pr-2 text-right whitespace-nowrap">{formatPrice(line.price)}</td>
-                <td className="py-2 pr-2 text-right">{line.qty}</td>
-                <td className="py-2 text-right font-medium whitespace-nowrap">
+                </TableCell>
+                <TableCell className="py-2 pr-2 text-right whitespace-nowrap">{formatPrice(line.price)}</TableCell>
+                <TableCell className="py-2 pr-2 text-right">{line.qty}</TableCell>
+                <TableCell className="py-2 text-right font-medium whitespace-nowrap">
                   {formatPrice(line.price * line.qty)}
-                </td>
-              </tr>
+                </TableCell>
+              </TableRow>
             ))}
-          </tbody>
-          <tfoot>
-            <tr>
-              <td colSpan={4} className="pt-3 pr-2 text-right font-semibold">
+          </TableBody>
+          <TableFooter>
+            <TableRow>
+              <TableCell colSpan={4} className="pt-3 pr-2 text-right font-semibold">
                 Total
-              </td>
-              <td className="pt-3 text-right text-lg font-bold whitespace-nowrap">
+              </TableCell>
+              <TableCell className="pt-3 text-right text-lg font-bold whitespace-nowrap">
                 {formatPrice(order.total)}
-              </td>
-            </tr>
-          </tfoot>
-        </table>
+              </TableCell>
+            </TableRow>
+          </TableFooter>
+        </Table>
 
         <p className="mt-5 text-xs text-slate-500">
           This is an order request, not a bill. No payment has been made. The shop will confirm the
           final price and availability.
         </p>
-      </div>
+      </Card>
 
       <div className="no-print mt-4 flex flex-col gap-2 sm:flex-row">
-        <PrintButton className="btn-primary">Save as PDF / Print</PrintButton>
-        <Link href={`/${row.shopSlug}`} className="btn-outline">
+        <PrintButton>Save as PDF / Print</PrintButton>
+        <Link href={`/${row.shopSlug}`} className={buttonVariants({ variant: "outline" })}>
           Back to {row.shopName}
         </Link>
       </div>

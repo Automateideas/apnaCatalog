@@ -13,6 +13,8 @@ import { effectiveTheme, getBusinessType, isPaid } from "@/lib/catalog-config";
 import { getPublicShop } from "@/lib/shop-data";
 import { directionsUrl, formatDate, SITE_NAME, siteUrl, waLink } from "@/lib/utils";
 import { Icon } from "@/components/Icon";
+import { buttonVariants } from "@/components/ui/button";
+import { Card } from "@/components/ui/card";
 
 export const dynamic = "force-dynamic";
 
@@ -48,7 +50,7 @@ export async function generateMetadata({ params }: PageProps<"/[slug]">): Promis
 export async function generateViewport({ params }: PageProps<"/[slug]">): Promise<Viewport> {
   const { slug } = await params;
   const shop = await getPublicShop(slug);
-  return { themeColor: shop ? effectiveTheme(shop).palette.primary : "#1e3fae" };
+  return { themeColor: shop ? effectiveTheme(shop).palette.primary : "#1b2340" };
 }
 
 export default async function ShopPage({ params }: PageProps<"/[slug]">) {
@@ -135,6 +137,9 @@ export default async function ShopPage({ params }: PageProps<"/[slug]">) {
         dangerouslySetInnerHTML={{ __html: JSON.stringify(jsonLd).replace(/</g, "\\u003c") }}
       />
 
+      {/* Sheets are drawn outside this wrapper, so the shop colours are also set on the page root. */}
+      <style>{`:root{--p:${palette.primary};--pd:${palette.dark};--ps:${palette.soft}}`}</style>
+
       <header className="bg-(--p) text-white">
         <div className="mx-auto w-full max-w-3xl px-4 pt-6 pb-5">
           <div className="flex items-center gap-4">
@@ -170,24 +175,24 @@ export default async function ShopPage({ params }: PageProps<"/[slug]">) {
             href={waLink(shop.whatsapp, `Hi ${shop.name}, I saw your catalog on ${SITE_NAME}.`)}
             target="_blank"
             rel="noopener noreferrer"
-            className="btn-whatsapp gap-1 px-1"
+            className={buttonVariants({ variant: "whatsapp", className: "gap-1 px-1" })}
           >
             WhatsApp
           </a>
-          <a href={`tel:+91${callNumber}`} className="btn-outline gap-1 px-1">
+          <a href={`tel:+91${callNumber}`} className={buttonVariants({ variant: "outline", className: "gap-1 px-1" })}>
             <Icon name="phone" /> Call
           </a>
           {directions ? (
-            <a href={directions} target="_blank" rel="noopener noreferrer" className="btn-outline gap-1 px-1">
+            <a href={directions} target="_blank" rel="noopener noreferrer" className={buttonVariants({ variant: "outline", className: "gap-1 px-1" })}>
               <Icon name="pin" /> Directions
             </a>
           ) : (
-            <span className="btn-outline cursor-default gap-1 truncate px-1 text-slate-400"><Icon name="pin" /> {shop.city}</span>
+            <span className={buttonVariants({ variant: "outline", className: "cursor-default gap-1 truncate px-1 text-slate-400" })}><Icon name="pin" /> {shop.city}</span>
           )}
         </div>
 
         {(shop.address || shop.ownerName || shop.ownerPhotoUrl) && (
-          <div className="card mt-4 flex items-center gap-3 p-3">
+          <Card className="mt-4 flex items-center gap-3 p-3">
             {(shop.ownerName || shop.ownerPhotoUrl) && (
               <Avatar
                 name={shop.ownerName || shop.name}
@@ -205,7 +210,7 @@ export default async function ShopPage({ params }: PageProps<"/[slug]">) {
               )}
               {shop.address && <p className="text-slate-600">{shop.address}</p>}
             </div>
-          </div>
+          </Card>
         )}
 
         <InstallHint name={shop.name} />
@@ -236,7 +241,7 @@ export default async function ShopPage({ params }: PageProps<"/[slug]">) {
               </div>
               <ul className="mt-3 space-y-3">
                 {reviewRows.map((review) => (
-                  <li key={review.id} className="card p-4">
+                  <li key={review.id} className="rounded-xl border bg-card p-4">
                     <div className="flex items-center justify-between gap-2">
                       <p className="font-medium text-slate-900">{review.name}</p>
                       <time className="text-xs text-slate-400">{formatDate(review.updatedAt)}</time>

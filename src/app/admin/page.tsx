@@ -9,16 +9,20 @@ import {
   adminSetShopPlan,
 } from "@/app/actions/admin";
 import { ActionButton } from "@/components/ActionButton";
+import { LoginEmailButton } from "./LoginEmailButton";
 import { Logo } from "@/components/SiteChrome";
 import { Stars } from "@/components/Stars";
 import { requireAdmin } from "@/lib/auth";
 import { getBusinessType, isPaid } from "@/lib/catalog-config";
 import { formatDate } from "@/lib/utils";
+import { Button, buttonVariants } from "@/components/ui/button";
+import { Card } from "@/components/ui/card";
+import { Input } from "@/components/ui/input";
+import { Table, TableBody, TableCell, TableHead, TableHeader, TableRow } from "@/components/ui/table";
+import { Badge } from "@/components/ui/badge";
 
 export const dynamic = "force-dynamic";
 export const metadata: Metadata = { title: "Admin", robots: { index: false, follow: false } };
-
-const small = "rounded-lg border border-slate-300 bg-white px-2 py-1 text-xs font-medium hover:bg-slate-50 disabled:opacity-50";
 
 export default async function AdminPage({ searchParams }: PageProps<"/admin">) {
   await requireAdmin();
@@ -70,7 +74,7 @@ export default async function AdminPage({ searchParams }: PageProps<"/admin">) {
       <header className="border-b border-slate-200 bg-white">
         <div className="mx-auto flex h-14 w-full max-w-6xl items-center justify-between px-4">
           <Logo />
-          <Link href="/dashboard" className="btn-ghost min-h-9 px-3 py-1.5">
+          <Link href="/dashboard" className={buttonVariants({ variant: "ghost", size: "sm" })}>
             My shop
           </Link>
         </div>
@@ -86,10 +90,10 @@ export default async function AdminPage({ searchParams }: PageProps<"/admin">) {
             ["Orders", stats.orders],
             ["Reviews", stats.reviews],
           ].map(([label, value]) => (
-            <div key={label} className="card p-4">
+            <Card key={label} className="p-4">
               <p className="text-2xl font-bold text-slate-900">{value}</p>
               <p className="text-sm text-slate-500">{label}</p>
-            </div>
+            </Card>
           ))}
         </section>
 
@@ -102,7 +106,7 @@ export default async function AdminPage({ searchParams }: PageProps<"/admin">) {
           ) : (
             <ul className="mt-3 space-y-2">
               {flagged.map(({ review, shopName, shopSlug }) => (
-                <li key={review.id} className="card flex flex-wrap items-start justify-between gap-3 p-4">
+                <li key={review.id} className="rounded-xl border bg-card flex flex-wrap items-start justify-between gap-3 p-4">
                   <div className="min-w-0 text-sm">
                     <p className="font-medium text-slate-900">
                       {review.name}, +91 {review.phone}, on{" "}
@@ -119,15 +123,15 @@ export default async function AdminPage({ searchParams }: PageProps<"/admin">) {
                   </div>
                   <div className="flex items-center gap-2">
                     {review.isHidden ? (
-                      <ActionButton className={small} action={adminSetReviewHidden.bind(null, review.id, false)}>
+                      <ActionButton size="xs" action={adminSetReviewHidden.bind(null, review.id, false)}>
                         Show again
                       </ActionButton>
                     ) : (
                       <>
-                        <ActionButton className={small} action={adminSetReviewHidden.bind(null, review.id, true)}>
+                        <ActionButton size="xs" action={adminSetReviewHidden.bind(null, review.id, true)}>
                           Hide review
                         </ActionButton>
-                        <ActionButton className={small} action={adminSetReviewHidden.bind(null, review.id, false)}>
+                        <ActionButton size="xs" action={adminSetReviewHidden.bind(null, review.id, false)}>
                           Keep it
                         </ActionButton>
                       </>
@@ -143,36 +147,36 @@ export default async function AdminPage({ searchParams }: PageProps<"/admin">) {
           <div className="flex flex-wrap items-center justify-between gap-3">
             <h2 className="font-bold text-slate-900">Shops</h2>
             <form action="/admin" className="flex gap-2">
-              <input
+              <Input
                 name="q"
                 defaultValue={q}
-                className="input min-h-9 py-1.5 text-sm"
+                className="min-h-9 py-1.5 text-sm"
                 placeholder="Name, link, city, email, phone"
                 aria-label="Search shops"
               />
-              <button type="submit" className="btn-outline min-h-9 px-3 py-1.5">
+              <Button type="submit" variant="outline" size="sm">
                 Search
-              </button>
+              </Button>
             </form>
           </div>
 
-          <div className="card mt-3 overflow-x-auto">
-            <table className="w-full min-w-[720px] text-sm">
-              <thead>
-                <tr className="bg-slate-50 text-left text-slate-500">
-                  <th className="px-3 py-2 font-medium">Shop</th>
-                  <th className="px-3 py-2 font-medium">Owner</th>
-                  <th className="px-3 py-2 font-medium">Items</th>
-                  <th className="px-3 py-2 font-medium">Plan</th>
-                  <th className="px-3 py-2 font-medium">Actions</th>
-                </tr>
-              </thead>
-              <tbody>
+          <Card className="mt-3 overflow-x-auto">
+            <Table className="w-full min-w-[720px] text-sm">
+              <TableHeader>
+                <TableRow className="bg-slate-50 text-left text-slate-500">
+                  <TableHead className="px-3 py-2 font-medium">Shop</TableHead>
+                  <TableHead className="px-3 py-2 font-medium">Owner</TableHead>
+                  <TableHead className="px-3 py-2 font-medium">Items</TableHead>
+                  <TableHead className="px-3 py-2 font-medium">Plan</TableHead>
+                  <TableHead className="px-3 py-2 font-medium">Actions</TableHead>
+                </TableRow>
+              </TableHeader>
+              <TableBody>
                 {shopRows.map((shop) => {
                   const paid = isPaid(shop);
                   return (
-                    <tr key={shop.id} className="border-t border-slate-100 align-top">
-                      <td className="px-3 py-2">
+                    <TableRow key={shop.id} className="border-t border-slate-100 align-top">
+                      <TableCell className="px-3 py-2">
                         <Link href={`/${shop.slug}`} target="_blank" className="font-medium text-brand underline">
                           {shop.name}
                         </Link>
@@ -181,35 +185,36 @@ export default async function AdminPage({ searchParams }: PageProps<"/admin">) {
                         </p>
                         <p className="text-xs text-slate-400">Joined {formatDate(shop.createdAt)}</p>
                         {shop.isHidden && (
-                          <span className="rounded bg-red-100 px-1.5 py-0.5 text-xs font-semibold text-red-700">
-                            Hidden
-                          </span>
+                          <Badge variant="destructive">Hidden</Badge>
                         )}
-                      </td>
-                      <td className="px-3 py-2 text-xs text-slate-600">
+                      </TableCell>
+                      <TableCell className="px-3 py-2 text-xs text-slate-600">
                         <p>{shop.ownerEmail ?? "-"}</p>
+                        {shop.pendingOwnerEmail && (
+                          <p className="text-amber-700">Moving to {shop.pendingOwnerEmail}</p>
+                        )}
                         <p>+91 {shop.whatsapp}</p>
-                      </td>
-                      <td className="px-3 py-2">{shop.itemCount}</td>
-                      <td className="px-3 py-2">
+                      </TableCell>
+                      <TableCell className="px-3 py-2">{shop.itemCount}</TableCell>
+                      <TableCell className="px-3 py-2">
                         <span className={paid ? "font-semibold text-emerald-700" : "text-slate-600"}>
                           {paid ? "Paid" : "Free"}
                         </span>
                         {paid && shop.planExpiresAt && (
                           <p className="text-xs text-slate-500">till {formatDate(shop.planExpiresAt)}</p>
                         )}
-                      </td>
-                      <td className="px-3 py-2">
+                      </TableCell>
+                      <TableCell className="px-3 py-2">
                         <div className="flex flex-wrap items-center gap-1.5">
                           <ActionButton
-                            className={small}
+                            size="xs"
                             action={adminSetShopPlan.bind(null, shop.id, 1)}
                             confirm={`Give ${shop.name} the paid plan for 1 month from today?`}
                           >
                             Paid 1 mo
                           </ActionButton>
                           <ActionButton
-                            className={small}
+                            size="xs"
                             action={adminSetShopPlan.bind(null, shop.id, 12)}
                             confirm={`Give ${shop.name} the paid plan for 1 year from today?`}
                           >
@@ -217,7 +222,7 @@ export default async function AdminPage({ searchParams }: PageProps<"/admin">) {
                           </ActionButton>
                           {shop.plan === "paid" && (
                             <ActionButton
-                              className={small}
+                              size="xs"
                               action={adminSetShopPlan.bind(null, shop.id, 0)}
                               confirm={`Move ${shop.name} to the free plan now?`}
                             >
@@ -225,7 +230,7 @@ export default async function AdminPage({ searchParams }: PageProps<"/admin">) {
                             </ActionButton>
                           )}
                           <ActionButton
-                            className={small}
+                            size="xs"
                             action={adminSetShopHidden.bind(null, shop.id, !shop.isHidden)}
                             confirm={
                               shop.isHidden
@@ -235,21 +240,26 @@ export default async function AdminPage({ searchParams }: PageProps<"/admin">) {
                           >
                             {shop.isHidden ? "Unhide" : "Hide"}
                           </ActionButton>
+                          <LoginEmailButton
+                            shopId={shop.id}
+                            shopName={shop.name}
+                            pendingEmail={shop.pendingOwnerEmail}
+                          />
                         </div>
-                      </td>
-                    </tr>
+                      </TableCell>
+                    </TableRow>
                   );
                 })}
                 {shopRows.length === 0 && (
-                  <tr>
-                    <td colSpan={5} className="px-3 py-8 text-center text-slate-500">
+                  <TableRow>
+                    <TableCell colSpan={5} className="px-3 py-8 text-center text-slate-500">
                       No shops found.
-                    </td>
-                  </tr>
+                    </TableCell>
+                  </TableRow>
                 )}
-              </tbody>
-            </table>
-          </div>
+              </TableBody>
+            </Table>
+          </Card>
           <p className="mt-2 text-xs text-slate-500">Showing the newest 100 shops. Use search to find others.</p>
         </section>
       </main>

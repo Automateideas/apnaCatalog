@@ -7,6 +7,9 @@ import { updateTheme } from "@/app/actions/shop";
 import { LAYOUTS, PALETTES, type LayoutId } from "@/lib/catalog-config";
 import { cx } from "@/lib/utils";
 import { Icon } from "@/components/Icon";
+import { Card } from "@/components/ui/card";
+import { Alert } from "@/components/ui/alert";
+import { Button } from "@/components/ui/button";
 
 export function ThemeForm({
   initial,
@@ -62,7 +65,7 @@ export function ThemeForm({
         </p>
       )}
 
-      <section className="card p-5">
+      <Card className="p-5">
         <h2 className="font-bold text-slate-900">Layout</h2>
         <div className="mt-3 grid gap-3 sm:grid-cols-3">
           {(Object.keys(LAYOUTS) as LayoutId[]).map((id) => {
@@ -90,9 +93,9 @@ export function ThemeForm({
             );
           })}
         </div>
-      </section>
+      </Card>
 
-      <section className="card p-5">
+      <Card className="p-5">
         <h2 className="font-bold text-slate-900">Colour</h2>
         <div className="mt-3 grid grid-cols-2 gap-3 sm:grid-cols-4">
           {Object.entries(PALETTES).map(([id, p]) => {
@@ -122,9 +125,9 @@ export function ThemeForm({
             );
           })}
         </div>
-      </section>
+      </Card>
 
-      <section className="card p-5">
+      <Card className="p-5">
         <label
           className={cx(
             "flex items-start gap-3 text-sm",
@@ -133,7 +136,7 @@ export function ThemeForm({
         >
           <input
             type="checkbox"
-            className="mt-0.5 h-5 w-5 accent-[#1e3fae]"
+            className="mt-0.5 h-5 w-5 accent-[#1b2340]"
             disabled={!paid}
             checked={hideBranding}
             onChange={(e) => {
@@ -148,14 +151,14 @@ export function ThemeForm({
             {!paid && lock}
           </span>
         </label>
-      </section>
+      </Card>
 
-      {error && <p className="error-text">{error}</p>}
-      {saved && <p className="ok-text">Theme saved. Open your shop to see it.</p>}
+      {error && <Alert variant="destructive">{error}</Alert>}
+      {saved && <Alert variant="success">Theme saved. Open your shop to see it.</Alert>}
 
-      <button type="button" className="btn-primary w-full text-base sm:w-auto" onClick={save} disabled={pending}>
+      <Button type="button" className="w-full text-base sm:w-auto" onClick={save} disabled={pending}>
         {pending ? "Saving..." : "Save theme"}
-      </button>
+      </Button>
     </div>
   );
 }

@@ -9,6 +9,9 @@ import { requireShop } from "@/lib/auth";
 import { FREE_ITEM_LIMIT, isPaid, MIN_ITEMS_TO_LIST } from "@/lib/catalog-config";
 import { formatDate, SITE_NAME, siteUrl, waShareLink } from "@/lib/utils";
 import { Icon } from "@/components/Icon";
+import { Alert } from "@/components/ui/alert";
+import { Card } from "@/components/ui/card";
+import { buttonVariants } from "@/components/ui/button";
 
 export default async function DashboardHome({ searchParams }: PageProps<"/dashboard">) {
   const { shop } = await requireShop();
@@ -45,20 +48,20 @@ export default async function DashboardHome({ searchParams }: PageProps<"/dashbo
   return (
     <div className="space-y-5">
       {welcome && (
-        <p className="ok-text">
+        <Alert variant="success">
           Your shop is created{paid ? " and you got the launch offer: all paid features free" : ""}
           . Now add your items.
-        </p>
+        </Alert>
       )}
 
       {shop.isHidden && (
-        <p className="error-text">
+        <Alert variant="destructive">
           Your shop is hidden by the {SITE_NAME} team and customers cannot open it. Contact support
           from the Plan page.
-        </p>
+        </Alert>
       )}
 
-      <section className="card p-5">
+      <Card className="p-5">
         <h1 className="text-xl font-bold text-slate-900">{shop.name}</h1>
         <p className="mt-3 text-sm text-slate-500">Your shop link</p>
         <a
@@ -74,12 +77,12 @@ export default async function DashboardHome({ searchParams }: PageProps<"/dashbo
             href={waShareLink(`See the catalog of ${shop.name} and order on WhatsApp:\n${shopUrl}`)}
             target="_blank"
             rel="noopener noreferrer"
-            className="btn-whatsapp"
+            className={buttonVariants({ variant: "whatsapp" })}
           >
             Share on WhatsApp
           </a>
         </div>
-      </section>
+      </Card>
 
       <section className="grid grid-cols-3 gap-3">
         {[
@@ -95,14 +98,14 @@ export default async function DashboardHome({ searchParams }: PageProps<"/dashbo
             href: "/dashboard/reviews",
           },
         ].map((stat) => (
-          <Link key={stat.label} href={stat.href} className="card p-4 hover:border-slate-300">
+          <Link key={stat.label} href={stat.href} className="rounded-xl border bg-card p-4 hover:border-slate-300">
             <p className="text-2xl font-bold text-slate-900">{stat.value}</p>
             <p className="text-sm text-slate-500">{stat.label}</p>
           </Link>
         ))}
       </section>
 
-      <section className="card p-5">
+      <Card className="p-5">
         <h2 className="font-bold text-slate-900">
           {listed ? "Your shop is on the home page" : "Get listed on the home page"}
         </h2>
@@ -131,10 +134,10 @@ export default async function DashboardHome({ searchParams }: PageProps<"/dashbo
             </li>
           ))}
         </ul>
-      </section>
+      </Card>
 
       <div className="grid gap-5 sm:grid-cols-2">
-        <section className="card p-5">
+        <Card className="p-5">
           <h2 className="font-bold text-slate-900">QR code for your counter</h2>
           <p className="mt-1 text-sm text-slate-600">
             Print it and stick it in your shop. Customers scan it to open your catalog.
@@ -145,12 +148,12 @@ export default async function DashboardHome({ searchParams }: PageProps<"/dashbo
             aria-label="QR code of your shop link"
             dangerouslySetInnerHTML={{ __html: qrSvg }}
           />
-          <a href={qrPng} download={`${shop.slug}-qr.png`} className="btn-outline mt-3 w-full">
+          <a href={qrPng} download={`${shop.slug}-qr.png`} className={buttonVariants({ variant: "outline", className: "mt-3 w-full" })}>
             Download QR code
           </a>
-        </section>
+        </Card>
 
-        <section className="card p-5">
+        <Card className="p-5">
           <h2 className="font-bold text-slate-900">Ask customers for a review</h2>
           <p className="mt-1 text-sm text-slate-600">
             Only people who get this link from you can write a review. Send it to happy customers.
@@ -162,13 +165,13 @@ export default async function DashboardHome({ searchParams }: PageProps<"/dashbo
               )}
               target="_blank"
               rel="noopener noreferrer"
-              className="btn-whatsapp"
+              className={buttonVariants({ variant: "whatsapp" })}
             >
               Send review link on WhatsApp
             </a>
             <CopyButton text={reviewUrl} label="Copy review link" />
           </div>
-        </section>
+        </Card>
       </div>
 
       {paid && shop.planExpiresAt && (

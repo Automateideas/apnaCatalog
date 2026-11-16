@@ -1,14 +1,24 @@
 import Link from "next/link";
 import { SITE_NAME } from "@/lib/utils";
+import { buttonVariants } from "@/components/ui/button";
 
 export function Logo({ className = "" }: { className?: string }) {
   return (
-    <Link href="/" className={`inline-flex items-center gap-2 font-bold text-slate-900 ${className}`}>
-      {/* The mark is a price tag: yellow tile, punched hole, the letter. */}
-      <span className="relative flex h-8 w-8 items-center justify-center rounded-lg bg-tag font-display text-xl leading-none font-extrabold text-ink">
-        <span className="absolute top-1 right-1 h-1 w-1 rounded-full bg-ink/70" />A
+    <Link
+      href="/"
+      aria-label={SITE_NAME}
+      className={`inline-flex items-center gap-2 text-[#1B2340] ${className}`}
+    >
+      {/* Same mark as public/icon-light.svg, inlined so it never flashes in late. */}
+      <svg aria-hidden="true" viewBox="0 0 100 100" className="h-8 w-8 shrink-0">
+        <rect width="100" height="100" rx="26" fill="#1B2340" />
+        <circle cx="46" cy="54" r="21" fill="none" stroke="#FBF7F0" strokeWidth="11" />
+        <rect x="62" y="20" width="11" height="68" rx="5.5" fill="#FBF7F0" />
+        <circle cx="67.5" cy="28" r="4.5" fill="#F29A1F" />
+      </svg>
+      <span className="font-display text-xl leading-none font-bold tracking-tight">
+        apna<span className="font-semibold text-[#F29A1F]">catalog</span>
       </span>
-      <span className="font-display text-xl font-bold tracking-tight">{SITE_NAME}</span>
     </Link>
   );
 }
@@ -18,7 +28,7 @@ export function SiteHeader({ signedIn }: { signedIn: boolean }) {
     <header className="sticky top-0 z-30 border-b border-slate-200 bg-white/95 backdrop-blur">
       <div className="mx-auto flex h-14 w-full max-w-6xl items-center justify-between px-4">
         <Logo />
-        <Link href={signedIn ? "/dashboard" : "/login"} className="btn-primary min-h-9 px-3 py-1.5">
+        <Link href={signedIn ? "/dashboard" : "/login"} className={buttonVariants({ size: "sm" })}>
           {signedIn ? "My shop" : "Add your shop free"}
         </Link>
       </div>

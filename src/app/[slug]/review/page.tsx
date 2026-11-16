@@ -6,6 +6,8 @@ import { effectiveTheme } from "@/lib/catalog-config";
 import { getPublicShop } from "@/lib/shop-data";
 import { ReviewForm } from "./ReviewForm";
 import { IconBadge } from "@/components/Icon";
+import { Card } from "@/components/ui/card";
+import { buttonVariants } from "@/components/ui/button";
 
 export const dynamic = "force-dynamic";
 
@@ -38,17 +40,17 @@ export default async function ReviewPage({ params, searchParams }: PageProps<"/[
       {valid ? (
         <ReviewForm shop={{ id: shop.id, slug: shop.slug, name: shop.name }} token={token} />
       ) : (
-        <div className="card p-6 text-center">
+        <Card className="p-6 text-center">
           <IconBadge name="link" />
           <h2 className="mt-3 text-lg font-bold">This review link is not valid</h2>
           <p className="mt-2 text-sm text-slate-600">
             Reviews can be written only from the link the shop sends to its customers. Please ask{" "}
             {shop.name} to send you the link again.
           </p>
-          <Link href={`/${shop.slug}`} className="btn-outline mt-5">
+          <Link href={`/${shop.slug}`} className={buttonVariants({ variant: "outline", className: "mt-5" })}>
             See the catalog
           </Link>
-        </div>
+        </Card>
       )}
     </main>
   );

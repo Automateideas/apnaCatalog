@@ -2,6 +2,7 @@ import Link from "next/link";
 import { Avatar } from "@/components/Avatar";
 import { ratingOf, Stars } from "@/components/Stars";
 import { getBusinessType, PALETTES } from "@/lib/catalog-config";
+import { Badge } from "@/components/ui/badge";
 
 export type ShopCardData = {
   slug: string;
@@ -23,12 +24,10 @@ export function ShopCard({ shop }: { shop: ShopCardData }) {
   return (
     <Link
       href={`/${shop.slug}`}
-      className="card group relative flex min-w-0 gap-3 p-4 hover:border-slate-400"
+      className="rounded-xl border bg-card group relative flex min-w-0 gap-3 p-4 hover:border-slate-400"
     >
       {shop.featured && (
-        <span className="absolute top-3 right-3 rounded-full bg-amber-100 px-2 py-0.5 text-[11px] font-semibold text-amber-800">
-          Featured
-        </span>
+        <Badge className="absolute top-3 right-3 bg-amber-100 text-amber-800">Featured</Badge>
       )}
       <Avatar name={shop.name} src={shop.logoUrl} color={color} className="h-16 w-16 text-xl" />
       <div className="min-w-0 flex-1">

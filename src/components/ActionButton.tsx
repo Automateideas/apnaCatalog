@@ -2,17 +2,24 @@
 
 import { useState, useTransition } from "react";
 import { useRouter } from "next/navigation";
+import { Button } from "@/components/ui/button";
 import type { ActionResult } from "@/lib/utils";
+
+type ButtonProps = React.ComponentProps<typeof Button>;
 
 /** A button that runs a server action, then reloads the page data. */
 export function ActionButton({
   action,
   children,
-  className = "btn-outline",
+  variant = "outline",
+  size,
+  className,
   confirm,
 }: {
   action: () => Promise<ActionResult>;
   children: React.ReactNode;
+  variant?: ButtonProps["variant"];
+  size?: ButtonProps["size"];
   className?: string;
   confirm?: string;
 }) {
@@ -22,8 +29,10 @@ export function ActionButton({
 
   return (
     <>
-      <button
+      <Button
         type="button"
+        variant={variant}
+        size={size}
         className={className}
         disabled={pending}
         onClick={() => {
@@ -41,7 +50,7 @@ export function ActionButton({
         }}
       >
         {pending ? "..." : children}
-      </button>
+      </Button>
       {error && <span className="text-xs text-red-600">{error}</span>}
     </>
   );

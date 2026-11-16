@@ -8,7 +8,7 @@ import { categories, items } from "@/db/schema";
 import { getShopByOwner, requireUser } from "@/lib/auth";
 import { FREE_ITEM_LIMIT, isPaid } from "@/lib/catalog-config";
 import { refreshShopStats } from "@/lib/shop-stats";
-import { mediaPrefix } from "@/lib/supabase/env";
+import { isMediaUrl } from "@/lib/supabase/env";
 import { rupeesToPaise, type ActionResult } from "@/lib/utils";
 
 async function myShop() {
@@ -30,7 +30,7 @@ const itemSchema = z.object({
 });
 
 export async function saveItem(input: z.input<typeof itemSchema>): Promise<ActionResult> {
-  const { user, shop } = await myShop();
+  const { shop } = await myShop();
   if (!shop) return { ok: false, error: "Shop not found." };
 
   const parsed = itemSchema.safeParse(input);
@@ -48,8 +48,7 @@ export async function saveItem(input: z.input<typeof itemSchema>): Promise<Actio
 
   const price = rupeesToPaise(data.price);
   const mrp = data.mrp && rupeesToPaise(data.mrp) > price ? rupeesToPaise(data.mrp) : null;
-  const imageUrl =
-    data.imageUrl && data.imageUrl.startsWith(mediaPrefix(user.id)) ? data.imageUrl : null;
+  const imageUrl = data.imageUrl && isMediaUrl(data.imageUrl) ? data.imageUrl : null;
 
   const values = {
     name: data.name,

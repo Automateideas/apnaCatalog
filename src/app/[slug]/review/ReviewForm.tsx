@@ -6,6 +6,12 @@ import { getMyReview, submitReview } from "@/app/actions/reviews";
 import { useStored } from "@/lib/use-stored";
 import { cx } from "@/lib/utils";
 import { IconBadge } from "@/components/Icon";
+import { Card } from "@/components/ui/card";
+import { Button, buttonVariants } from "@/components/ui/button";
+import { Alert } from "@/components/ui/alert";
+import { Label } from "@/components/ui/label";
+import { Input } from "@/components/ui/input";
+import { Textarea } from "@/components/ui/textarea";
 
 type Saved = { phone: string; editToken: string };
 
@@ -101,7 +107,7 @@ export function ReviewForm({
 
   if (done) {
     return (
-      <div className="card p-6 text-center">
+      <Card className="p-6 text-center">
         <IconBadge name="check" />
         <h2 className="mt-3 text-xl font-bold">
           {done === "new" ? "Thank you for your review!" : "Your review was updated."}
@@ -110,25 +116,25 @@ export function ReviewForm({
           You can change it any time by opening this link again on this phone.
         </p>
         <div className="mt-5 flex flex-col gap-2 sm:flex-row sm:justify-center">
-          <Link href={`/${shop.slug}`} className="btn-primary">
+          <Link href={`/${shop.slug}`} className={buttonVariants()}>
             See {shop.name}&apos;s catalog
           </Link>
-          <button type="button" className="btn-outline" onClick={() => setDone(null)}>
+          <Button type="button" variant="outline" onClick={() => setDone(null)}>
             Edit my review
-          </button>
+          </Button>
         </div>
-      </div>
+      </Card>
     );
   }
 
   return (
-    <form onSubmit={submit} className="card space-y-5 p-5">
+    <form onSubmit={submit} className="rounded-xl border bg-card space-y-5 p-5">
       {editing && (
-        <p className="ok-text">You already reviewed this shop. You can change your review below.</p>
+        <Alert variant="success">You already reviewed this shop. You can change your review below.</Alert>
       )}
 
       <div>
-        <span className="label">Your rating</span>
+        <span className="mb-1.5 block text-sm font-medium text-slate-700">Your rating</span>
         <div className="flex items-center gap-1" role="radiogroup" aria-label="Rating">
           {[1, 2, 3, 4, 5].map((n) => (
             <button
@@ -153,12 +159,11 @@ export function ReviewForm({
       </div>
 
       <div>
-        <label className="label" htmlFor="review-name">
+        <Label htmlFor="review-name">
           Your name
-        </label>
-        <input
+        </Label>
+        <Input
           id="review-name"
-          className="input"
           value={name}
           onChange={(e) => setName(e.target.value)}
           required
@@ -169,12 +174,11 @@ export function ReviewForm({
       </div>
 
       <div>
-        <label className="label" htmlFor="review-phone">
+        <Label htmlFor="review-phone">
           Mobile number
-        </label>
-        <input
+        </Label>
+        <Input
           id="review-phone"
-          className="input"
           value={phone}
           onChange={(e) => setPhone(e.target.value)}
           required
@@ -185,18 +189,17 @@ export function ReviewForm({
           placeholder="10-digit number"
           readOnly={editing}
         />
-        <p className="hint">
+        <p className="mt-1 text-sm text-muted-foreground">
           One review per number. Your number is shown only to {shop.name}, never on the public page.
         </p>
       </div>
 
       <div>
-        <label className="label" htmlFor="review-comment">
+        <Label htmlFor="review-comment">
           Your review (optional)
-        </label>
-        <textarea
+        </Label>
+        <Textarea
           id="review-comment"
-          className="input"
           rows={4}
           value={comment}
           onChange={(e) => setComment(e.target.value)}
@@ -205,11 +208,11 @@ export function ReviewForm({
         />
       </div>
 
-      {error && <p className="error-text">{error}</p>}
+      {error && <Alert variant="destructive">{error}</Alert>}
 
-      <button type="submit" className="btn-primary w-full text-base" disabled={pending}>
+      <Button type="submit" className="w-full text-base" disabled={pending}>
         {pending ? "Saving..." : editing ? "Update review" : "Submit review"}
-      </button>
+      </Button>
       <p className="text-center text-xs text-slate-500">
         Your name, rating and review will be visible to everyone. By submitting you agree to our{" "}
         <Link href="/privacy" className="underline">

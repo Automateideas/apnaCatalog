@@ -6,6 +6,7 @@ import { requireShop } from "@/lib/auth";
 import { FREE_ORDER_HISTORY, isPaid } from "@/lib/catalog-config";
 import { formatDateTime, formatPrice } from "@/lib/utils";
 import { IconBadge } from "@/components/Icon";
+import { Card } from "@/components/ui/card";
 
 export default async function OrdersPage() {
   const { shop } = await requireShop();
@@ -31,15 +32,15 @@ export default async function OrdersPage() {
       </div>
 
       {rows.length === 0 ? (
-        <div className="card px-6 py-12 text-center">
+        <Card className="px-6 py-12 text-center">
           <IconBadge name="receipt" />
           <p className="mt-3 font-semibold text-slate-900">No orders yet</p>
           <p className="mt-1 text-sm text-slate-600">
             Share your shop link. When a customer sends an order, it shows up here too.
           </p>
-        </div>
+        </Card>
       ) : (
-        <ul className="card divide-y divide-slate-100">
+        <ul className="rounded-xl border bg-card divide-y divide-slate-100">
           {rows.map((order) => (
             <li key={order.id}>
               <Link

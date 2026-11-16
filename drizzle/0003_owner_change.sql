@@ -1,0 +1,1 @@
+ALTER TABLE "shops" ADD COLUMN "pending_owner_email" text;

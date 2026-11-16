@@ -1,5 +1,6 @@
 import Link from "next/link";
 import { IconBadge } from "@/components/Icon";
+import { buttonVariants } from "@/components/ui/button";
 
 export default function NotFound() {
   return (
@@ -9,7 +10,7 @@ export default function NotFound() {
       <p className="mt-2 text-slate-600">
         This shop or page does not exist. The link may be wrong or the shop may have closed.
       </p>
-      <Link href="/" className="btn-primary mt-6">
+      <Link href="/" className={buttonVariants({ className: "mt-6" })}>
         See all shops
       </Link>
     </main>

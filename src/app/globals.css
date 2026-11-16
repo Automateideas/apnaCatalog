@@ -1,34 +1,88 @@
 @import "tailwindcss";
+@import "tw-animate-css";
+@import "shadcn/tailwind.css";
+@custom-variant dark (&:is(.dark *));
 
 /*
   Design system
   -------------
   Subject: the hand-painted signboards and price tags of Indian bazaars.
-  Colour:  "neel" blue is the one accent for actions; "haldi" yellow is a price-tag
-           surface used sparingly; neutrals are the cool slate family only.
+  Colour:  taken from the logo. Navy is the one colour for actions and headers;
+           orange is the price-tag surface, used sparingly (always with navy text,
+           never white); the page sits on the logo's warm cream.
            WhatsApp green and red/amber/emerald are kept for their meaning.
            Shop pages swap the accent for the shop's own colour (--p).
   Type:    Baloo 2 for headings (signboard lettering), Mukta for text.
            Both include Devanagari so Hindi shop names render in the same voice.
   Shape:   actions and inputs 8px, cards 12px, sheets 16px, chips and badges pill.
+  Parts:   components come from shadcn/ui (src/components/ui), sized up for phones.
 */
 @theme inline {
   --font-sans: var(--font-mukta), ui-sans-serif, system-ui, sans-serif;
   --font-display: var(--font-baloo), var(--font-mukta), ui-sans-serif, system-ui, sans-serif;
-  --color-brand: #1e3fae;
-  --color-brand-dark: #172f85;
-  --color-brand-soft: #eef2fb;
-  --color-tag: #ffd23f;
-  --color-ink: #121a33;
+  --font-heading: var(--font-display);
+  --color-brand: #1b2340;
+  --color-brand-dark: #10162b;
+  --color-brand-soft: #fdf1dc;
+  --color-tag: #f29a1f;
+  --color-ink: #1b2340;
+  --color-cream: #fbf7f0;
+  --color-whatsapp: #128c4a;
+  /* shadcn tokens */
+  --color-ring: var(--ring);
+  --color-input: var(--input);
+  --color-border: var(--border);
+  --color-destructive: var(--destructive);
+  --color-accent-foreground: var(--accent-foreground);
+  --color-accent: var(--accent);
+  --color-muted-foreground: var(--muted-foreground);
+  --color-muted: var(--muted);
+  --color-secondary-foreground: var(--secondary-foreground);
+  --color-secondary: var(--secondary);
+  --color-primary-foreground: var(--primary-foreground);
+  --color-primary: var(--primary);
+  --color-popover-foreground: var(--popover-foreground);
+  --color-popover: var(--popover);
+  --color-card-foreground: var(--card-foreground);
+  --color-card: var(--card);
+  --color-foreground: var(--foreground);
+  --color-background: var(--background);
+  --radius-sm: calc(var(--radius) * 0.6);
+  --radius-md: calc(var(--radius) * 0.8);
+  --radius-lg: var(--radius);
+  --radius-xl: calc(var(--radius) * 1.5);
+  --radius-2xl: calc(var(--radius) * 2);
+  --radius-3xl: calc(var(--radius) * 2.5);
+  --radius-4xl: calc(var(--radius) * 3);
 }
 
+/* shadcn theme, filled with the logo colours (light only). */
 :root {
   color-scheme: light;
+  --background: #fbf7f0;
+  --foreground: #1b2340;
+  --card: #ffffff;
+  --card-foreground: #1b2340;
+  --popover: #ffffff;
+  --popover-foreground: #1b2340;
+  --primary: #1b2340;
+  --primary-foreground: #ffffff;
+  --secondary: #fdf1dc;
+  --secondary-foreground: #1b2340;
+  --muted: #f1f5f9;
+  --muted-foreground: #64748b;
+  --accent: #fdf1dc;
+  --accent-foreground: #1b2340;
+  --destructive: #b91c1c;
+  --border: #e2e8f0;
+  --input: #cbd5e1;
+  --ring: #1b2340;
+  --radius: 0.5rem;
 }
 
 body {
-  background: #f8fafc;
-  color: #0f172a;
+  background: #fbf7f0;
+  color: #1b2340;
   font-family: var(--font-sans);
   font-size: 1.0625rem;
   -webkit-tap-highlight-color: transparent;
@@ -46,42 +100,6 @@ h2 {
   outline-offset: 2px;
 }
 
-@utility btn {
-  @apply inline-flex min-h-11 cursor-pointer items-center justify-center gap-2 rounded-lg px-4 py-2 text-[0.95rem] font-semibold transition-colors select-none disabled:cursor-not-allowed disabled:opacity-50;
-}
-@utility btn-primary {
-  @apply btn bg-brand text-white hover:bg-brand-dark;
-}
-@utility btn-tag {
-  @apply btn bg-tag text-ink hover:bg-[#f5c21f];
-}
-@utility btn-outline {
-  @apply btn border border-slate-300 bg-white text-slate-800 hover:bg-slate-50;
-}
-@utility btn-ghost {
-  @apply btn text-slate-700 hover:bg-slate-100;
-}
-@utility btn-whatsapp {
-  @apply btn bg-[#128c4a] text-white hover:bg-[#0e733c];
-}
-@utility input {
-  @apply block min-h-11 w-full rounded-lg border border-slate-300 bg-white px-3 py-2 text-base text-slate-900 outline-none placeholder:text-slate-400 focus:border-brand focus:ring-2 focus:ring-brand/20;
-}
-@utility label {
-  @apply mb-1 block text-sm font-medium text-slate-700;
-}
-@utility card {
-  @apply rounded-xl border border-slate-200 bg-white;
-}
-@utility hint {
-  @apply mt-1 text-sm text-slate-500;
-}
-@utility error-text {
-  @apply rounded-lg bg-red-50 px-3 py-2 text-sm text-red-700;
-}
-@utility ok-text {
-  @apply rounded-lg bg-emerald-50 px-3 py-2 text-sm text-emerald-800;
-}
 
 .no-scrollbar {
   scrollbar-width: none;
@@ -103,5 +121,16 @@ h2 {
   }
   body {
     background: #fff;
+  }
+}
+@layer base {
+  * {
+    @apply border-border outline-ring/50;
+  }
+  body {
+    @apply bg-background text-foreground;
+  }
+  html {
+    @apply font-sans;
   }
 }

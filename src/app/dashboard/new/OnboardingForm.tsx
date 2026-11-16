@@ -4,6 +4,11 @@ import { useState, useTransition } from "react";
 import { createShop } from "@/app/actions/shop";
 import { BUSINESS_TYPES } from "@/lib/catalog-config";
 import { slugify } from "@/lib/utils";
+import { Label } from "@/components/ui/label";
+import { Input } from "@/components/ui/input";
+import { NativeSelect } from "@/components/ui/native-select";
+import { Alert } from "@/components/ui/alert";
+import { Button } from "@/components/ui/button";
 
 export function OnboardingForm({ host }: { host: string }) {
   const [name, setName] = useState("");
@@ -33,14 +38,13 @@ export function OnboardingForm({ host }: { host: string }) {
   };
 
   return (
-    <form onSubmit={submit} className="card space-y-4 p-5">
+    <form onSubmit={submit} className="rounded-xl border bg-card space-y-4 p-5">
       <div>
-        <label className="label" htmlFor="shop-name">
+        <Label htmlFor="shop-name">
           Shop name
-        </label>
-        <input
+        </Label>
+        <Input
           id="shop-name"
-          className="input"
           value={name}
           onChange={(e) => setName(e.target.value)}
           required
@@ -52,12 +56,11 @@ export function OnboardingForm({ host }: { host: string }) {
       </div>
 
       <div>
-        <label className="label" htmlFor="shop-type">
+        <Label htmlFor="shop-type">
           Type of shop
-        </label>
-        <select
+        </Label>
+        <NativeSelect
           id="shop-type"
-          className="input"
           value={businessType}
           onChange={(e) => setBusinessType(e.target.value)}
           required
@@ -70,18 +73,17 @@ export function OnboardingForm({ host }: { host: string }) {
               {t.name}
             </option>
           ))}
-        </select>
-        <p className="hint">We set up categories and a matching theme for you. You can change both.</p>
+        </NativeSelect>
+        <p className="mt-1 text-sm text-muted-foreground">We set up categories and a matching theme for you. You can change both.</p>
       </div>
 
       <div className="grid gap-4 sm:grid-cols-2">
         <div>
-          <label className="label" htmlFor="shop-city">
+          <Label htmlFor="shop-city">
             City
-          </label>
-          <input
+          </Label>
+          <Input
             id="shop-city"
-            className="input"
             value={city}
             onChange={(e) => setCity(e.target.value)}
             required
@@ -92,12 +94,11 @@ export function OnboardingForm({ host }: { host: string }) {
           />
         </div>
         <div>
-          <label className="label" htmlFor="shop-whatsapp">
+          <Label htmlFor="shop-whatsapp">
             WhatsApp number
-          </label>
-          <input
+          </Label>
+          <Input
             id="shop-whatsapp"
-            className="input"
             value={whatsapp}
             onChange={(e) => setWhatsapp(e.target.value)}
             required
@@ -107,14 +108,14 @@ export function OnboardingForm({ host }: { host: string }) {
             placeholder="10-digit number"
             autoComplete="tel-national"
           />
-          <p className="hint">Orders from customers come to this number.</p>
+          <p className="mt-1 text-sm text-muted-foreground">Orders from customers come to this number.</p>
         </div>
       </div>
 
       <div>
-        <label className="label" htmlFor="shop-slug">
+        <Label htmlFor="shop-slug">
           Your shop link
-        </label>
+        </Label>
         <div className="flex items-center overflow-hidden rounded-xl border border-slate-300 bg-slate-50 focus-within:border-brand focus-within:ring-2 focus-within:ring-brand/20">
           <span className="pl-3 text-sm whitespace-nowrap text-slate-500">{host}/</span>
           <input
@@ -128,16 +129,16 @@ export function OnboardingForm({ host }: { host: string }) {
             spellCheck={false}
           />
         </div>
-        <p className="hint">
+        <p className="mt-1 text-sm text-muted-foreground">
           This link goes on your QR code and cannot be changed later, so check the spelling.
         </p>
       </div>
 
-      {error && <p className="error-text">{error}</p>}
+      {error && <Alert variant="destructive">{error}</Alert>}
 
-      <button type="submit" className="btn-primary w-full text-base" disabled={pending}>
+      <Button type="submit" className="w-full text-base" disabled={pending}>
         {pending ? "Creating your shop..." : "Create my shop"}
-      </button>
+      </Button>
     </form>
   );
 }

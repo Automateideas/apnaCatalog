@@ -19,7 +19,8 @@ import {
   PALETTES,
   RESERVED_SLUGS,
 } from "@/lib/catalog-config";
-import { mediaPrefix } from "@/lib/supabase/env";
+import { isMediaUrl } from "@/lib/supabase/env";
+import { setPendingOwner } from "@/lib/owner-change";
 import {
   citySlugOf,
   normalizePhone,
@@ -166,9 +167,8 @@ function isGoogleMapsUrl(value: string): boolean {
   return google && (host.startsWith("maps.") || url.pathname.startsWith("/maps"));
 }
 
-function ownMedia(url: string | null | undefined, userId: string): string | null {
-  if (!url) return null;
-  return url.startsWith(mediaPrefix(userId)) ? url : null;
+function ownMedia(url: string | null | undefined): string | null {
+  return url && isMediaUrl(url) ? url : null;
 }
 
 export async function updateShop(input: z.input<typeof updateSchema>): Promise<ActionResult> {
@@ -208,8 +208,8 @@ export async function updateShop(input: z.input<typeof updateSchema>): Promise<A
       phone,
       whatsapp,
       ownerName: data.ownerName ?? null,
-      logoUrl: ownMedia(data.logoUrl, user.id),
-      ownerPhotoUrl: ownMedia(data.ownerPhotoUrl, user.id),
+      logoUrl: ownMedia(data.logoUrl),
+      ownerPhotoUrl: ownMedia(data.ownerPhotoUrl),
       lat: data.lat ?? null,
       lng: data.lng ?? null,
       mapsUrl: data.mapsUrl ?? null,
@@ -252,4 +252,18 @@ export async function updateTheme(input: z.input<typeof themeSchema>): Promise<A
 
   revalidatePath("/dashboard", "layout");
   return { ok: true };
+}
+
+/**
+ * Starts moving the shop to another Google account. Nothing changes until that
+ * account logs in; until then the current owner can cancel. Empty email cancels.
+ */
+export async function changeLoginEmail(email: string): Promise<ActionResult> {
+  const user = await requireUser();
+  const shop = await getShopByOwner(user.id);
+  if (!shop) return { ok: false, error: "Shop not found." };
+
+  const result = await setPendingOwner(shop, email);
+  if (result.ok) revalidatePath("/dashboard", "layout");
+  return result;
 }

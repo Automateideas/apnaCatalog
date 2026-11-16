@@ -20,7 +20,12 @@ export const getUser = cache(async (): Promise<SessionUser | null> => {
   const supabase = await createClient();
   const { data, error } = await supabase.auth.getUser();
   if (error || !data.user) return null;
-  return { id: data.user.id, email: data.user.email ?? null };
+  // The email decides admin access and shop transfers, so only trust one Google has verified.
+  const meta = data.user.app_metadata ?? {};
+  const viaGoogle =
+    meta.provider === "google" ||
+    (Array.isArray(meta.providers) && meta.providers.includes("google"));
+  return { id: data.user.id, email: viaGoogle ? (data.user.email ?? null) : null };
 });
 
 export async function requireUser(): Promise<SessionUser> {

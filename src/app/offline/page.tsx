@@ -1,5 +1,6 @@
 import type { Metadata } from "next";
 import { IconBadge } from "@/components/Icon";
+import { buttonVariants } from "@/components/ui/button";
 
 export const metadata: Metadata = { title: "No internet", robots: { index: false } };
 
@@ -13,7 +14,7 @@ export default function OfflinePage() {
       </p>
       {/* A plain link so this page needs no JavaScript while offline. */}
       {/* eslint-disable-next-line @next/next/no-html-link-for-pages */}
-      <a href="/" className="btn-primary mt-6">
+      <a href="/" className={buttonVariants({ className: "mt-6" })}>
         Try again
       </a>
     </main>

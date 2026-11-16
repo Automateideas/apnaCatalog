@@ -4,7 +4,7 @@ import { cx, initials } from "@/lib/utils";
 export function Avatar({
   name,
   src,
-  color = "#1e3fae",
+  color = "#1b2340",
   className,
   round = false,
 }: {

@@ -6,6 +6,13 @@ import type { LayoutId } from "@/lib/catalog-config";
 import { useStored } from "@/lib/use-stored";
 import { cx, formatPrice } from "@/lib/utils";
 import { Icon } from "@/components/Icon";
+import { Card } from "@/components/ui/card";
+import { Alert } from "@/components/ui/alert";
+import { Input } from "@/components/ui/input";
+import { Label } from "@/components/ui/label";
+import { Textarea } from "@/components/ui/textarea";
+import { Button } from "@/components/ui/button";
+import { Sheet, SheetClose, SheetContent, SheetTitle } from "@/components/ui/sheet";
 
 export type CatalogItem = {
   id: string;
@@ -204,7 +211,7 @@ export function Catalog({ shop, layout, items, categories }: Props) {
           {list.map((item) => (
             <article
               key={item.id}
-              className={cx("card flex flex-col overflow-hidden", !item.inStock && "opacity-60")}
+              className={cx("rounded-xl border bg-card flex flex-col overflow-hidden", !item.inStock && "opacity-60")}
             >
               <div className="aspect-square bg-slate-100">
                 {item.imageUrl ? (
@@ -238,7 +245,7 @@ export function Catalog({ shop, layout, items, categories }: Props) {
 
     if (layout === "list") {
       return (
-        <div className="card divide-y divide-slate-100">
+        <Card className="divide-y divide-slate-100">
           {list.map((item) => (
             <article
               key={item.id}
@@ -268,12 +275,12 @@ export function Catalog({ shop, layout, items, categories }: Props) {
               {stepper(item, true)}
             </article>
           ))}
-        </div>
+        </Card>
       );
     }
 
     return (
-      <div className="card divide-y divide-dashed divide-slate-200 px-4">
+      <Card className="divide-y divide-dashed divide-slate-200 px-4">
         {list.map((item) => (
           <article key={item.id} className={cx("flex gap-3 py-3.5", !item.inStock && "opacity-60")}>
             <div className="min-w-0 flex-1">
@@ -301,7 +308,7 @@ export function Catalog({ shop, layout, items, categories }: Props) {
             )}
           </article>
         ))}
-      </div>
+      </Card>
     );
   };
 
@@ -316,7 +323,7 @@ export function Catalog({ shop, layout, items, categories }: Props) {
   return (
     <div className={cartCount > 0 ? "pb-24" : ""}>
       {rawLast && cartCount === 0 && (
-        <div className="ok-text mb-4 flex flex-wrap items-center justify-between gap-2">
+        <Alert variant="success" className="mb-4 flex flex-wrap items-center justify-between gap-2">
           <span>Your order was sent to the shop on WhatsApp.</span>
           <span className="flex gap-3">
             <a href={`/o/${rawLast}`} className="font-semibold underline">
@@ -326,24 +333,24 @@ export function Catalog({ shop, layout, items, categories }: Props) {
               Dismiss
             </button>
           </span>
-        </div>
+        </Alert>
       )}
 
       {items.length > 6 && (
-        <input
+        <Input
           type="search"
           value={query}
           onChange={(e) => setQuery(e.target.value)}
           placeholder="Search items"
           aria-label="Search items"
-          className="input mb-3"
+          className="mb-3"
         />
       )}
 
       {topCats.length > 1 && (
         <nav
           aria-label="Categories"
-          className="no-scrollbar sticky top-0 z-10 -mx-4 flex gap-2 overflow-x-auto bg-slate-50/95 px-4 py-2 backdrop-blur"
+          className="no-scrollbar sticky top-0 z-10 -mx-4 flex gap-2 overflow-x-auto bg-cream/95 px-4 py-2 backdrop-blur"
         >
           <button
             type="button"
@@ -390,7 +397,7 @@ export function Catalog({ shop, layout, items, categories }: Props) {
       )}
 
       {visible.length === 0 ? (
-        <p className="card mt-3 px-4 py-10 text-center text-slate-500">
+        <p className="rounded-xl border bg-card mt-3 px-4 py-10 text-center text-slate-500">
           {items.length === 0 ? "This shop has not added items yet." : "No items found."}
         </p>
       ) : (
@@ -413,38 +420,27 @@ export function Catalog({ shop, layout, items, categories }: Props) {
               </p>
               <p className="text-lg font-bold text-slate-900">{formatPrice(cartTotal)}</p>
             </div>
-            <button
+            <Button
               type="button"
               onClick={() => setCartOpen(true)}
-              className="btn bg-(--p) px-6 text-white hover:bg-(--pd)"
+              className="bg-(--p) px-6 text-white hover:bg-(--pd)"
             >
               View cart
-            </button>
+            </Button>
           </div>
         </div>
       )}
 
       {cartOpen && (
-        <div
-          className="fixed inset-0 z-40 flex items-end justify-center bg-black/50 sm:items-center"
-          role="dialog"
-          aria-modal="true"
-          aria-label="Your cart"
-          onClick={(e) => {
-            if (e.target === e.currentTarget) setCartOpen(false);
-          }}
-        >
-          <div className="flex max-h-[90dvh] w-full max-w-lg flex-col rounded-t-2xl bg-white sm:rounded-2xl">
-            <div className="flex items-center justify-between border-b border-slate-100 px-5 py-4">
-              <h2 className="text-lg font-bold">Your cart</h2>
-              <button
-                type="button"
-                onClick={() => setCartOpen(false)}
-                className="rounded-full px-3 py-1 text-slate-500 hover:bg-slate-100"
-                aria-label="Close cart"
+        <Sheet open onOpenChange={(open) => !open && setCartOpen(false)}>
+          <SheetContent side="bottom" showCloseButton={false} className="mx-auto w-full max-w-lg gap-0 rounded-t-2xl p-0 text-base max-h-[90dvh]">
+            <div className="flex items-center justify-between border-b border-slate-100 px-5 py-3">
+              <SheetTitle className="text-lg font-bold">Your cart</SheetTitle>
+              <SheetClose
+                render={<Button variant="ghost" size="icon" className="text-slate-500" aria-label="Close cart" />}
               >
                 <Icon name="x" />
-              </button>
+              </SheetClose>
             </div>
 
             <div className="flex-1 overflow-y-auto px-5 py-3">
@@ -469,12 +465,11 @@ export function Catalog({ shop, layout, items, categories }: Props) {
               {cartLines.length > 0 && (
                 <div className="mt-3 space-y-3">
                   <div>
-                    <label className="label" htmlFor="cart-name">
+                    <Label htmlFor="cart-name">
                       Your name (optional)
-                    </label>
-                    <input
+                    </Label>
+                    <Input
                       id="cart-name"
-                      className="input"
                       value={name}
                       onChange={(e) => setName(e.target.value)}
                       maxLength={60}
@@ -482,12 +477,11 @@ export function Catalog({ shop, layout, items, categories }: Props) {
                     />
                   </div>
                   <div>
-                    <label className="label" htmlFor="cart-note">
+                    <Label htmlFor="cart-note">
                       Note for the shop (optional)
-                    </label>
-                    <textarea
+                    </Label>
+                    <Textarea
                       id="cart-note"
-                      className="input"
                       rows={2}
                       value={note}
                       onChange={(e) => setNote(e.target.value)}
@@ -501,27 +495,27 @@ export function Catalog({ shop, layout, items, categories }: Props) {
 
             {cartLines.length > 0 && (
               <div className="border-t border-slate-100 px-5 py-4">
-                {error && <p className="error-text mb-3">{error}</p>}
+                {error && <Alert variant="destructive" className="mb-3">{error}</Alert>}
                 <div className="mb-3 flex items-baseline justify-between">
                   <span className="text-slate-600">Total</span>
                   <span className="text-xl font-bold">{formatPrice(cartTotal)}</span>
                 </div>
-                <button
+                <Button
                   type="button"
                   onClick={sendOrder}
                   disabled={sending}
-                  className="btn-whatsapp w-full text-base"
+                  variant="whatsapp" className="w-full text-base"
                 >
                   {sending ? "Opening WhatsApp..." : "Send order on WhatsApp"}
-                </button>
+                </Button>
                 <p className="mt-2 text-center text-xs text-slate-500">
                   No payment now. {shop.name} will confirm the final price and availability on
                   WhatsApp.
                 </p>
               </div>
             )}
-          </div>
-        </div>
+          </SheetContent>
+        </Sheet>
       )}
     </div>
   );

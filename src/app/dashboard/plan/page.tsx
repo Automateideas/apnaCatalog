@@ -7,6 +7,9 @@ import {
   PRICE_YEARLY,
 } from "@/lib/catalog-config";
 import { formatDate, SITE_NAME } from "@/lib/utils";
+import { Card } from "@/components/ui/card";
+import { buttonVariants } from "@/components/ui/button";
+import { Table, TableBody, TableCell, TableHead, TableHeader, TableRow } from "@/components/ui/table";
 
 const ROWS: [string, string, string][] = [
   ["Items", `Up to ${FREE_ITEM_LIMIT}`, "Unlimited"],
@@ -29,7 +32,7 @@ export default async function PlanPage() {
     <div className="space-y-5">
       <h1 className="text-xl font-bold text-slate-900">Plan</h1>
 
-      <section className="card p-5">
+      <Card className="p-5">
         <p className="text-sm text-slate-500">Your current plan</p>
         <p className="mt-1 text-2xl font-bold text-slate-900">{paid ? "Paid" : "Free"}</p>
         {paid && shop.planExpiresAt && (
@@ -43,46 +46,46 @@ export default async function PlanPage() {
             Your paid plan has ended. Your shop and all its items are still online.
           </p>
         )}
-      </section>
+      </Card>
 
-      <section className="card overflow-hidden">
-        <table className="w-full text-sm">
-          <thead>
-            <tr className="bg-slate-50 text-left">
-              <th className="px-4 py-3 font-medium text-slate-500"> </th>
-              <th className="px-4 py-3 font-semibold text-slate-900">Free</th>
-              <th className="px-4 py-3 font-semibold text-brand">Paid</th>
-            </tr>
-          </thead>
-          <tbody>
+      <Card className="overflow-hidden">
+        <Table className="w-full text-sm">
+          <TableHeader>
+            <TableRow className="bg-slate-50 text-left">
+              <TableHead className="px-4 py-3 font-medium text-slate-500"> </TableHead>
+              <TableHead className="px-4 py-3 font-semibold text-slate-900">Free</TableHead>
+              <TableHead className="px-4 py-3 font-semibold text-brand">Paid</TableHead>
+            </TableRow>
+          </TableHeader>
+          <TableBody>
             {ROWS.map(([label, free, paidValue]) => (
-              <tr key={label} className="border-t border-slate-100 align-top">
-                <th scope="row" className="px-4 py-3 text-left font-medium text-slate-700">
+              <TableRow key={label} className="border-t border-slate-100 align-top">
+                <TableHead scope="row" className="px-4 py-3 text-left font-medium text-slate-700">
                   {label}
-                </th>
-                <td className="px-4 py-3 text-slate-600">{free}</td>
-                <td className="px-4 py-3 font-medium text-slate-900">{paidValue}</td>
-              </tr>
+                </TableHead>
+                <TableCell className="px-4 py-3 text-slate-600">{free}</TableCell>
+                <TableCell className="px-4 py-3 font-medium text-slate-900">{paidValue}</TableCell>
+              </TableRow>
             ))}
-            <tr className="border-t border-slate-200 bg-slate-50">
-              <th scope="row" className="px-4 py-3 text-left font-medium text-slate-700">
+            <TableRow className="border-t border-slate-200 bg-slate-50">
+              <TableHead scope="row" className="px-4 py-3 text-left font-medium text-slate-700">
                 Price
-              </th>
-              <td className="px-4 py-3 font-semibold text-slate-900">₹0 forever</td>
-              <td className="px-4 py-3 font-semibold text-slate-900">
+              </TableHead>
+              <TableCell className="px-4 py-3 font-semibold text-slate-900">₹0 forever</TableCell>
+              <TableCell className="px-4 py-3 font-semibold text-slate-900">
                 ₹{PRICE_YEARLY}/year <span className="font-normal text-slate-500">or ₹{PRICE_MONTHLY}/month</span>
-              </td>
-            </tr>
-          </tbody>
-        </table>
-      </section>
+              </TableCell>
+            </TableRow>
+          </TableBody>
+        </Table>
+      </Card>
 
       {support ? (
         <div className="flex flex-col gap-2 sm:flex-row">
-          <a href={wa(upgradeText)} target="_blank" rel="noopener noreferrer" className="btn-whatsapp">
+          <a href={wa(upgradeText)} target="_blank" rel="noopener noreferrer" className={buttonVariants({ variant: "whatsapp" })}>
             {paid ? "Renew on WhatsApp" : "Upgrade on WhatsApp"}
           </a>
-          <a href={wa(helpText)} target="_blank" rel="noopener noreferrer" className="btn-outline">
+          <a href={wa(helpText)} target="_blank" rel="noopener noreferrer" className={buttonVariants({ variant: "outline" })}>
             Get help
           </a>
         </div>

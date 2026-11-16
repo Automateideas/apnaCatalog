@@ -13,6 +13,14 @@ import {
 import { ImageUpload } from "@/components/ImageUpload";
 import { cx, formatPrice, type ActionResult } from "@/lib/utils";
 import { Icon, IconBadge } from "@/components/Icon";
+import { Button } from "@/components/ui/button";
+import { Sheet, SheetClose, SheetContent, SheetTitle } from "@/components/ui/sheet";
+import { Alert } from "@/components/ui/alert";
+import { Input } from "@/components/ui/input";
+import { Card } from "@/components/ui/card";
+import { Label } from "@/components/ui/label";
+import { NativeSelect } from "@/components/ui/native-select";
+import { Textarea } from "@/components/ui/textarea";
 
 type Category = { id: string; name: string; parentId: string | null };
 type Item = {
@@ -167,9 +175,8 @@ export function ItemsManager({
               : `${items.length} of ${itemLimit} items used on the free plan`}
           </p>
         </div>
-        <button
+        <Button
           type="button"
-          className="btn-primary"
           disabled={atLimit}
           onClick={() => {
             setFormError(null);
@@ -177,7 +184,7 @@ export function ItemsManager({
           }}
         >
           + Add item
-        </button>
+        </Button>
       </div>
 
       {atLimit && (
@@ -189,9 +196,9 @@ export function ItemsManager({
         </p>
       )}
 
-      {error && <p className="error-text">{error}</p>}
+      {error && <Alert variant="destructive">{error}</Alert>}
 
-      <details className="card p-4">
+      <details className="rounded-xl border bg-card p-4">
         <summary className="cursor-pointer font-semibold text-slate-900">
           Categories ({topCats.length})
         </summary>
@@ -288,24 +295,22 @@ export function ItemsManager({
             }
           }}
         >
-          <input
-            className="input"
+          <Input
             value={newCategory}
             onChange={(e) => setNewCategory(e.target.value)}
             placeholder="New category name"
             aria-label="New category name"
             maxLength={40}
           />
-          <button type="submit" className="btn-outline" disabled={pending || !newCategory.trim()}>
+          <Button type="submit" variant="outline" disabled={pending || !newCategory.trim()}>
             Add
-          </button>
+          </Button>
         </form>
       </details>
 
       {items.length > 8 && (
-        <input
+        <Input
           type="search"
-          className="input"
           value={filter}
           onChange={(e) => setFilter(e.target.value)}
           placeholder="Search your items"
@@ -314,15 +319,15 @@ export function ItemsManager({
       )}
 
       {items.length === 0 ? (
-        <div className="card px-6 py-12 text-center">
+        <Card className="px-6 py-12 text-center">
           <IconBadge name="box" />
           <p className="mt-3 font-semibold text-slate-900">No items yet</p>
           <p className="mt-1 text-sm text-slate-600">
             Add your first item: a name, a price and a photo is enough.
           </p>
-        </div>
+        </Card>
       ) : (
-        <ul className="card divide-y divide-slate-100">
+        <ul className="rounded-xl border bg-card divide-y divide-slate-100">
           {shown.map((item) => (
             <li key={item.id} className="flex items-center gap-3 p-3">
               <div className="h-14 w-14 shrink-0 overflow-hidden rounded-lg bg-slate-100">
@@ -384,26 +389,16 @@ export function ItemsManager({
       )}
 
       {draft && (
-        <div
-          className="fixed inset-0 z-40 flex items-end justify-center bg-black/50 sm:items-center"
-          role="dialog"
-          aria-modal="true"
-          aria-label={draft.id ? "Edit item" : "Add item"}
-        >
-          <form
-            onSubmit={submitItem}
-            className="flex max-h-[92dvh] w-full max-w-lg flex-col rounded-t-2xl bg-white sm:rounded-2xl"
-          >
-            <div className="flex items-center justify-between border-b border-slate-100 px-5 py-4">
-              <h2 className="text-lg font-bold">{draft.id ? "Edit item" : "Add item"}</h2>
-              <button
-                type="button"
-                className="rounded-full px-3 py-1 text-slate-500 hover:bg-slate-100"
-                aria-label="Close"
-                onClick={() => setDraft(null)}
+        <Sheet open onOpenChange={(open) => !open && setDraft(null)}>
+          <SheetContent side="bottom" showCloseButton={false} className="mx-auto w-full max-w-lg gap-0 rounded-t-2xl p-0 text-base max-h-[92dvh]">
+          <form onSubmit={submitItem} className="flex min-h-0 flex-1 flex-col">
+            <div className="flex items-center justify-between border-b border-slate-100 px-5 py-3">
+              <SheetTitle className="text-lg font-bold">{draft.id ? "Edit item" : "Add item"}</SheetTitle>
+              <SheetClose
+                render={<Button variant="ghost" size="icon" className="text-slate-500" aria-label="Close" />}
               >
                 <Icon name="x" />
-              </button>
+              </SheetClose>
             </div>
 
             <div className="flex-1 space-y-4 overflow-y-auto px-5 py-4">
@@ -415,12 +410,11 @@ export function ItemsManager({
                 onChange={(imageUrl) => setDraft({ ...draft, imageUrl })}
               />
               <div>
-                <label className="label" htmlFor="item-name">
+                <Label htmlFor="item-name">
                   Item name
-                </label>
-                <input
+                </Label>
+                <Input
                   id="item-name"
-                  className="input"
                   value={draft.name}
                   onChange={(e) => setDraft({ ...draft, name: e.target.value })}
                   required
@@ -429,12 +423,11 @@ export function ItemsManager({
               </div>
               <div className="grid grid-cols-3 gap-3">
                 <div>
-                  <label className="label" htmlFor="item-price">
+                  <Label htmlFor="item-price">
                     Price ₹
-                  </label>
-                  <input
+                  </Label>
+                  <Input
                     id="item-price"
-                    className="input"
                     value={draft.price}
                     onChange={(e) => setDraft({ ...draft, price: e.target.value })}
                     required
@@ -445,12 +438,11 @@ export function ItemsManager({
                   />
                 </div>
                 <div>
-                  <label className="label" htmlFor="item-mrp">
+                  <Label htmlFor="item-mrp">
                     MRP ₹
-                  </label>
-                  <input
+                  </Label>
+                  <Input
                     id="item-mrp"
-                    className="input"
                     value={draft.mrp}
                     onChange={(e) => setDraft({ ...draft, mrp: e.target.value })}
                     type="number"
@@ -461,12 +453,11 @@ export function ItemsManager({
                   />
                 </div>
                 <div>
-                  <label className="label" htmlFor="item-unit">
+                  <Label htmlFor="item-unit">
                     Unit
-                  </label>
-                  <input
+                  </Label>
+                  <Input
                     id="item-unit"
-                    className="input"
                     value={draft.unit}
                     onChange={(e) => setDraft({ ...draft, unit: e.target.value })}
                     maxLength={20}
@@ -475,12 +466,11 @@ export function ItemsManager({
                 </div>
               </div>
               <div>
-                <label className="label" htmlFor="item-category">
+                <Label htmlFor="item-category">
                   Category
-                </label>
-                <select
+                </Label>
+                <NativeSelect
                   id="item-category"
-                  className="input"
                   value={draft.categoryId}
                   onChange={(e) => setDraft({ ...draft, categoryId: e.target.value })}
                 >
@@ -495,15 +485,14 @@ export function ItemsManager({
                       ))}
                     </optgroup>
                   ))}
-                </select>
+                </NativeSelect>
               </div>
               <div>
-                <label className="label" htmlFor="item-description">
+                <Label htmlFor="item-description">
                   Description (optional)
-                </label>
-                <textarea
+                </Label>
+                <Textarea
                   id="item-description"
-                  className="input"
                   rows={2}
                   value={draft.description}
                   onChange={(e) => setDraft({ ...draft, description: e.target.value })}
@@ -513,7 +502,7 @@ export function ItemsManager({
               <label className="flex items-center gap-2 text-sm font-medium text-slate-800">
                 <input
                   type="checkbox"
-                  className="h-5 w-5 accent-[#1e3fae]"
+                  className="h-5 w-5 accent-[#1b2340]"
                   checked={draft.inStock}
                   onChange={(e) => setDraft({ ...draft, inStock: e.target.checked })}
                 />
@@ -522,13 +511,14 @@ export function ItemsManager({
             </div>
 
             <div className="border-t border-slate-100 px-5 py-4">
-              {formError && <p className="error-text mb-3">{formError}</p>}
-              <button type="submit" className="btn-primary w-full text-base" disabled={pending}>
+              {formError && <Alert variant="destructive" className="mb-3">{formError}</Alert>}
+              <Button type="submit" className="w-full text-base" disabled={pending}>
                 {pending ? "Saving..." : "Save item"}
-              </button>
+              </Button>
             </div>
           </form>
-        </div>
+          </SheetContent>
+        </Sheet>
       )}
     </div>
   );

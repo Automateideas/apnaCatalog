@@ -1,4 +1,5 @@
 import { requireShop } from "@/lib/auth";
+import { LoginEmailForm } from "./LoginEmailForm";
 import { ShopForm } from "./ShopForm";
 
 export default async function ShopDetailsPage() {
@@ -25,6 +26,7 @@ export default async function ShopDetailsPage() {
           mapsUrl: shop.mapsUrl ?? "",
         }}
       />
+      <LoginEmailForm currentEmail={shop.ownerEmail ?? user.email} pendingEmail={shop.pendingOwnerEmail} />
     </div>
   );
 }

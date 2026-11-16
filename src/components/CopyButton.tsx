@@ -1,20 +1,29 @@
 "use client";
 
 import { useState } from "react";
+import { Button } from "@/components/ui/button";
+
+type ButtonProps = React.ComponentProps<typeof Button>;
 
 export function CopyButton({
   text,
-  className = "btn-outline",
+  variant = "outline",
+  size,
+  className,
   label = "Copy link",
 }: {
   text: string;
+  variant?: ButtonProps["variant"];
+  size?: ButtonProps["size"];
   className?: string;
   label?: string;
 }) {
   const [copied, setCopied] = useState(false);
   return (
-    <button
+    <Button
       type="button"
+      variant={variant}
+      size={size}
       className={className}
       onClick={async () => {
         try {
@@ -27,6 +36,6 @@ export function CopyButton({
       }}
     >
       {copied ? "Copied" : label}
-    </button>
+    </Button>
   );
 }

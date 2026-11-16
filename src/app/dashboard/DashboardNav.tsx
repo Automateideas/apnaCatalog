@@ -32,7 +32,7 @@ export function DashboardNav() {
             className={cx(
               "border-b-2 px-3 py-2.5 text-sm font-medium whitespace-nowrap",
               active
-                ? "border-brand text-brand"
+                ? "border-tag text-brand"
                 : "border-transparent text-slate-600 hover:text-slate-900",
             )}
           >

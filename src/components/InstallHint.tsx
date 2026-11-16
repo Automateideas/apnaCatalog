@@ -57,7 +57,7 @@ export function InstallHint({ name }: { name: string }) {
         {installEvent && (
           <button
             type="button"
-            className="rounded-lg bg-(--p,#1e3fae) px-3 py-1.5 font-semibold text-white"
+            className="rounded-lg bg-(--p,#1b2340) px-3 py-1.5 font-semibold text-white"
             onClick={async () => {
               await installEvent.prompt();
               setInstallEvent(null);

@@ -47,8 +47,16 @@ export const viewport: Viewport = {
 
 export default function RootLayout({ children }: LayoutProps<"/">) {
   return (
-    <html lang="en-IN" className={`${baloo.variable} ${mukta.variable} h-full antialiased`}>
-      <body className="flex min-h-full flex-col">
+    <html
+      lang="en-IN"
+      className={`${baloo.variable} ${mukta.variable} h-full antialiased`}
+    >
+      <body
+        className="flex min-h-full flex-col"
+        cz-shortcut-listen="true"
+        data-new-gr-c-s-check-loaded="14.1347.0"
+        data-gr-ext-installed=""
+      >
         {children}
         <ServiceWorker />
       </body>

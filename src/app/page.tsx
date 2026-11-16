@@ -9,6 +9,11 @@ import { getUser } from "@/lib/auth";
 import { BUSINESS_TYPES, FREE_ITEM_LIMIT, getBusinessType } from "@/lib/catalog-config";
 import { listedShop, paidNow } from "@/lib/shop-stats";
 import { citySlugOf, cx } from "@/lib/utils";
+import { Input } from "@/components/ui/input";
+import { NativeSelect } from "@/components/ui/native-select";
+import { Button, buttonVariants } from "@/components/ui/button";
+import { Alert } from "@/components/ui/alert";
+import { Card } from "@/components/ui/card";
 
 export const dynamic = "force-dynamic";
 
@@ -125,26 +130,26 @@ export default async function HomePage({ searchParams }: PageProps<"/">) {
           <h1 className="max-w-xl text-4xl font-extrabold sm:text-5xl">
             Your city&apos;s shops, with prices, on your phone.
           </h1>
-          <p className="mt-3 max-w-lg text-lg text-blue-100">
+          <p className="mt-3 max-w-lg text-lg text-white/80">
             Open a shop&apos;s catalog, pick what you need, and send the order to the shopkeeper on
             WhatsApp.
           </p>
 
           <form action="/" className="mt-6 flex max-w-xl flex-col gap-2 sm:flex-row">
             {filters.type && <input type="hidden" name="type" value={filters.type} />}
-            <input
+            <Input
               name="q"
               defaultValue={filters.q}
               placeholder="Search a shop by name"
               aria-label="Search a shop by name"
-              className="input sm:flex-1"
+              className="sm:flex-1"
               maxLength={60}
             />
-            <select
+            <NativeSelect
               name="city"
               defaultValue={filters.city}
               aria-label="City"
-              className="input sm:w-48"
+              className="sm:w-48"
             >
               <option value="">All cities</option>
               {data?.cities.map((c) => (
@@ -152,10 +157,10 @@ export default async function HomePage({ searchParams }: PageProps<"/">) {
                   {c.city} ({c.total})
                 </option>
               ))}
-            </select>
-            <button className="btn-tag" type="submit">
+            </NativeSelect>
+            <Button variant="tag" type="submit">
               Search
-            </button>
+            </Button>
           </form>
           </div>
 
@@ -227,7 +232,7 @@ export default async function HomePage({ searchParams }: PageProps<"/">) {
           )}
         </div>
 
-        {problem && <p className="error-text mt-4">{problem}</p>}
+        {problem && <Alert variant="destructive" className="mt-4">{problem}</Alert>}
 
         {data && data.shops.length > 0 && (
           <div className="mt-4 grid grid-cols-1 gap-3 sm:grid-cols-2 lg:grid-cols-3">
@@ -238,7 +243,7 @@ export default async function HomePage({ searchParams }: PageProps<"/">) {
         )}
 
         {data && data.shops.length === 0 && (
-          <div className="card mt-4 px-6 py-12 text-center">
+          <Card className="mt-4 px-6 py-12 text-center">
             <IconBadge name="store" />
             <p className="mt-3 font-semibold text-slate-900">
               {filtered ? "No shops match this search yet." : "No shops are listed yet."}
@@ -246,21 +251,21 @@ export default async function HomePage({ searchParams }: PageProps<"/">) {
             <p className="mt-1 text-sm text-slate-600">
               Own a shop? Add it free and be the first one here.
             </p>
-            <Link href="/login" className="btn-primary mt-5">
+            <Link href="/login" className={buttonVariants({ className: "mt-5" })}>
               Add your shop free
             </Link>
-          </div>
+          </Card>
         )}
 
         {data && (filters.page > 1 || data.hasMore) && (
           <div className="mt-6 flex justify-center gap-3">
             {filters.page > 1 && (
-              <Link href={link({ page: filters.page - 1 })} className="btn-outline">
+              <Link href={link({ page: filters.page - 1 })} className={buttonVariants({ variant: "outline" })}>
                 Previous page
               </Link>
             )}
             {data.hasMore && (
-              <Link href={link({ page: filters.page + 1 })} className="btn-outline">
+              <Link href={link({ page: filters.page + 1 })} className={buttonVariants({ variant: "outline" })}>
                 Next page
               </Link>
             )}
@@ -282,7 +287,7 @@ export default async function HomePage({ searchParams }: PageProps<"/">) {
             ))}
           </div>
           <div className="mt-7 flex flex-wrap items-center gap-4">
-            <Link href="/login" className="btn-tag">
+            <Link href="/login" className={buttonVariants({ variant: "tag" })}>
               Add your shop free
             </Link>
             <span className="text-sm text-slate-300">

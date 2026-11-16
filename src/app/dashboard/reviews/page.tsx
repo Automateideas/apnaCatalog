@@ -7,6 +7,9 @@ import { CopyButton } from "@/components/CopyButton";
 import { ratingOf, Stars } from "@/components/Stars";
 import { requireShop } from "@/lib/auth";
 import { formatDate, siteUrl, waShareLink } from "@/lib/utils";
+import { Card } from "@/components/ui/card";
+import { buttonVariants } from "@/components/ui/button";
+import { Badge } from "@/components/ui/badge";
 
 export default async function ReviewsPage() {
   const { shop } = await requireShop();
@@ -36,7 +39,7 @@ export default async function ReviewsPage() {
         </div>
       </div>
 
-      <section className="card p-4">
+      <Card className="p-4">
         <p className="text-sm text-slate-700">
           Send this link to your customers. Only people with the link can review your shop, and each
           mobile number can review once.
@@ -48,18 +51,18 @@ export default async function ReviewsPage() {
             )}
             target="_blank"
             rel="noopener noreferrer"
-            className="btn-whatsapp"
+            className={buttonVariants({ variant: "whatsapp" })}
           >
             Send review link on WhatsApp
           </a>
           <CopyButton text={reviewUrl} label="Copy review link" />
         </div>
-      </section>
+      </Card>
 
       {rows.length > 0 && (
         <ul className="space-y-3">
           {rows.map((review) => (
-            <li key={review.id} className="card p-4">
+            <li key={review.id} className="rounded-xl border bg-card p-4">
               <div className="flex flex-wrap items-start justify-between gap-2">
                 <div>
                   <p className="font-medium text-slate-900">{review.name}</p>
@@ -75,17 +78,15 @@ export default async function ReviewsPage() {
               )}
               <div className="mt-3 flex items-center gap-2 text-xs">
                 {review.isHidden ? (
-                  <span className="rounded-full bg-slate-200 px-2 py-1 font-medium text-slate-700">
-                    Hidden by admin
-                  </span>
+                  <Badge variant="outline">Hidden by admin</Badge>
                 ) : review.isReported ? (
-                  <span className="rounded-full bg-amber-100 px-2 py-1 font-medium text-amber-800">
-                    Reported, waiting for admin
-                  </span>
+                  <Badge className="bg-amber-100 text-amber-800">Reported, waiting for admin</Badge>
                 ) : (
                   <ActionButton
                     action={reportReview.bind(null, review.id)}
-                    className="rounded px-2 py-1 text-slate-500 hover:bg-slate-100"
+                    variant="ghost"
+                    size="xs"
+                    className="text-slate-500"
                     confirm="Report this review as fake or abusive? Our team will check it."
                   >
                     Report this review

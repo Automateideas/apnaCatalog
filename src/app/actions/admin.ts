@@ -6,6 +6,7 @@ import { z } from "zod";
 import { db } from "@/db";
 import { reviews, shops } from "@/db/schema";
 import { requireAdmin } from "@/lib/auth";
+import { setPendingOwner } from "@/lib/owner-change";
 import { refreshShopRating } from "@/lib/shop-stats";
 import type { ActionResult } from "@/lib/utils";
 
@@ -59,4 +60,20 @@ export async function adminSetReviewHidden(id: string, hidden: boolean): Promise
   if (row) await refreshShopRating(row.shopId);
   revalidatePath("/admin");
   return { ok: true };
+}
+
+/** For a shopkeeper who lost their old Google account. Empty email cancels a pending change. */
+export async function adminSetShopLoginEmail(id: string, email: string): Promise<ActionResult> {
+  await requireAdmin();
+  if (!z.uuid().safeParse(id).success) return { ok: false, error: "Shop not found." };
+  const [shop] = await db
+    .select({ id: shops.id, ownerEmail: shops.ownerEmail })
+    .from(shops)
+    .where(eq(shops.id, id))
+    .limit(1);
+  if (!shop) return { ok: false, error: "Shop not found." };
+
+  const result = await setPendingOwner(shop, email);
+  if (result.ok) revalidatePath("/admin");
+  return result;
 }

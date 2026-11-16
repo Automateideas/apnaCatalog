@@ -5,6 +5,7 @@ import { createClient } from "@/lib/supabase/client";
 import { MEDIA_BUCKET } from "@/lib/supabase/env";
 import { cx } from "@/lib/utils";
 import { Icon } from "@/components/Icon";
+import { Button } from "@/components/ui/button";
 
 type Kind = "item" | "square";
 
@@ -93,7 +94,7 @@ export function ImageUpload({
 
   return (
     <div>
-      <span className="label">{label}</span>
+      <span className="mb-1.5 block text-sm font-medium text-slate-700">{label}</span>
       <div className="flex items-center gap-3">
         <div
           className={cx(
@@ -104,18 +105,18 @@ export function ImageUpload({
           {value ? <img src={value} alt="" className="h-full w-full object-cover" /> : <Icon name="camera" className="h-6 w-6" />}
         </div>
         <div className="flex flex-wrap gap-2">
-          <button
+          <Button
             type="button"
-            className="btn-outline min-h-9 px-3 py-1.5"
+            variant="outline" size="sm"
             disabled={busy}
             onClick={() => inputRef.current?.click()}
           >
             {busy ? "Uploading..." : value ? "Change photo" : "Add photo"}
-          </button>
+          </Button>
           {value && !busy && (
-            <button type="button" className="btn-ghost min-h-9 px-3 py-1.5" onClick={() => onChange(null)}>
+            <Button type="button" variant="ghost" size="sm" onClick={() => onChange(null)}>
               Remove
-            </button>
+            </Button>
           )}
         </div>
         <input

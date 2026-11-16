@@ -17,7 +17,9 @@ to the shop on WhatsApp. The home page lists shops by city and type.
 - **Plans**: free (25 items, 1 layout, 2 colours, last 10 orders) and paid. The first 100 shops
   get paid features free for 90 days. There is no payment gateway yet: shopkeepers message you on
   WhatsApp and you switch the plan in `/admin`.
-- **Admin** (`/admin`): hide shops, set plans, hide reported reviews.
+- **Admin** (`/admin`): hide shops, set plans, hide reported reviews, change a shop's login email.
+- **Changing login email**: a shopkeeper (Shop details) or the admin enters the new Google email.
+  The shop moves when that account logs in; until then it can be cancelled.
 - **PWA**: installable. Each shop has its own manifest and icon, so a customer can add one shop
   to their home screen.
 
@@ -25,8 +27,9 @@ All plan limits, shop types, layouts and colours are in `src/lib/catalog-config.
 
 ## Tech
 
-Next.js 16 (App Router), TypeScript, Tailwind CSS v4, Drizzle ORM on Postgres. Supabase is used
-only for login (Google and email code) and photo storage; all table access goes through Drizzle on
+Next.js 16 (App Router), TypeScript, Tailwind CSS v4, shadcn/ui components (in
+`src/components/ui`, add more with `npx shadcn@latest add <name>`), Drizzle ORM on Postgres. Supabase is used
+only for login (Google only) and photo storage; all table access goes through Drizzle on
 the server. Row level security is enabled on every table with no policies, so the public Supabase
 key cannot read or write them.
 
@@ -34,7 +37,8 @@ key cannot read or write them.
 
 1. Create your own Supabase project (free plan is enough to start).
 2. Copy `.env.example` to `.env.local` and fill it in:
-   - `NEXT_PUBLIC_SUPABASE_URL`, `NEXT_PUBLIC_SUPABASE_ANON_KEY`: Project Settings, API.
+   - `NEXT_PUBLIC_SUPABASE_URL`, `NEXT_PUBLIC_SUPABASE_PUBLISHABLE_KEY`: Project Settings, API Keys,
+     "Publishable key" (starts with `sb_publishable_`). Never use the "Secret key" here.
    - `DATABASE_URL`: Connect, "Transaction pooler" connection string.
    - `ADMIN_EMAILS`: your login email.
    - `NEXT_PUBLIC_SUPPORT_WHATSAPP`: the number shopkeepers contact to upgrade.
@@ -47,12 +51,9 @@ key cannot read or write them.
 4. In Supabase, Authentication:
    - **URL Configuration**: set Site URL to your site, and add `<site>/auth/callback` to
      Redirect URLs (also `http://localhost:3000/auth/callback` for local work).
-   - **Providers, Google**: switch on and add your Google OAuth client.
-   - **Email Templates, Magic Link**: add `{{ .Token }}` to the email body so the login code is
-     shown. Without it only the link in the email works, and that fails when the email opens in
-     a different browser or inside the installed app.
-   - Supabase's built-in email is limited to a few emails per hour. Add your own SMTP before
-     real users sign up.
+   - **Providers, Google**: switch on and add your Google OAuth client ID and secret (from
+     Google Cloud Console; its redirect URI is `https://<project-ref>.supabase.co/auth/v1/callback`).
+     Google is the only login. A new user lands on the shop form right after signing in.
 5. Run it:
 
    ```bash

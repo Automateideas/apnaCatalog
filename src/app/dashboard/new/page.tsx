@@ -1,11 +1,15 @@
 import { redirect } from "next/navigation";
 import { getShopByOwner, requireUser } from "@/lib/auth";
+import { hasPendingShop } from "@/lib/owner-change";
 import { siteUrl } from "@/lib/utils";
 import { OnboardingForm } from "./OnboardingForm";
 
-export default async function NewShopPage() {
+export default async function NewShopPage({ searchParams }: PageProps<"/dashboard/new">) {
   const user = await requireUser();
   if (await getShopByOwner(user.id)) redirect("/dashboard");
+  // A shop is waiting to be moved to this Google account: take it over instead of making a new one.
+  const { fresh } = await searchParams;
+  if (!fresh && (await hasPendingShop(user.email))) redirect("/dashboard/claim");
 
   return (
     <div className="mx-auto max-w-xl">

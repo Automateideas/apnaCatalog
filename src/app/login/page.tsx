@@ -6,6 +6,7 @@ import { getUser } from "@/lib/auth";
 import { FREE_ITEM_LIMIT } from "@/lib/catalog-config";
 import { isSupabaseConfigured } from "@/lib/supabase/env";
 import { LoginForm } from "./LoginForm";
+import { Alert } from "@/components/ui/alert";
 
 export const metadata: Metadata = {
   title: "Shop login",
@@ -22,19 +23,19 @@ export default async function LoginPage({ searchParams }: PageProps<"/login">) {
       <Logo className="mb-6 self-center" />
       <h1 className="text-center text-2xl font-bold text-slate-900">Open your shop online</h1>
       <p className="mt-2 mb-6 text-center text-slate-600">
-        Free for up to {FREE_ITEM_LIMIT} items. New or returning, log in the same way.
+        Free for up to {FREE_ITEM_LIMIT} items. New or returning, continue with Google.
       </p>
 
       {error && (
-        <p className="error-text mb-4">Login did not finish. Please try again.</p>
+        <Alert variant="destructive" className="mb-4">Login did not finish. Please try again.</Alert>
       )}
 
       {isSupabaseConfigured() ? (
         <LoginForm />
       ) : (
-        <p className="error-text">
+        <Alert variant="destructive">
           Login is not set up yet. Add the Supabase keys to .env.local (see README).
-        </p>
+        </Alert>
       )}
 
       <p className="mt-6 text-center text-xs text-slate-500">

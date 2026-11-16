@@ -8,5 +8,6 @@ export default defineConfig({
   schema: "./src/db/schema.ts",
   out: "./drizzle",
   dialect: "postgresql",
-  dbCredentials: { url: process.env.DATABASE_URL ?? "" },
+  // Migrations prefer the session-mode connection when one is given.
+  dbCredentials: { url: process.env.DIRECT_URL || process.env.DATABASE_URL || "" },
 });

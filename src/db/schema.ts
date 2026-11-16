@@ -28,6 +28,8 @@ export const shops = pgTable(
     /** Supabase Auth user id. One shop per owner. */
     ownerId: uuid("owner_id").notNull(),
     ownerEmail: text("owner_email"),
+    /** Google email the shop will move to when that account next logs in. Lowercase. */
+    pendingOwnerEmail: text("pending_owner_email"),
     slug: text("slug").notNull(),
     name: text("name").notNull(),
     businessType: text("business_type").notNull(),

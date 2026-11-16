@@ -4,6 +4,7 @@ import { Logo } from "@/components/SiteChrome";
 import { getShopByOwner, isAdminEmail, requireUser } from "@/lib/auth";
 import { DashboardNav } from "./DashboardNav";
 import { Icon } from "@/components/Icon";
+import { Button, buttonVariants } from "@/components/ui/button";
 
 // Every dashboard page depends on who is logged in, so never prerender them.
 export const dynamic = "force-dynamic";
@@ -24,7 +25,7 @@ export default async function DashboardLayout({ children }: LayoutProps<"/dashbo
           <Logo />
           <div className="flex items-center gap-1">
             {isAdminEmail(user.email) && (
-              <Link href="/admin" className="btn-ghost min-h-9 px-3 py-1.5">
+              <Link href="/admin" className={buttonVariants({ variant: "ghost", size: "sm" })}>
                 Admin
               </Link>
             )}
@@ -32,15 +33,15 @@ export default async function DashboardLayout({ children }: LayoutProps<"/dashbo
               <Link
                 href={`/${shop.slug}`}
                 target="_blank"
-                className="btn-outline min-h-9 px-3 py-1.5"
+                className={buttonVariants({ variant: "outline", size: "sm" })}
               >
                 View shop <Icon name="external" />
               </Link>
             )}
             <form action="/auth/signout" method="post">
-              <button type="submit" className="btn-ghost min-h-9 px-3 py-1.5">
+              <Button type="submit" variant="ghost" size="sm">
                 Log out
-              </button>
+              </Button>
             </form>
           </div>
         </div>

@@ -6,6 +6,13 @@ import { updateShop } from "@/app/actions/shop";
 import { ImageUpload } from "@/components/ImageUpload";
 import { BUSINESS_TYPES } from "@/lib/catalog-config";
 import { Icon } from "@/components/Icon";
+import { Card } from "@/components/ui/card";
+import { Label } from "@/components/ui/label";
+import { Input } from "@/components/ui/input";
+import { NativeSelect } from "@/components/ui/native-select";
+import { Textarea } from "@/components/ui/textarea";
+import { Button } from "@/components/ui/button";
+import { Alert } from "@/components/ui/alert";
 
 type Values = {
   name: string;
@@ -82,7 +89,7 @@ export function ShopForm({ userId, initial }: { userId: string; initial: Values 
 
   return (
     <form onSubmit={submit} className="space-y-5">
-      <section className="card space-y-4 p-5">
+      <Card className="space-y-4 p-5">
         <h2 className="font-bold text-slate-900">Shop</h2>
         <ImageUpload
           label="Shop logo (also used as the app icon on customers' phones)"
@@ -92,12 +99,11 @@ export function ShopForm({ userId, initial }: { userId: string; initial: Values 
           onChange={(url) => set("logoUrl", url)}
         />
         <div>
-          <label className="label" htmlFor="s-name">
+          <Label htmlFor="s-name">
             Shop name
-          </label>
-          <input
+          </Label>
+          <Input
             id="s-name"
-            className="input"
             value={v.name}
             onChange={(e) => set("name", e.target.value)}
             required
@@ -106,12 +112,11 @@ export function ShopForm({ userId, initial }: { userId: string; initial: Values 
           />
         </div>
         <div>
-          <label className="label" htmlFor="s-type">
+          <Label htmlFor="s-type">
             Type of shop
-          </label>
-          <select
+          </Label>
+          <NativeSelect
             id="s-type"
-            className="input"
             value={v.businessType}
             onChange={(e) => set("businessType", e.target.value)}
           >
@@ -120,15 +125,14 @@ export function ShopForm({ userId, initial }: { userId: string; initial: Values 
                 {t.name}
               </option>
             ))}
-          </select>
+          </NativeSelect>
         </div>
         <div>
-          <label className="label" htmlFor="s-description">
+          <Label htmlFor="s-description">
             About your shop (optional)
-          </label>
-          <textarea
+          </Label>
+          <Textarea
             id="s-description"
-            className="input"
             rows={2}
             value={v.description}
             onChange={(e) => set("description", e.target.value)}
@@ -136,18 +140,17 @@ export function ShopForm({ userId, initial }: { userId: string; initial: Values 
             placeholder="What you sell, since when, home delivery, timings..."
           />
         </div>
-      </section>
+      </Card>
 
-      <section className="card space-y-4 p-5">
+      <Card className="space-y-4 p-5">
         <h2 className="font-bold text-slate-900">Contact</h2>
         <div className="grid gap-4 sm:grid-cols-2">
           <div>
-            <label className="label" htmlFor="s-whatsapp">
+            <Label htmlFor="s-whatsapp">
               WhatsApp number (orders come here)
-            </label>
-            <input
+            </Label>
+            <Input
               id="s-whatsapp"
-              className="input"
               value={v.whatsapp}
               onChange={(e) => set("whatsapp", e.target.value)}
               required
@@ -157,12 +160,11 @@ export function ShopForm({ userId, initial }: { userId: string; initial: Values 
             />
           </div>
           <div>
-            <label className="label" htmlFor="s-phone">
+            <Label htmlFor="s-phone">
               Phone number for calls
-            </label>
-            <input
+            </Label>
+            <Input
               id="s-phone"
-              className="input"
               value={v.phone}
               onChange={(e) => set("phone", e.target.value)}
               type="tel"
@@ -172,9 +174,9 @@ export function ShopForm({ userId, initial }: { userId: string; initial: Values 
             />
           </div>
         </div>
-      </section>
+      </Card>
 
-      <section className="card space-y-4 p-5">
+      <Card className="space-y-4 p-5">
         <h2 className="font-bold text-slate-900">Owner</h2>
         <p className="-mt-2 text-sm text-slate-600">
           Optional. Customers trust a shop more when they can see who runs it.
@@ -188,29 +190,27 @@ export function ShopForm({ userId, initial }: { userId: string; initial: Values 
           onChange={(url) => set("ownerPhotoUrl", url)}
         />
         <div>
-          <label className="label" htmlFor="s-owner">
+          <Label htmlFor="s-owner">
             Your name
-          </label>
-          <input
+          </Label>
+          <Input
             id="s-owner"
-            className="input"
             value={v.ownerName}
             onChange={(e) => set("ownerName", e.target.value)}
             maxLength={60}
           />
         </div>
-      </section>
+      </Card>
 
-      <section className="card space-y-4 p-5">
+      <Card className="space-y-4 p-5">
         <h2 className="font-bold text-slate-900">Location</h2>
         <div className="grid gap-4 sm:grid-cols-2">
           <div>
-            <label className="label" htmlFor="s-city">
+            <Label htmlFor="s-city">
               City
-            </label>
-            <input
+            </Label>
+            <Input
               id="s-city"
-              className="input"
               value={v.city}
               onChange={(e) => set("city", e.target.value)}
               required
@@ -219,12 +219,11 @@ export function ShopForm({ userId, initial }: { userId: string; initial: Values 
             />
           </div>
           <div>
-            <label className="label" htmlFor="s-address">
+            <Label htmlFor="s-address">
               Address
-            </label>
-            <input
+            </Label>
+            <Input
               id="s-address"
-              className="input"
               value={v.address}
               onChange={(e) => set("address", e.target.value)}
               maxLength={200}
@@ -234,7 +233,7 @@ export function ShopForm({ userId, initial }: { userId: string; initial: Values 
         </div>
 
         <div>
-          <span className="label">Map location (for the Directions button)</span>
+          <span className="mb-1.5 block text-sm font-medium text-slate-700">Map location (for the Directions button)</span>
           {v.lat != null && v.lng != null ? (
             <div className="flex flex-wrap items-center gap-2 text-sm">
               <span className="inline-flex items-center gap-1.5 rounded-lg bg-emerald-50 px-3 py-2 text-emerald-800">
@@ -257,21 +256,20 @@ export function ShopForm({ userId, initial }: { userId: string; initial: Values 
               </button>
             </div>
           ) : (
-            <button type="button" className="btn-outline" onClick={locate} disabled={locating}>
+            <Button type="button" variant="outline" onClick={locate} disabled={locating}>
               <Icon name="pin" />
               {locating ? "Finding your location..." : "Use my current location"}
-            </button>
+            </Button>
           )}
-          <p className="hint">Press this while you are standing inside your shop.</p>
+          <p className="mt-1 text-sm text-muted-foreground">Press this while you are standing inside your shop.</p>
         </div>
 
         <div>
-          <label className="label" htmlFor="s-maps">
+          <Label htmlFor="s-maps">
             Or paste your Google Maps link
-          </label>
-          <input
+          </Label>
+          <Input
             id="s-maps"
-            className="input"
             value={v.mapsUrl}
             onChange={(e) => set("mapsUrl", e.target.value)}
             maxLength={500}
@@ -279,14 +277,14 @@ export function ShopForm({ userId, initial }: { userId: string; initial: Values 
             placeholder="https://maps.app.goo.gl/..."
           />
         </div>
-      </section>
+      </Card>
 
-      {error && <p className="error-text">{error}</p>}
-      {saved && <p className="ok-text">Saved.</p>}
+      {error && <Alert variant="destructive">{error}</Alert>}
+      {saved && <Alert variant="success">Saved.</Alert>}
 
-      <button type="submit" className="btn-primary w-full text-base sm:w-auto" disabled={pending}>
+      <Button type="submit" className="w-full text-base sm:w-auto" disabled={pending}>
         {pending ? "Saving..." : "Save changes"}
-      </button>
+      </Button>
     </form>
   );
 }
