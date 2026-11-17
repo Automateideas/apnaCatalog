@@ -7,12 +7,13 @@ import { CopyButton } from "@/components/CopyButton";
 import { SendToNumberButton } from "@/components/SendToNumberButton";
 import { ratingOf } from "@/components/Stars";
 import { requireShop } from "@/lib/auth";
-import { FREE_ITEM_LIMIT, isPaid, MIN_ITEMS_TO_LIST } from "@/lib/catalog-config";
+import { FREE_ITEM_LIMIT, isPaid, MAX_SHOP_PHOTOS, MIN_ITEMS_TO_LIST } from "@/lib/catalog-config";
 import { formatDate, SITE_NAME, siteUrl, waShareLink } from "@/lib/utils";
 import { Icon } from "@/components/Icon";
 import { Alert } from "@/components/ui/alert";
 import { Card } from "@/components/ui/card";
 import { buttonVariants } from "@/components/ui/button";
+import { InviteCard } from "./InviteCard";
 
 export default async function DashboardHome({ searchParams }: PageProps<"/dashboard">) {
   const { shop } = await requireShop();
@@ -39,12 +40,32 @@ export default async function DashboardHome({ searchParams }: PageProps<"/dashbo
       href: "/dashboard/items",
     },
     { done: hasPhoto, text: "Add your shop logo or one item photo", href: "/dashboard/shop" },
+  ];
+
+  // What customers look for before they trust a new shop and walk in.
+  const trust = [
+    {
+      done: Boolean(shop.ownerPhotoUrl),
+      text: "Add your own photo, so customers know who they are dealing with",
+      href: "/dashboard/shop",
+    },
+    {
+      done: shop.shopPhotoUrls.length > 0,
+      text: `Add photos of your shop, so customers know they reached the right place (${shop.shopPhotoUrls.length}/${MAX_SHOP_PHOTOS})`,
+      href: "/dashboard/shop",
+    },
     {
       done: shop.lat != null || Boolean(shop.mapsUrl),
-      text: "Add your shop location so customers can find you",
+      text: "Add your map location, so customers get directions in Google Maps",
+      href: "/dashboard/shop",
+    },
+    {
+      done: Boolean(shop.address),
+      text: "Add your shop address",
       href: "/dashboard/shop",
     },
   ];
+  const trustLeft = trust.filter((s) => !s.done).length;
 
   return (
     <div className="space-y-5">
@@ -118,27 +139,23 @@ export default async function DashboardHome({ searchParams }: PageProps<"/dashbo
             ? `People searching for shops in ${shop.city} can find you.`
             : "Your link already works. Finish these steps to also appear in the city listing."}
         </p>
-        <ul className="mt-3 space-y-2">
-          {steps.map((step) => (
-            <li key={step.text}>
-              <Link href={step.href} className="flex items-center gap-2 text-sm hover:underline">
-                <span
-                  className={
-                    step.done
-                      ? "flex h-5 w-5 items-center justify-center rounded-full bg-emerald-500 text-xs text-white"
-                      : "h-5 w-5 rounded-full border-2 border-slate-300"
-                  }
-                >
-                  {step.done ? <Icon name="check" className="h-3 w-3" /> : null}
-                </span>
-                <span className={step.done ? "text-slate-500 line-through" : "text-slate-800"}>
-                  {step.text}
-                </span>
-              </Link>
-            </li>
-          ))}
-        </ul>
+        <Steps steps={steps} />
       </Card>
+
+      {/* Hidden once everything is filled in. */}
+      {trustLeft > 0 && (
+        <Card className="p-5">
+          <h2 className="font-bold text-slate-900">Help customers trust your shop</h2>
+          <p className="mt-1 text-sm text-slate-600">
+            New customers want to see who runs the shop, what it looks like and how to reach it.{" "}
+            {trustLeft === 1 ? "1 thing left." : `${trustLeft} things left.`}
+          </p>
+          <Steps steps={trust} />
+          <Link href="/dashboard/shop" className={buttonVariants({ className: "mt-4" })}>
+            Fill in shop details
+          </Link>
+        </Card>
+      )}
 
       <div className="grid gap-5 sm:grid-cols-2">
         <Card className="p-5">
@@ -178,6 +195,8 @@ export default async function DashboardHome({ searchParams }: PageProps<"/dashbo
         </Card>
       </div>
 
+      <InviteCard shop={shop} />
+
       {paid && shop.planExpiresAt && (
         <p className="rounded-xl bg-amber-50 px-4 py-3 text-sm text-amber-900">
           Paid plan is active until <strong>{formatDate(shop.planExpiresAt)}</strong>.{" "}
@@ -187,5 +206,28 @@ export default async function DashboardHome({ searchParams }: PageProps<"/dashbo
         </p>
       )}
     </div>
+  );
+}
+
+function Steps({ steps }: { steps: { done: boolean; text: string; href: string }[] }) {
+  return (
+    <ul className="mt-3 space-y-2">
+      {steps.map((step) => (
+        <li key={step.text}>
+          <Link href={step.href} className="flex items-start gap-2 text-sm hover:underline">
+            <span
+              className={
+                step.done
+                  ? "mt-px flex size-5 shrink-0 items-center justify-center rounded-full bg-emerald-500 text-xs text-white"
+                  : "mt-px size-5 shrink-0 rounded-full border-2 border-slate-300"
+              }
+            >
+              {step.done ? <Icon name="check" className="h-3 w-3" /> : null}
+            </span>
+            <span className={step.done ? "text-slate-500 line-through" : "text-slate-800"}>{step.text}</span>
+          </Link>
+        </li>
+      ))}
+    </ul>
   );
 }

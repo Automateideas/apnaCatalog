@@ -1,6 +1,7 @@
 "use server";
 
 import { randomBytes } from "node:crypto";
+import { cookies } from "next/headers";
 import { redirect } from "next/navigation";
 import { revalidatePath } from "next/cache";
 import { count, eq } from "drizzle-orm";
@@ -11,6 +12,7 @@ import { getShopByOwner, requireUser } from "@/lib/auth";
 import {
   BUSINESS_TYPE_IDS,
   getBusinessType,
+  INVITE_COOKIE,
   isPaid,
   LAUNCH_OFFER_DAYS,
   LAUNCH_OFFER_SHOPS,
@@ -92,6 +94,19 @@ export async function createShop(input: z.input<typeof createSchema>): Promise<A
     slug = found;
   }
 
+  // Set by the invite link (/invite/[slug]) the seller opened before signing up.
+  const cookieStore = await cookies();
+  const inviteSlug = cookieStore.get(INVITE_COOKIE)?.value;
+  let invitedBy: string | null = null;
+  if (inviteSlug && SLUG_PATTERN.test(inviteSlug)) {
+    const [inviter] = await db
+      .select({ id: shops.id })
+      .from(shops)
+      .where(eq(shops.slug, inviteSlug))
+      .limit(1);
+    invitedBy = inviter?.id ?? null;
+  }
+
   const type = getBusinessType(data.businessType);
   const [{ total }] = await db.select({ total: count() }).from(shops);
   const launchOffer = total < LAUNCH_OFFER_SHOPS;
@@ -118,6 +133,7 @@ export async function createShop(input: z.input<typeof createSchema>): Promise<A
           planExpiresAt: launchOffer
             ? new Date(Date.now() + LAUNCH_OFFER_DAYS * 24 * 60 * 60 * 1000)
             : null,
+          invitedBy,
           reviewToken: randomBytes(12).toString("base64url"),
         })
         .returning({ id: shops.id });
@@ -130,6 +146,7 @@ export async function createShop(input: z.input<typeof createSchema>): Promise<A
     return { ok: false, error: "Could not create the shop. The link may be taken; try another." };
   }
 
+  cookieStore.delete(INVITE_COOKIE);
   // The dashboard header was rendered without a shop; refresh it so the tabs appear.
   revalidatePath("/dashboard", "layout");
   redirect("/dashboard?welcome=1");

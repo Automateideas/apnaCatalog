@@ -1,5 +1,4 @@
-import { createClient } from "@/lib/supabase/client";
-import { MEDIA_BUCKET, mediaPathOf } from "@/lib/supabase/env";
+import { discardPhotos, signPhotoUpload } from "@/app/actions/media";
 
 /** Browser-side photo upload. "square" crops to the centre (logos, owner photo). */
 export type PhotoKind = "item" | "square";
@@ -38,24 +37,35 @@ async function compress(file: File, kind: PhotoKind): Promise<{ blob: Blob; ext:
   ctx.drawImage(bitmap, 0, 0, canvas.width, canvas.height);
   bitmap.close();
 
-  const webp = await toBlob(canvas, "image/webp", 0.8);
-  if (webp && webp.type === "image/webp") return { blob: webp, ext: "webp" };
-  // Some older iPhones cannot write WebP.
-  const jpeg = await toBlob(canvas, "image/jpeg", 0.82);
-  if (!jpeg) throw new Error("encode failed");
-  return { blob: jpeg, ext: "jpg" };
+  // Lower the quality step by step for busy photos that stay large, so each one is small.
+  for (const quality of [0.8, 0.68, 0.55]) {
+    const webp = await toBlob(canvas, "image/webp", quality);
+    // Some older iPhones cannot write WebP.
+    if (!webp || webp.type !== "image/webp") break;
+    if (webp.size <= TARGET_BYTES || quality === 0.55) return { blob: webp, ext: "webp" };
+  }
+  for (const quality of [0.82, 0.68, 0.55]) {
+    const jpeg = await toBlob(canvas, "image/jpeg", quality);
+    if (!jpeg) throw new Error("encode failed");
+    if (jpeg.size <= TARGET_BYTES || quality === 0.55) return { blob: jpeg, ext: "jpg" };
+  }
+  throw new Error("encode failed");
 }
 
-/** Shrinks and uploads one photo to the user's folder. Returns its public URL. */
-export async function uploadPhoto(file: File, kind: PhotoKind, userId: string): Promise<string> {
-  const { blob, ext } = await compress(file, kind);
-  const path = `${userId}/${crypto.randomUUID()}.${ext}`;
-  const supabase = createClient();
-  const { error } = await supabase.storage
-    .from(MEDIA_BUCKET)
-    .upload(path, blob, { contentType: blob.type, cacheControl: "31536000" });
-  if (error) throw error;
-  return supabase.storage.from(MEDIA_BUCKET).getPublicUrl(path).data.publicUrl;
+/** Aim for photos at most this big. A 1000 px photo is usually far below it. */
+const TARGET_BYTES = 250 * 1024;
+
+/**
+ * Shrinks one photo and uploads it straight to R2 (into the user's own folder, chosen by the
+ * server). Returns its public URL.
+ */
+export async function uploadPhoto(file: File, kind: PhotoKind): Promise<string> {
+  const { blob } = await compress(file, kind);
+  const signed = await signPhotoUpload({ contentType: blob.type, size: blob.size });
+  if (!signed.ok) throw new Error(signed.error);
+  const res = await fetch(signed.uploadUrl, { method: "PUT", body: blob, headers: { "content-type": blob.type } });
+  if (!res.ok) throw new Error(`Upload failed (${res.status})`);
+  return signed.publicUrl;
 }
 
 /**
@@ -64,11 +74,9 @@ export async function uploadPhoto(file: File, kind: PhotoKind, userId: string): 
  * Failing is harmless, so errors are only logged.
  */
 export async function discardUploads(urls: string[]): Promise<void> {
-  const paths = urls.map(mediaPathOf).filter((path): path is string => path !== null);
-  if (paths.length === 0) return;
+  if (urls.length === 0) return;
   try {
-    const { error } = await createClient().storage.from(MEDIA_BUCKET).remove(paths);
-    if (error) console.error("Could not delete unused photos:", error.message);
+    await discardPhotos(urls);
   } catch (error) {
     console.error("Could not delete unused photos:", error);
   }

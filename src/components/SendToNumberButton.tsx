@@ -44,8 +44,12 @@ export function SendToNumberButton({
         const phone = normalizePhone(entered);
         if (!phone) return;
         const url = waLink(phone, text);
-        // Some browsers block a new tab opened after a dialog; fall back to this tab.
-        if (!window.open(url, "_blank", "noopener,noreferrer")) window.location.href = url;
+        // "noopener" in window.open always returns null, which looked like a blocked tab and sent
+        // this page to WhatsApp as well. Open plainly, cut the link back to this page, and only
+        // fall back to this tab when the browser really blocked the new one.
+        const tab = window.open(url, "_blank");
+        if (tab) tab.opener = null;
+        else window.location.href = url;
       }}
     >
       {label}

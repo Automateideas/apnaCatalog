@@ -20,7 +20,6 @@ export function ItemPhotos({
   onAdd,
   onChange,
   onBusyChange,
-  userId,
   max = MAX_ITEM_PHOTOS,
   label = "Photos",
   hint = `Up to ${max} photos. Customers see the main photo first.`,
@@ -37,7 +36,6 @@ export function ItemPhotos({
   onChange: (urls: string[]) => void;
   /** Tells the form when uploads start and finish. */
   onBusyChange?: (busy: boolean) => void;
-  userId: string;
 }) {
   const inputRef = useRef<HTMLInputElement>(null);
   const [progress, setProgress] = useState<{ done: number; total: number } | null>(null);
@@ -71,7 +69,7 @@ export function ItemPhotos({
     setProgress({ done: 0, total: files.length });
     for (const [index, file] of files.entries()) {
       try {
-        const url = await uploadPhoto(file, "item", userId);
+        const url = await uploadPhoto(file, "item");
         // The form was closed while this was uploading: nothing will ever use the file.
         if (!mounted.current) {
           void discardUploads([url]);

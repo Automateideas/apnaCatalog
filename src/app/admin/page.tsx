@@ -1,6 +1,6 @@
 import type { Metadata } from "next";
 import Link from "next/link";
-import { count, desc, eq, ilike, or, sql } from "drizzle-orm";
+import { count, desc, eq, getTableColumns, ilike, or, sql } from "drizzle-orm";
 import { db } from "@/db";
 import { orders, reviews, shops } from "@/db/schema";
 import {
@@ -9,7 +9,6 @@ import {
   adminSetShopPlan,
 } from "@/app/actions/admin";
 import { ActionButton } from "@/components/ActionButton";
-import { Feedback } from "@/components/dialogs";
 import { LoginEmailButton } from "./LoginEmailButton";
 import { PlanDateButton } from "./PlanDateButton";
 import { Logo } from "@/components/SiteChrome";
@@ -47,7 +46,12 @@ export default async function AdminPage({ searchParams }: PageProps<"/admin">) {
       })
       .from(sql`(SELECT 1) AS one`),
     db
-      .select()
+      .select({
+        ...getTableColumns(shops),
+        // Written by hand: Drizzle would drop the "shops." prefix here, and a bare
+        // invited_by inside the subquery would mean the inviter's own column.
+        inviterSlug: sql<string | null>`(SELECT inviter.slug FROM shops AS inviter WHERE inviter.id = shops.invited_by)`,
+      })
       .from(shops)
       .where(
         q
@@ -191,6 +195,14 @@ export default async function AdminPage({ searchParams }: PageProps<"/admin">) {
                           /{shop.slug} · {getBusinessType(shop.businessType).name} · {shop.city}
                         </p>
                         <p className="text-xs text-slate-400">Joined {formatDate(shop.createdAt)}</p>
+                        {shop.inviterSlug && (
+                          <p className="text-xs text-slate-500">
+                            Invited by /{shop.inviterSlug} ·{" "}
+                            {shop.inviteRewardedAt
+                              ? `free month given ${formatDate(shop.inviteRewardedAt)}`
+                              : "inviter gets a free month on first paid plan"}
+                          </p>
+                        )}
                         {shop.isHidden && (
                           <Badge variant="destructive">Hidden</Badge>
                         )}
@@ -280,7 +292,6 @@ export default async function AdminPage({ searchParams }: PageProps<"/admin">) {
           <p className="mt-2 text-xs text-slate-500">Showing the newest 100 shops. Use search to find others.</p>
         </section>
       </main>
-      <Feedback />
     </>
   );
 }

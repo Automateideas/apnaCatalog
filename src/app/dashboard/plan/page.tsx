@@ -9,7 +9,8 @@ import {
 import { formatDate, SITE_NAME } from "@/lib/utils";
 import { Card } from "@/components/ui/card";
 import { buttonVariants } from "@/components/ui/button";
-import { Table, TableBody, TableCell, TableHead, TableHeader, TableRow } from "@/components/ui/table";
+import { InviteCard } from "../InviteCard";
+import { Table,TableBody, TableCell, TableHead, TableHeader, TableRow } from "@/components/ui/table";
 
 const ROWS: [string, string, string][] = [
   ["Items", `Up to ${FREE_ITEM_LIMIT}`, "Unlimited"],
@@ -95,6 +96,8 @@ export default async function PlanPage() {
       <p className="text-xs text-slate-500">
         Message us on WhatsApp, pay by UPI, and we switch on the paid plan for your shop.
       </p>
+
+      <InviteCard shop={shop} />
     </div>
   );
 }

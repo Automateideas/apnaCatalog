@@ -6,7 +6,7 @@ import { useRouter } from "next/navigation";
 import { Check } from "lucide-react";
 import { toast } from "sonner";
 import { updateTheme } from "@/app/actions/shop";
-import { getBusinessType } from "@/lib/catalog-config";
+import { BUSINESS_TYPES, getBusinessType } from "@/lib/catalog-config";
 import { getTheme, type Level, LEVELS, THEMES, themesForType, typesForTheme } from "@/lib/themes";
 import { cx } from "@/lib/utils";
 import { Icon } from "@/components/Icon";
@@ -37,13 +37,12 @@ export function ThemeForm({
 }) {
   const router = useRouter();
   const [themeId, setThemeId] = useState(initial.theme);
-  const [scope, setScope] = useState<"mine" | "all">("mine");
-  const [level, setLevel] = useState<Level | "any">("any");
-  const businessName = getBusinessType(businessType).name;
-  const mine = themesForType(businessType);
-  const shown = (scope === "mine" ? mine : [...THEMES].sort((a, b) => levelIndex(a.level) - levelIndex(b.level))).filter(
-    (t) => level === "any" || t.level === level,
-  );
+  // Which business's themes to show. Starts on the owner's own business, but any theme can be used.
+  const [forType, setForType] = useState<string>(businessType);
+  const own = getBusinessType(businessType);
+  const filters = [own, ...BUSINESS_TYPES.filter((b) => b.id !== own.id)];
+  const shown =
+    forType === "all" ? [...THEMES].sort((a, b) => levelIndex(a.level) - levelIndex(b.level)) : themesForType(forType);
   const [accentId, setAccentId] = useState(initial.accent);
   const [hideBranding, setHideBranding] = useState(initial.hideBranding);
   const [pending, startTransition] = useTransition();
@@ -88,57 +87,37 @@ export function ThemeForm({
           and item layout. All themes are free.
         </p>
 
-        <div className="mt-3 flex flex-wrap items-center gap-2">
-          <div className="inline-flex rounded-lg bg-slate-100 p-1" role="group" aria-label="Which themes">
-            {(
-              [
-                ["mine", `For ${businessName} (${mine.length})`],
-                ["all", `All themes (${THEMES.length})`],
-              ] as const
-            ).map(([id, label]) => (
+        <p className="mt-3 text-xs font-medium text-slate-500">
+          Themes made for (you can use a theme from any business):
+        </p>
+        <div
+          className="-mx-1 mt-1.5 flex gap-1.5 overflow-x-auto px-1 pb-1 [scrollbar-width:none]"
+          role="group"
+          aria-label="Show themes for"
+        >
+          {[{ id: "all", name: "All themes", emoji: "✨" }, ...filters].map((b) => {
+            const count = b.id === "all" ? THEMES.length : themesForType(b.id).length;
+            return (
               <button
-                key={id}
+                key={b.id}
                 type="button"
-                aria-pressed={scope === id}
-                onClick={() => setScope(id)}
+                aria-pressed={forType === b.id}
+                onClick={() => setForType(b.id)}
                 className={cx(
-                  "rounded-md px-3 py-1.5 text-sm font-medium transition",
-                  scope === id ? "bg-white text-slate-900 shadow-sm" : "text-slate-600 hover:text-slate-900",
-                )}
-              >
-                {label}
-              </button>
-            ))}
-          </div>
-          <div className="flex flex-wrap gap-1.5" role="group" aria-label="Price level">
-            {([{ id: "any", name: "Any price", sign: "" }, ...LEVELS] as const).map((l) => (
-              <button
-                key={l.id}
-                type="button"
-                aria-pressed={level === l.id}
-                onClick={() => setLevel(l.id)}
-                className={cx(
-                  "rounded-full border px-3 py-1 text-sm font-medium transition",
-                  level === l.id
+                  "shrink-0 rounded-full border px-3 py-1 text-sm font-medium whitespace-nowrap transition",
+                  forType === b.id
                     ? "border-brand bg-brand text-white"
                     : "border-slate-200 bg-white text-slate-700 hover:border-slate-400",
                 )}
               >
-                {l.sign && <span className="mr-1 opacity-80">{l.sign}</span>}
-                {l.name}
+                <span className="mr-1">{b.emoji}</span>
+                {b.name}
+                {b.id === own.id && " (yours)"}
+                <span className="ml-1 opacity-70">{count}</span>
               </button>
-            ))}
-          </div>
+            );
+          })}
         </div>
-
-        {shown.length === 0 && (
-          <p className="mt-4 rounded-xl border border-dashed border-slate-300 p-6 text-center text-sm text-slate-600">
-            No {LEVELS.find((l) => l.id === level)?.name.toLowerCase()} themes here.{" "}
-            <button type="button" className="font-medium text-brand underline" onClick={() => setScope("all")}>
-              See all themes
-            </button>
-          </p>
-        )}
 
         <div className="mt-3 grid gap-4 sm:grid-cols-2 lg:grid-cols-3">
           {shown.map((t) => {

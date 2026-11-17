@@ -61,6 +61,12 @@ export const shops = pgTable(
     hideBranding: boolean("hide_branding").notNull().default(false),
     plan: text("plan").notNull().default("free"),
     planExpiresAt: timestamp("plan_expires_at", { withTimezone: true }),
+    /** The shop whose invite link this shop's owner joined through. */
+    invitedBy: uuid("invited_by").references((): AnyPgColumn => shops.id, {
+      onDelete: "set null",
+    }),
+    /** When the inviter got their free month for this shop. Set once, on this shop's first paid plan. */
+    inviteRewardedAt: timestamp("invite_rewarded_at", { withTimezone: true }),
     isHidden: boolean("is_hidden").notNull().default(false),
     /** Secret in the review link the shopkeeper shares with customers. */
     reviewToken: text("review_token").notNull(),
@@ -76,6 +82,7 @@ export const shops = pgTable(
     uniqueIndex("shops_owner_key").on(t.ownerId),
     index("shops_city_idx").on(t.citySlug),
     index("shops_type_idx").on(t.businessType),
+    index("shops_invited_by_idx").on(t.invitedBy),
   ],
 );
 

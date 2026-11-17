@@ -66,12 +66,10 @@ const emptyDraft: Draft = {
 };
 
 export function ItemsManager({
-  userId,
   items,
   categories,
   itemLimit,
 }: {
-  userId: string;
   items: Item[];
   categories: Category[];
   /** Null when the plan has no limit. */
@@ -447,7 +445,6 @@ export function ItemsManager({
 
             <div className="flex-1 space-y-4 overflow-y-auto px-5 py-4">
               <ItemPhotos
-                userId={userId}
                 value={draft.imageUrls}
                 savedUrls={draft.savedImageUrls}
                 onBusyChange={setUploading}

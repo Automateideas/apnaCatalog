@@ -1,7 +1,10 @@
 export const SITE_NAME = "Apnacatalog";
 
 export function siteUrl(): string {
-  return (process.env.NEXT_PUBLIC_SITE_URL || "http://localhost:3210").replace(
+  // On Vercel, fall back to the production domain, so canonical links and the sitemap never
+  // point at localhost when NEXT_PUBLIC_SITE_URL is missing.
+  const vercel = process.env.NEXT_PUBLIC_VERCEL_PROJECT_PRODUCTION_URL || process.env.VERCEL_PROJECT_PRODUCTION_URL;
+  return (process.env.NEXT_PUBLIC_SITE_URL || (vercel ? `https://${vercel}` : "http://localhost:3210")).replace(
     /\/+$/,
     "",
   );

@@ -6,7 +6,7 @@ import { FREE_ITEM_LIMIT, isPaid } from "@/lib/catalog-config";
 import { ItemsManager } from "./ItemsManager";
 
 export default async function ItemsPage() {
-  const { user, shop } = await requireShop();
+  const { shop } = await requireShop();
 
   const [cats, rows] = await Promise.all([
     db
@@ -34,7 +34,6 @@ export default async function ItemsPage() {
 
   return (
     <ItemsManager
-      userId={user.id}
       items={rows}
       categories={cats}
       itemLimit={isPaid(shop) ? null : FREE_ITEM_LIMIT}

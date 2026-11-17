@@ -14,9 +14,13 @@ to the shop on WhatsApp. The home page lists shops by city and type.
   review per number per shop, editable from the same phone. The number is shown only to the shop.
 - **Dashboard** (`/dashboard`): items, categories, orders, reviews, shop details, logo, map
   location, theme, plan, QR code.
-- **Plans**: free (25 items, 1 layout, 2 colours, last 10 orders) and paid. The first 100 shops
+- **Plans**: free (20 items, 1 layout, 2 colours, last 10 orders) and paid. The first 100 shops
   get paid features free for 90 days. There is no payment gateway yet: shopkeepers message you on
   WhatsApp and you switch the plan in `/admin`.
+- **Invite a seller**: every shop has an invite link (`/invite/<shop-link>`), shown on the
+  dashboard and the Plan page. When a seller who joined through it gets a paid plan for the first
+  time (the first time you add paid time to that shop in `/admin`), the inviting shop gets one
+  month of the paid plan free. The launch offer does not count as a first paid plan.
 - **Admin** (`/admin`): hide shops, set plans, hide reported reviews, change a shop's login email.
 - **Changing login email**: only the admin can do this. In `/admin` enter the shop's new Google email.
   The shop moves when that account logs in; until then the admin can cancel it.

@@ -1,5 +1,6 @@
 import type { Metadata, Viewport } from "next";
 import { Baloo_2, Mukta } from "next/font/google";
+import { Feedback } from "@/components/dialogs";
 import { ServiceWorker } from "@/components/ServiceWorker";
 import { SITE_NAME, siteUrl } from "@/lib/utils";
 import "./globals.css";
@@ -60,6 +61,8 @@ export default function RootLayout({ children }: LayoutProps<"/">) {
       >
         <SpeedInsights />
         {children}
+        {/* Toasts and dialogs for every page, the public shop and home pages included. */}
+        <Feedback />
         <ServiceWorker />
       </body>
     </html>

@@ -8,6 +8,7 @@ import { categories, items, reviews } from "@/db/schema";
 import { Avatar } from "@/components/Avatar";
 import { ShopHeader } from "@/components/catalog/ShopHeader";
 import { Catalog } from "@/components/catalog/Catalog";
+import { ShopDistance } from "@/components/catalog/ShopDistance";
 import { ShopPhotos } from "@/components/catalog/ShopPhotos";
 import { InstallHint } from "@/components/InstallHint";
 import { ratingOf, Stars } from "@/components/Stars";
@@ -28,10 +29,14 @@ export async function generateMetadata({ params }: PageProps<"/[slug]">): Promis
   if (!shop) return { title: "Shop not found", robots: { index: false } };
 
   const type = getBusinessType(shop.businessType);
-  const title = `${shop.name} - ${type.name} in ${shop.city}`;
+  // "Other" reads oddly in a title, so that type is left out.
+  const title =
+    shop.businessType === "other" ? `${shop.name}, ${shop.city}` : `${shop.name} - ${type.name} in ${shop.city}`;
   const description =
     shop.description ||
     `See the catalog and prices of ${shop.name}, ${shop.city}. Order on WhatsApp.`;
+  // Link previews (WhatsApp, Facebook): the first shop photo when there is one, else the shop icon.
+  const cover = shop.shopPhotoUrls[0];
   return {
     title: { absolute: title },
     description,
@@ -46,8 +51,11 @@ export async function generateMetadata({ params }: PageProps<"/[slug]">): Promis
       title,
       description,
       url: `/${shop.slug}`,
-      images: [{ url: `/${shop.slug}/icon?size=512`, width: 512, height: 512 }],
+      images: cover
+        ? [{ url: cover, alt: shop.name }]
+        : [{ url: `/${shop.slug}/icon?size=512`, width: 512, height: 512, alt: shop.name }],
     },
+    twitter: { card: cover ? "summary_large_image" : "summary" },
   };
 }
 
@@ -195,6 +203,11 @@ export default async function ShopPage({ params }: PageProps<"/[slug]">) {
             </a>
           )}
         </div>
+
+        {/* Only shops with an exact map point; a pasted Maps link has no coordinates to measure from. */}
+        {shop.lat != null && shop.lng != null && (
+          <ShopDistance lat={shop.lat} lng={shop.lng} directions={directions} />
+        )}
 
         <ShopPhotos name={shop.name} urls={shop.shopPhotoUrls} />
 

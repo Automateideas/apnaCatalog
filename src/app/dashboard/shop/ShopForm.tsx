@@ -33,7 +33,7 @@ type Values = {
   mapsUrl: string;
 };
 
-export function ShopForm({ userId, initial }: { userId: string; initial: Values }) {
+export function ShopForm({ initial }: { initial: Values }) {
   const router = useRouter();
   const [v, setV] = useState<Values>(initial);
   const [error, setError] = useState<string | null>(null);
@@ -108,7 +108,6 @@ export function ShopForm({ userId, initial }: { userId: string; initial: Values 
         <ImageUpload
           label="Shop logo (also used as the app icon on customers' phones)"
           kind="square"
-          userId={userId}
           value={v.logoUrl}
           onChange={(url) => set("logoUrl", url)}
         />
@@ -165,7 +164,6 @@ export function ShopForm({ userId, initial }: { userId: string; initial: Values 
           label="Photos of your shop"
           hint={`Up to ${MAX_SHOP_PHOTOS} photos. The first one is shown first.`}
           max={MAX_SHOP_PHOTOS}
-          userId={userId}
           value={v.shopPhotoUrls}
           savedUrls={savedShopPhotos}
           onAdd={(url) => {
@@ -220,7 +218,6 @@ export function ShopForm({ userId, initial }: { userId: string; initial: Values 
           label="Your photo"
           kind="square"
           round
-          userId={userId}
           value={v.ownerPhotoUrl}
           onChange={(url) => set("ownerPhotoUrl", url)}
         />

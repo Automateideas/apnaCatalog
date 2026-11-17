@@ -46,13 +46,18 @@ export function getBusinessType(id: string | null | undefined): BusinessType {
 
 /* ---------- Plans ---------- */
 
-export const FREE_ITEM_LIMIT = 25;
+export const FREE_ITEM_LIMIT = 20;
 export const FREE_ORDER_HISTORY = 10;
 /** The first N shops get the paid plan free for LAUNCH_OFFER_DAYS. */
 export const LAUNCH_OFFER_SHOPS = 100;
 export const LAUNCH_OFFER_DAYS = 90;
 export const PRICE_MONTHLY = 99;
 export const PRICE_YEARLY = 999;
+/** Free paid-plan months a shop gets when a seller it invited starts a paid plan for the first time. */
+export const INVITE_REWARD_MONTHS = 1;
+/** Cookie that remembers whose invite link a new seller opened, until they create their shop. */
+export const INVITE_COOKIE = "invite";
+export const INVITE_COOKIE_DAYS = 30;
 /** Photos allowed on one item. The first one is the main photo. */
 export const MAX_ITEM_PHOTOS = 5;
 /** Photos of the shop itself (front, inside), shown on the shop page. */
@@ -83,4 +88,5 @@ export const RESERVED_SLUGS = new Set([
   "support", "pricing", "plans", "shop", "shops", "city", "cities", "search", "review",
   "reviews", "manifest", "sitemap", "robots", "favicon", "icon", "sw", "static", "public",
   "_next", "www", "apnacatalog", "apna-catalog", "blog", "new", "settings",
+  "invite",
 ]);

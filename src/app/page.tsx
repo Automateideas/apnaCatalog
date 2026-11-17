@@ -1,14 +1,16 @@
+import type { Metadata } from "next";
 import Link from "next/link";
 import { and, desc, eq, ilike, or, sql } from "drizzle-orm";
 import { db, isDbConfigured } from "@/db";
 import { shops } from "@/db/schema";
 import { IconBadge } from "@/components/Icon";
+import { NearbyShops } from "@/components/NearbyShops";
 import { ShopCard, type ShopCardData } from "@/components/ShopCard";
 import { SiteFooter, SiteHeader } from "@/components/SiteChrome";
 import { getUser } from "@/lib/auth";
 import { BUSINESS_TYPES, FREE_ITEM_LIMIT, getBusinessType } from "@/lib/catalog-config";
 import { listedShop, paidNow } from "@/lib/shop-stats";
-import { citySlugOf, cx } from "@/lib/utils";
+import { citySlugOf, cx, SITE_NAME, siteUrl } from "@/lib/utils";
 import { Input } from "@/components/ui/input";
 import { NativeSelect } from "@/components/ui/native-select";
 import { Button, buttonVariants } from "@/components/ui/button";
@@ -75,6 +77,41 @@ function first(value: string | string[] | undefined): string {
   return (Array.isArray(value) ? value[0] : value)?.trim() ?? "";
 }
 
+/** "new-delhi" → "New Delhi". Good enough for a page title without a database call. */
+const cityFromSlug = (slug: string) => slug.replace(/-/g, " ").replace(/\b\w/g, (c) => c.toUpperCase());
+
+/**
+ * City and shop-type pages ("Gift shops in Ghaziabad") get their own title and canonical link,
+ * so they can show in Google. Search results and later pages are kept out of the index.
+ */
+export async function generateMetadata({ searchParams }: PageProps<"/">): Promise<Metadata> {
+  const params = await searchParams;
+  const city = citySlugOf(first(params.city));
+  const type = BUSINESS_TYPES.some((t) => t.id === first(params.type)) ? first(params.type) : "";
+  const page = Number.parseInt(first(params.page) || "1", 10) || 1;
+  const q = first(params.q);
+
+  const qs = new URLSearchParams();
+  if (city) qs.set("city", city);
+  if (type) qs.set("type", type);
+  const canonical = qs.size ? `/?${qs}` : "/";
+  const robots = q || page > 1 ? { index: false, follow: true } : undefined;
+
+  if (!city && !type) return { alternates: { canonical }, robots };
+
+  const typeName = type ? getBusinessType(type).name : "";
+  const where = city ? ` in ${cityFromSlug(city)}` : "";
+  // Type names already say what they are ("Gift shop", "Kirana / Grocery", "Medical store").
+  const title = `${typeName || "Shops"}${where}: catalogs with prices`;
+  return {
+    title: { absolute: `${title} | ${SITE_NAME}` },
+    description: `See catalogs and prices of ${typeName ? typeName.toLowerCase() : "local"} shops${where}. Order on WhatsApp, no app needed.`,
+    alternates: { canonical },
+    robots,
+    openGraph: { title, url: canonical },
+  };
+}
+
 export default async function HomePage({ searchParams }: PageProps<"/">) {
   const params = await searchParams;
   const filters = {
@@ -121,8 +158,25 @@ export default async function HomePage({ searchParams }: PageProps<"/">) {
       ? `Shops in ${cityName}`
       : "Shops near you";
 
+  // Lets Google show a search box for the site in its results.
+  const jsonLd = {
+    "@context": "https://schema.org",
+    "@type": "WebSite",
+    name: SITE_NAME,
+    url: siteUrl(),
+    potentialAction: {
+      "@type": "SearchAction",
+      target: `${siteUrl()}/?q={search_term_string}`,
+      "query-input": "required name=search_term_string",
+    },
+  };
+
   return (
     <>
+      <script
+        type="application/ld+json"
+        dangerouslySetInnerHTML={{ __html: JSON.stringify(jsonLd).replace(/</g, "\\u003c") }}
+      />
       <SiteHeader signedIn={Boolean(user)} />
 
       <section className="bg-brand text-white">
@@ -196,7 +250,11 @@ export default async function HomePage({ searchParams }: PageProps<"/">) {
       </section>
 
       <main className="mx-auto w-full max-w-6xl flex-1 px-4 py-6">
-        <nav aria-label="Shop type" className="no-scrollbar -mx-4 flex gap-2 overflow-x-auto px-4 pb-2">
+        {/* Phone: one row you swipe sideways. Wider screens have no swipe, so the types wrap onto more rows. */}
+        <nav
+          aria-label="Shop type"
+          className="no-scrollbar -mx-4 flex gap-2 overflow-x-auto px-4 pb-2 sm:mx-0 sm:flex-wrap sm:overflow-visible sm:px-0"
+        >
           <Link
             href={link({ type: "" })}
             className={cx(
@@ -235,7 +293,9 @@ export default async function HomePage({ searchParams }: PageProps<"/">) {
 
         {problem && <Alert variant="destructive" className="mt-4">{problem}</Alert>}
 
-        {data && data.shops.length > 0 && (
+        {data && (
+        <NearbyShops type={filters.type} q={filters.q}>
+        {data.shops.length > 0 && (
           <div className="mt-4 grid grid-cols-1 gap-3 sm:grid-cols-2 lg:grid-cols-3">
             {data.shops.map((shop) => (
               <ShopCard key={shop.slug} shop={shop} />
@@ -243,7 +303,7 @@ export default async function HomePage({ searchParams }: PageProps<"/">) {
           </div>
         )}
 
-        {data && data.shops.length === 0 && (
+        {data.shops.length === 0 && (
           <Card className="mt-4 px-6 py-12 text-center">
             <IconBadge name="store" />
             <p className="mt-3 font-semibold text-slate-900">
@@ -258,7 +318,7 @@ export default async function HomePage({ searchParams }: PageProps<"/">) {
           </Card>
         )}
 
-        {data && (filters.page > 1 || data.hasMore) && (
+        {(filters.page > 1 || data.hasMore) && (
           <div className="mt-6 flex justify-center gap-3">
             {filters.page > 1 && (
               <Link href={link({ page: filters.page - 1 })} className={buttonVariants({ variant: "outline" })}>
@@ -271,6 +331,8 @@ export default async function HomePage({ searchParams }: PageProps<"/">) {
               </Link>
             )}
           </div>
+        )}
+        </NearbyShops>
         )}
 
         <section className="mt-12 rounded-2xl bg-ink px-6 py-10 text-white sm:px-10">

@@ -19,7 +19,7 @@ export type ShopCardData = {
   featured: boolean;
 };
 
-export function ShopCard({ shop }: { shop: ShopCardData }) {
+export function ShopCard({ shop, distance }: { shop: ShopCardData; distance?: React.ReactNode }) {
   const type = getBusinessType(shop.businessType);
   const color = effectiveTheme(shop).palette.primary;
   return (
@@ -38,6 +38,7 @@ export function ShopCard({ shop }: { shop: ShopCardData }) {
         <p className="mt-0.5 truncate text-sm text-slate-600">
           {type.name}, {shop.city}
         </p>
+        {distance && <p className="mt-0.5 flex items-center gap-1 text-sm font-medium text-emerald-700">{distance}</p>}
         <div className="mt-1.5 flex items-center gap-2 text-sm">
           {shop.ratingCount > 0 ? (
             <>

@@ -9,14 +9,12 @@ import { Button } from "@/components/ui/button";
 export function ImageUpload({
   value,
   onChange,
-  userId,
   kind,
   label,
   round = false,
 }: {
   value: string | null;
   onChange: (url: string | null) => void;
-  userId: string;
   kind: PhotoKind;
   label: string;
   round?: boolean;
@@ -30,7 +28,7 @@ export function ImageUpload({
     setError(null);
     setBusy(true);
     try {
-      onChange(await uploadPhoto(file, kind, userId));
+      onChange(await uploadPhoto(file, kind));
     } catch (e) {
       console.error(e);
       setError("Could not upload this photo. Try a JPG or PNG photo.");

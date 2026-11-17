@@ -176,7 +176,7 @@ function DialogHost() {
   );
 }
 
-/** Toasts and dialogs for the logged-in pages. Render once per layout. */
+/** Toasts and dialogs. Rendered once, in the root layout. */
 export function Feedback() {
   return (
     <>
