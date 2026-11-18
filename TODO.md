@@ -17,7 +17,6 @@
 - [ ] Domain lo (QR print hone se pehle), DNS Cloudflare par.
 - [ ] Saara kaam GitHub par push karo; Vercel env mein `NEXT_PUBLIC_MAPBOX_TOKEN` bhi daalo.
 - [ ] Google OAuth consent screen ko "In production" karo, privacy aur terms links ke saath.
-- [ ] Supabase → Auth → URL Configuration: Site URL aur Redirect URLs (Vercel + `http://localhost:3210/**`).
 - [ ] Mapbox token par URL restriction lagao.
 - [ ] `.env.local` aur Vercel mein `GRIEVANCE_OFFICER_NAME` aur `GRIEVANCE_EMAIL` bharo.
 - [ ] Phone par poora flow test: signup → shop → items → photos → theme → share → WhatsApp order → doori.
@@ -28,3 +27,15 @@
 
 - [ ] Paid shops aane par: hosting ka plan socho (Vercel Hobby sirf non-commercial use ke liye hai).
 - [ ] Promo video: `media/promo` mein bani hai; music jodna aur `npm run render` se MP4 banana.
+
+## Plans + Property dealer (code done, 2026-11-18)
+
+- [ ] `npm run db:migrate` (0012: listing, details, RERA number).
+- [ ] Property dealer ki ek test shop banao: sale aur rent ki listing, details, RERA number; shop page aur listing page dekho.
+- [ ] Admin: purane "Paid" shops ab "Pro" dikhenge; zaroorat ho toh Starter/Business button se badlo.
+
+## Report button + email (code done, 2026-11-19)
+
+- [ ] `npm run db:migrate` (0013: reports table).
+- [ ] resend.com par account banao (wahi email jo `ADMIN_EMAILS` mein hai), API key banao, `.env.local` aur Vercel mein `RESEND_API_KEY` daalo.
+- [ ] Domain lene ke baad: Resend mein domain verify karo aur `EMAIL_FROM` set karo (jaise `Apnacatalog <alerts@apnacatalog.in>`).

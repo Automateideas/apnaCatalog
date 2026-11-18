@@ -7,14 +7,17 @@ import {
   adminSetReviewHidden,
   adminSetShopHidden,
   adminSetShopPlan,
+  adminSetShopTier,
 } from "@/app/actions/admin";
 import { ActionButton } from "@/components/ActionButton";
 import { LoginEmailButton } from "./LoginEmailButton";
+import { PushToggle } from "@/components/PushToggle";
+import { OpenReports } from "./OpenReports";
 import { PlanDateButton } from "./PlanDateButton";
 import { Logo } from "@/components/SiteChrome";
 import { Stars } from "@/components/Stars";
 import { requireAdmin } from "@/lib/auth";
-import { getBusinessType, isPaid } from "@/lib/catalog-config";
+import { getBusinessType, isPaid, PAID_PLAN_IDS, planOf, PLANS } from "@/lib/catalog-config";
 import { formatDate } from "@/lib/utils";
 import { Button, buttonVariants } from "@/components/ui/button";
 import { Card } from "@/components/ui/card";
@@ -40,7 +43,7 @@ export default async function AdminPage({ searchParams }: PageProps<"/admin">) {
     db
       .select({
         shops: sql<number>`(SELECT count(*)::int FROM ${shops})`,
-        paid: sql<number>`(SELECT count(*)::int FROM ${shops} WHERE plan = 'paid' AND (plan_expires_at IS NULL OR plan_expires_at > now()))`,
+        paid: sql<number>`(SELECT count(*)::int FROM ${shops} WHERE plan <> 'free' AND (plan_expires_at IS NULL OR plan_expires_at > now()))`,
         orders: sql<number>`(SELECT count(*)::int FROM ${orders})`,
         reviews: sql<number>`(SELECT count(*)::int FROM ${reviews})`,
       })
@@ -93,6 +96,7 @@ export default async function AdminPage({ searchParams }: PageProps<"/admin">) {
 
       <main className="mx-auto w-full max-w-6xl flex-1 space-y-6 px-4 py-6">
         <h1 className="text-xl font-bold text-slate-900">Admin</h1>
+        <PushToggle />
 
         <section className="grid grid-cols-2 gap-3 sm:grid-cols-4">
           {[
@@ -107,6 +111,8 @@ export default async function AdminPage({ searchParams }: PageProps<"/admin">) {
             </Card>
           ))}
         </section>
+
+        <OpenReports />
 
         <section>
           <h2 className="font-bold text-slate-900">
@@ -217,7 +223,7 @@ export default async function AdminPage({ searchParams }: PageProps<"/admin">) {
                       <TableCell className="px-3 py-2">{shop.itemCount}</TableCell>
                       <TableCell className="px-3 py-2">
                         <span className={paid ? "font-semibold text-emerald-700" : "text-slate-600"}>
-                          {paid ? "Paid" : "Free"}
+                          {planOf(shop).name}
                         </span>
                         {paid && shop.planExpiresAt && (
                           <p className="text-xs text-slate-500">till {formatDate(shop.planExpiresAt)}</p>
@@ -246,7 +252,19 @@ export default async function AdminPage({ searchParams }: PageProps<"/admin">) {
                             shopName={shop.name}
                             currentDate={paid && shop.planExpiresAt ? dateInIndia(shop.planExpiresAt) : null}
                           />
-                          {shop.plan === "paid" && (
+                          {paid &&
+                            PAID_PLAN_IDS.filter((id) => id !== planOf(shop).id).map((id) => (
+                              <ActionButton
+                                key={id}
+                                size="xs"
+                                action={adminSetShopTier.bind(null, shop.id, id)}
+                                confirm={`Switch ${shop.name} to the ${PLANS[id].name} plan? The end date stays the same.`}
+                                success={`${shop.name} is now on ${PLANS[id].name}.`}
+                              >
+                                {PLANS[id].name}
+                              </ActionButton>
+                            ))}
+                          {shop.plan !== "free" && (
                             <ActionButton
                               size="xs"
                               action={adminSetShopPlan.bind(null, shop.id, 0)}

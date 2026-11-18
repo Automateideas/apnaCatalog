@@ -6,7 +6,8 @@ import { z } from "zod";
 import { db } from "@/db";
 import { categories, items } from "@/db/schema";
 import { getShopByOwner, requireUser } from "@/lib/auth";
-import { FREE_ITEM_LIMIT, isPaid, MAX_ITEM_PHOTOS } from "@/lib/catalog-config";
+import { planOf } from "@/lib/catalog-config";
+import { cleanDetails, isPropertyShop } from "@/lib/property";
 import { removeUnusedMedia } from "@/lib/media";
 import { refreshShopStats } from "@/lib/shop-stats";
 import { isMediaUrl } from "@/lib/media-url";
@@ -44,6 +45,12 @@ const itemSchema = z.object({
   /** Main photo first. */
   imageUrls: z.array(z.string().max(500)).max(20).optional(),
   inStock: z.boolean(),
+  /** Property listings only. */
+  listing: z.enum(["sale", "rent"]).optional().nullable(),
+  details: z
+    .array(z.object({ label: z.string().max(30), value: z.string().max(60) }))
+    .max(12)
+    .optional(),
 });
 
 export async function saveItem(input: z.input<typeof itemSchema>): Promise<ActionResult> {
@@ -84,9 +91,12 @@ export async function saveItem(input: z.input<typeof itemSchema>): Promise<Actio
   const mrp = data.mrp && rupeesToPaise(data.mrp) > price ? rupeesToPaise(data.mrp) : null;
   // Only photos from our own storage, no repeats, main photo first.
   const imageUrls = [...new Set((data.imageUrls ?? []).filter(isMediaUrl))];
-  if (imageUrls.length > MAX_ITEM_PHOTOS) {
-    return { ok: false, error: `An item can have at most ${MAX_ITEM_PHOTOS} photos.` };
-  }
+
+  const plan = planOf(shop);
+  const photoError = {
+    ok: false as const,
+    error: `The ${plan.name} plan allows ${plan.photos} photos per item. Upgrade for more.`,
+  };
 
   const values = {
     name: data.name,
@@ -100,6 +110,9 @@ export async function saveItem(input: z.input<typeof itemSchema>): Promise<Actio
     imageUrl: imageUrls[0] ?? null,
     imageUrls,
     inStock: data.inStock,
+    // Listing fields only for property dealers; other shops never keep them.
+    listing: isPropertyShop(shop.businessType) ? (data.listing ?? "sale") : null,
+    details: isPropertyShop(shop.businessType) ? cleanDetails(data.details ?? []) : [],
   };
 
   // Photos the item had before this save, to delete the ones that were taken off.
@@ -109,18 +122,21 @@ export async function saveItem(input: z.input<typeof itemSchema>): Promise<Actio
     const mine = and(eq(items.id, data.id), eq(items.shopId, shop.id));
     const [existing] = await db.select({ imageUrls: items.imageUrls }).from(items).where(mine).limit(1);
     if (!existing) return { ok: false, error: "Item not found." };
+    // Photos kept from a bigger plan stay; only adding past the limit is refused.
+    if (imageUrls.length > Math.max(plan.photos, existing.imageUrls.length)) return photoError;
     oldImageUrls = existing.imageUrls;
     await db.update(items).set({ ...values, updatedAt: new Date() }).where(mine);
   } else {
-    if (!isPaid(shop)) {
+    if (imageUrls.length > plan.photos) return photoError;
+    if (plan.items !== null) {
       const [{ total }] = await db
         .select({ total: count() })
         .from(items)
         .where(eq(items.shopId, shop.id));
-      if (total >= FREE_ITEM_LIMIT) {
+      if (total >= plan.items) {
         return {
           ok: false,
-          error: `The free plan allows ${FREE_ITEM_LIMIT} items. Upgrade to add more.`,
+          error: `The ${plan.name} plan allows ${plan.items} items. Upgrade to add more.`,
         };
       }
     }

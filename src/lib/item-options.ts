@@ -33,3 +33,6 @@ export const parseCartKey = (key: string) => {
 /** Top of an order's total when some lines have a price range. */
 export const maxTotalOf = (lines: { price: number; maxPrice?: number | null; qty: number }[]) =>
   lines.reduce((sum, l) => sum + (l.maxPrice ?? l.price) * l.qty, 0);
+
+/** One fact about an item, e.g. { label: "Area", value: "1,150 sq ft" }. */
+export type ItemDetail = { label: string; value: string };

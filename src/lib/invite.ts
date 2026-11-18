@@ -18,7 +18,7 @@ export function inviteUrl(slug: string): string {
  */
 export function addPaidMonths(current: PlanFields, months: number): Date {
   const stillActive =
-    current.plan === "paid" && current.planExpiresAt && current.planExpiresAt > new Date();
+    current.plan !== "free" && current.planExpiresAt && current.planExpiresAt > new Date();
   const expires = stillActive ? new Date(current.planExpiresAt!) : new Date();
   expires.setMonth(expires.getMonth() + months);
   return expires;
@@ -46,10 +46,17 @@ export async function rewardInviter(tx: Tx, shopId: string): Promise<void> {
     .for("update");
   if (!inviter) return;
   // A paid plan with no end date cannot be made longer.
-  if (inviter.plan === "paid" && !inviter.planExpiresAt) return;
+  if (inviter.plan !== "free" && !inviter.planExpiresAt) return;
 
   await tx
     .update(shops)
-    .set({ plan: "paid", planExpiresAt: addPaidMonths(inviter, INVITE_REWARD_MONTHS) })
+    // Keeps the inviter's paid plan; a free shop gets Pro for the month.
+    .set({ plan: keepPaidPlan(inviter), planExpiresAt: addPaidMonths(inviter, INVITE_REWARD_MONTHS) })
     .where(eq(shops.id, claimed.invitedBy));
+}
+
+/** The plan to keep when paid time is added: the current paid plan, or Pro for a free shop. */
+export function keepPaidPlan(current: PlanFields): string {
+  const active = !current.planExpiresAt || current.planExpiresAt > new Date();
+  return active && current.plan !== "free" ? (current.plan === "paid" ? "pro" : current.plan) : "pro";
 }

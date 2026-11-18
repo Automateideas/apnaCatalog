@@ -46,6 +46,7 @@ export async function nearbyShops(raw: unknown): Promise<{ ok: true; shops: Near
         city: shops.city,
         description: shops.description,
         logoUrl: shops.logoUrl,
+        coverUrl: sql<string | null>`${shops.shopPhotoUrls}[1]`,
         palette: shops.palette,
         theme: shops.theme,
         itemCount: shops.itemCount,

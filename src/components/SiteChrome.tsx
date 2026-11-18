@@ -1,6 +1,6 @@
 import Link from "next/link";
 import { SITE_NAME } from "@/lib/utils";
-import { buttonVariants } from "@/components/ui/button";
+import { SiteNav } from "@/components/SiteNav";
 
 export function Logo({ className = "" }: { className?: string }) {
   return (
@@ -28,9 +28,7 @@ export function SiteHeader({ signedIn }: { signedIn: boolean }) {
     <header className="sticky top-0 z-30 border-b border-slate-200 bg-white/95 backdrop-blur">
       <div className="mx-auto flex h-14 w-full max-w-6xl items-center justify-between px-4">
         <Logo />
-        <Link href={signedIn ? "/dashboard" : "/login"} className={buttonVariants({ size: "sm" })}>
-          {signedIn ? "My shop" : "Add your shop free"}
-        </Link>
+        <SiteNav signedIn={signedIn} />
       </div>
     </header>
   );
@@ -44,6 +42,9 @@ export function SiteFooter() {
           © {new Date().getFullYear()} {SITE_NAME}. Made for local shops in India.
         </p>
         <nav className="flex gap-5">
+          <Link href="/pricing" className="hover:text-slate-900">
+            Pricing
+          </Link>
           <Link href="/login" className="hover:text-slate-900">
             Shop login
           </Link>

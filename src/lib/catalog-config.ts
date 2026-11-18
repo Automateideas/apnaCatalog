@@ -35,6 +35,7 @@ export const BUSINESS_TYPES: BusinessType[] = [
   { id: "cosmetics", name: "Cosmetics / Beauty", emoji: "💄", layout: "grid", categories: ["Makeup", "Skin care", "Hair care", "Fragrance", "Bangles & bindi"] },
   { id: "furniture", name: "Furniture / Home", emoji: "🛋️", layout: "grid", categories: ["Beds", "Sofas", "Tables & chairs", "Storage", "Decor"] },
   { id: "toys", name: "Toys / Kids", emoji: "🧸", layout: "grid", categories: ["Soft toys", "Games", "Learning toys", "Ride-ons", "School bags"] },
+  { id: "property", name: "Property dealer", emoji: "🏠", layout: "grid", categories: ["Flats", "Houses", "Plots", "Shops & offices"] },
   { id: "laundry", name: "Laundry / Dry clean", emoji: "👔", layout: "list", categories: ["Men", "Women", "Kids", "Household"] },
   { id: "other", name: "Other", emoji: "🏪", layout: "grid", categories: ["Popular", "New arrivals"] },
 ];
@@ -47,30 +48,64 @@ export function getBusinessType(id: string | null | undefined): BusinessType {
 
 /* ---------- Plans ---------- */
 
-export const FREE_ITEM_LIMIT = 20;
 export const FREE_ORDER_HISTORY = 10;
 /** The first N shops get the paid plan free for LAUNCH_OFFER_DAYS. */
 export const LAUNCH_OFFER_SHOPS = 100;
 export const LAUNCH_OFFER_DAYS = 90;
-export const PRICE_MONTHLY = 99;
-export const PRICE_YEARLY = 999;
 /** Free paid-plan months a shop gets when a seller it invited starts a paid plan for the first time. */
 export const INVITE_REWARD_MONTHS = 1;
 /** Cookie that remembers whose invite link a new seller opened, until they create their shop. */
 export const INVITE_COOKIE = "invite";
 export const INVITE_COOKIE_DAYS = 30;
-/** Photos allowed on one item. The first one is the main photo. */
-export const MAX_ITEM_PHOTOS = 5;
+/** Most photos any plan allows on one item. The first one is the main photo. */
+export const MAX_ITEM_PHOTOS = 15;
 /** Photos of the shop itself (front, inside), shown on the shop page. */
 export const MAX_SHOP_PHOTOS = 5;
 /** A shop appears on the home page once it has this many items and a photo. */
 export const MIN_ITEMS_TO_LIST = 3;
 
+export type PlanId = "free" | "starter" | "pro" | "business";
+
+export type Plan = {
+  id: PlanId;
+  name: string;
+  /** Rupees. A year costs 10 months. */
+  priceMonthly: number;
+  priceYearly: number;
+  /** Items allowed; null = no limit. */
+  items: number | null;
+  /** Photos allowed on one item. */
+  photos: number;
+  /** Shown first, with a "Featured" badge, on the home page. */
+  featured: boolean;
+  hideBranding: boolean;
+  bestFor: string;
+};
+
+export const PLANS: Record<PlanId, Plan> = {
+  free: { id: "free", name: "Free", priceMonthly: 0, priceYearly: 0, items: 20, photos: 2, featured: false, hideBranding: false, bestFor: "Trying it out" },
+  starter: { id: "starter", name: "Starter", priceMonthly: 149, priceYearly: 1490, items: 100, photos: 3, featured: false, hideBranding: true, bestFor: "Small shops" },
+  pro: { id: "pro", name: "Pro", priceMonthly: 249, priceYearly: 2490, items: null, photos: 5, featured: true, hideBranding: true, bestFor: "Growing shops" },
+  business: { id: "business", name: "Business", priceMonthly: 399, priceYearly: 3990, items: null, photos: 15, featured: true, hideBranding: true, bestFor: "Property dealers and big catalogs" },
+};
+
+export const PAID_PLAN_IDS = ["starter", "pro", "business"] as const satisfies PlanId[];
+
+/** Items on the free plan (used in marketing text). */
+export const FREE_ITEM_LIMIT = PLANS.free.items!;
+
 type PlanFields = { plan: string; planExpiresAt: Date | null };
 
+/** The plan a shop has right now. An ended plan is Free; the old single "paid" plan is Pro. */
+export function planOf(shop: PlanFields): Plan {
+  const active = !shop.planExpiresAt || shop.planExpiresAt.getTime() > Date.now();
+  if (!active || shop.plan === "free") return PLANS.free;
+  if (shop.plan === "paid") return PLANS.pro;
+  return PLANS[shop.plan as PlanId] ?? PLANS.free;
+}
+
 export function isPaid(shop: PlanFields): boolean {
-  if (shop.plan !== "paid") return false;
-  return !shop.planExpiresAt || shop.planExpiresAt.getTime() > Date.now();
+  return planOf(shop).id !== "free";
 }
 
 type ThemeFields = { businessType: string; theme: string | null; palette: string };

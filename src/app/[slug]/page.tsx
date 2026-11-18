@@ -10,10 +10,12 @@ import { ShopHeader } from "@/components/catalog/ShopHeader";
 import { Catalog } from "@/components/catalog/Catalog";
 import { ShopDistance } from "@/components/catalog/ShopDistance";
 import { ShopPhotos } from "@/components/catalog/ShopPhotos";
+import { ReportButton } from "@/components/ReportButton";
 import { InstallHint } from "@/components/InstallHint";
 import { ratingOf, Stars } from "@/components/Stars";
 import { getBusinessType, isPaid } from "@/lib/catalog-config";
 import { themeCss } from "@/lib/theme-style";
+import { isPropertyShop } from "@/lib/property";
 import { resolveTheme } from "@/lib/themes";
 import { cx } from "@/lib/utils";
 import { getPublicShop } from "@/lib/shop-data";
@@ -101,6 +103,8 @@ export default async function ShopPage({ params }: PageProps<"/[slug]">) {
         imageUrls: items.imageUrls,
         maxPrice: items.maxPrice,
         options: items.options,
+        listing: items.listing,
+        details: items.details,
         inStock: items.inStock,
         categoryId: items.categoryId,
       })
@@ -235,11 +239,19 @@ export default async function ShopPage({ params }: PageProps<"/[slug]">) {
           </div>
         )}
 
+        {isPropertyShop(shop.businessType) && shop.reraNumber && (
+          <p className="mt-3 flex items-center gap-1.5 text-sm text-(--t-muted)">
+            <Icon name="check" className="h-4 w-4 text-(--p)" />
+            RERA registration: <span className="font-semibold text-(--t-text)">{shop.reraNumber}</span>
+          </p>
+        )}
+
         <InstallHint name={shop.name} />
 
         <div className="mt-5">
           <Catalog
-            shop={{ id: shop.id, name: shop.name }}
+            shop={{ id: shop.id, name: shop.name, slug: shop.slug, whatsapp: shop.whatsapp }}
+            mode={isPropertyShop(shop.businessType) ? "enquiry" : "cart"}
             look={{ items: theme.items, center: !!theme.center, chips: theme.chips }}
             items={itemRows}
             categories={cats}
@@ -282,6 +294,10 @@ export default async function ShopPage({ params }: PageProps<"/[slug]">) {
             </>
           )}
         </section>
+
+        <div className="no-print mt-10 text-center">
+          <ReportButton shopId={shop.id} what="shop" />
+        </div>
       </main>
 
       {!(paid && shop.hideBranding) && (

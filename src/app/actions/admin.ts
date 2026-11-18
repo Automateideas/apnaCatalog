@@ -1,12 +1,13 @@
 "use server";
 
 import { revalidatePath } from "next/cache";
-import { eq } from "drizzle-orm";
+import { and, eq, ne } from "drizzle-orm";
 import { z } from "zod";
 import { db } from "@/db";
 import { reviews, shops } from "@/db/schema";
 import { requireAdmin } from "@/lib/auth";
-import { addPaidMonths, rewardInviter } from "@/lib/invite";
+import { PAID_PLAN_IDS } from "@/lib/catalog-config";
+import { addPaidMonths, keepPaidPlan, rewardInviter } from "@/lib/invite";
 import { setPendingOwner } from "@/lib/owner-change";
 import { refreshShopRating } from "@/lib/shop-stats";
 import type { ActionResult } from "@/lib/utils";
@@ -46,7 +47,7 @@ export async function adminSetShopPlan(id: string, months: number): Promise<Acti
       if (!current) return false;
       await tx
         .update(shops)
-        .set({ plan: "paid", planExpiresAt: addPaidMonths(current, months) })
+        .set({ plan: keepPaidPlan(current), planExpiresAt: addPaidMonths(current, months) })
         .where(eq(shops.id, id));
       await rewardInviter(tx, id);
       return true;
@@ -77,17 +78,34 @@ export async function adminSetShopPlanUntil(id: string, date: string): Promise<A
   }
 
   const found = await db.transaction(async (tx) => {
-    const updated = await tx
-      .update(shops)
-      .set({ plan: "paid", planExpiresAt: expires })
+    const [current] = await tx
+      .select({ plan: shops.plan, planExpiresAt: shops.planExpiresAt })
+      .from(shops)
       .where(eq(shops.id, id))
-      .returning({ id: shops.id });
-    if (updated.length === 0) return false;
+      .limit(1)
+      .for("update");
+    if (!current) return false;
+    await tx.update(shops).set({ plan: keepPaidPlan(current), planExpiresAt: expires }).where(eq(shops.id, id));
     await rewardInviter(tx, id);
     return true;
   });
   if (!found) return { ok: false, error: "Shop not found." };
 
+  revalidatePath("/admin");
+  return { ok: true };
+}
+
+/** Switches a shop with paid time to another paid plan (Starter, Pro or Business). */
+export async function adminSetShopTier(id: string, tier: string): Promise<ActionResult> {
+  await requireAdmin();
+  if (!z.uuid().safeParse(id).success) return { ok: false, error: "Shop not found." };
+  if (!(PAID_PLAN_IDS as readonly string[]).includes(tier)) return { ok: false, error: "Unknown plan." };
+  const updated = await db
+    .update(shops)
+    .set({ plan: tier })
+    .where(and(eq(shops.id, id), ne(shops.plan, "free")))
+    .returning({ id: shops.id });
+  if (updated.length === 0) return { ok: false, error: "Give the shop paid time first." };
   revalidatePath("/admin");
   return { ok: true };
 }

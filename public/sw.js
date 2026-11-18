@@ -1,6 +1,6 @@
 /* Apnacatalog service worker: makes the site installable and lets
    already-visited catalogs open without internet. */
-const CACHE = "apnacatalog-v1";
+const CACHE = "apnacatalog-v2";
 const OFFLINE_URL = "/offline";
 const PRIVATE = ["/dashboard", "/admin", "/auth", "/login", "/o/"];
 
@@ -62,5 +62,37 @@ self.addEventListener("fetch", (event) => {
         const cached = isPrivate ? undefined : await caches.match(request);
         return cached || (await caches.match(OFFLINE_URL)) || Response.error();
       }),
+  );
+});
+
+/* Push notifications (new orders, reports). The server sends { title, body, url, tag }. */
+self.addEventListener("push", (event) => {
+  let data = {};
+  try {
+    data = event.data ? event.data.json() : {};
+  } catch {
+    data = { title: "Apnacatalog", body: event.data ? event.data.text() : "" };
+  }
+  event.waitUntil(
+    self.registration.showNotification(data.title || "Apnacatalog", {
+      body: data.body || "",
+      icon: "/icon-192.png",
+      badge: "/icon-192.png",
+      tag: data.tag,
+      data: { url: data.url || "/dashboard" },
+    }),
+  );
+});
+
+/* Tapping a notification opens its page, reusing an open tab of the site when there is one. */
+self.addEventListener("notificationclick", (event) => {
+  event.notification.close();
+  const url = new URL(event.notification.data?.url || "/dashboard", self.location.origin).href;
+  event.waitUntil(
+    self.clients.matchAll({ type: "window", includeUncontrolled: true }).then((windows) => {
+      const open = windows.find((w) => new URL(w.url).origin === self.location.origin);
+      if (open) return open.navigate(url).then((w) => (w || open).focus());
+      return self.clients.openWindow(url);
+    }),
   );
 });

@@ -7,6 +7,7 @@ import { z } from "zod";
 import { db } from "@/db";
 import { items, orders, shops, type OrderLine } from "@/db/schema";
 import { formatPriceRange } from "@/lib/item-options";
+import { pushToUsers } from "@/lib/push";
 import { siteUrl, waLink, type ActionResult } from "@/lib/utils";
 
 const schema = z.object({
@@ -67,7 +68,7 @@ export async function createOrder(
   // Prices always come from the database, never from the browser.
   const [[shop], rows, [{ fromShop }], [{ fromClient }]] = await Promise.all([
     db
-      .select({ id: shops.id, name: shops.name, whatsapp: shops.whatsapp })
+      .select({ id: shops.id, name: shops.name, whatsapp: shops.whatsapp, ownerId: shops.ownerId })
       .from(shops)
       .where(and(eq(shops.id, data.shopId), eq(shops.isHidden, false)))
       .limit(1),
@@ -177,6 +178,15 @@ export async function createOrder(
     "",
     `Order details: ${siteUrl()}/o/${id}`,
   ].join("\n");
+
+  // A phone notification too, in case the WhatsApp message is not sent or not seen.
+  const pieces = lines.reduce((n, l) => n + l.qty, 0);
+  await pushToUsers([shop.ownerId], {
+    title: `New order: ${formatPriceRange(total, maxTotal)}`,
+    body: `${pieces} ${pieces === 1 ? "item" : "items"}${data.name ? ` from ${data.name}` : ""}. Tap to see the order.`,
+    url: `/o/${id}`,
+    tag: `order-${id}`,
+  });
 
   return { ok: true, data: { id, whatsappUrl: waLink(shop.whatsapp, text) } };
 }

@@ -25,6 +25,7 @@ type Values = {
   phone: string;
   whatsapp: string;
   ownerName: string;
+  reraNumber: string;
   logoUrl: string | null;
   ownerPhotoUrl: string | null;
   shopPhotoUrls: string[];
@@ -232,6 +233,22 @@ export function ShopForm({ initial }: { initial: Values }) {
             maxLength={60}
           />
         </div>
+        {v.businessType === "property" && (
+          <div>
+            <Label htmlFor="s-rera">RERA registration number</Label>
+            <Input
+              id="s-rera"
+              value={v.reraNumber}
+              onChange={(e) => set("reraNumber", e.target.value)}
+              maxLength={40}
+              placeholder="Optional, e.g. UPRERAAGT12345"
+              aria-describedby="s-rera-hint"
+            />
+            <p id="s-rera-hint" className="mt-1 text-xs text-slate-500">
+              Shown on your shop page. Registered agents earn more trust.
+            </p>
+          </div>
+        )}
       </Card>
 
       <Card className="space-y-4 p-5">

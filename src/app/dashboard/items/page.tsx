@@ -2,7 +2,7 @@ import { asc, desc, eq } from "drizzle-orm";
 import { db } from "@/db";
 import { categories, items } from "@/db/schema";
 import { requireShop } from "@/lib/auth";
-import { FREE_ITEM_LIMIT, isPaid } from "@/lib/catalog-config";
+import { planOf } from "@/lib/catalog-config";
 import { ItemsManager } from "./ItemsManager";
 
 export default async function ItemsPage() {
@@ -23,6 +23,8 @@ export default async function ItemsPage() {
         mrp: items.mrp,
         maxPrice: items.maxPrice,
         options: items.options,
+        listing: items.listing,
+        details: items.details,
         unit: items.unit,
         imageUrl: items.imageUrl,
         imageUrls: items.imageUrls,
@@ -38,7 +40,10 @@ export default async function ItemsPage() {
     <ItemsManager
       items={rows}
       categories={cats}
-      itemLimit={isPaid(shop) ? null : FREE_ITEM_LIMIT}
+      itemLimit={planOf(shop).items}
+      photoLimit={planOf(shop).photos}
+      planName={planOf(shop).name}
+      businessType={shop.businessType}
     />
   );
 }

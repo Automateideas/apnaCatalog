@@ -33,4 +33,5 @@ export const listedShop = and(
 );
 
 /** True while a paid plan is active. Paid shops are featured first. */
-export const paidNow = sql<boolean>`(${shops.plan} = 'paid' AND (${shops.planExpiresAt} IS NULL OR ${shops.planExpiresAt} > now()))`;
+/** Plans that are featured on the home page (Pro and Business; "paid" is the old name of Pro). */
+export const paidNow = sql<boolean>`(${shops.plan} IN ('paid', 'pro', 'business') AND (${shops.planExpiresAt} IS NULL OR ${shops.planExpiresAt} > now()))`;

@@ -4,7 +4,7 @@ import { useEffect, useState } from "react";
 import { Loader2, LocateFixed, MapPin, X } from "lucide-react";
 import { toast } from "sonner";
 import { nearbyShops, type NearbyShop } from "@/app/actions/nearby";
-import { ShopCard } from "@/components/ShopCard";
+import { ShopList } from "@/components/ShopList";
 import { Button } from "@/components/ui/button";
 import {
   currentPosition,
@@ -101,23 +101,22 @@ export function NearbyShops({
       )}
 
       {state === "on" && sorted.length > 0 && (
-        <div className="mt-4 grid grid-cols-1 gap-3 sm:grid-cols-2 lg:grid-cols-3">
-          {sorted.map((shop) => {
-            const road = roads.get(shop.slug);
-            return (
-              <ShopCard
-                key={shop.slug}
-                shop={shop}
-                distance={
-                  <>
-                    <MapPin className="size-3.5 shrink-0" />
-                    {road ? formatRoad(road) : `~${formatMeters(shop.meters)} away`}
-                  </>
-                }
-              />
-            );
-          })}
-        </div>
+        <ShopList
+          className="mt-4"
+          shops={sorted}
+          distances={Object.fromEntries(
+            sorted.map((shop) => {
+              const road = roads.get(shop.slug);
+              return [
+                shop.slug,
+                <>
+                  <MapPin className="size-3.5 shrink-0" />
+                  {road ? formatRoad(road) : `~${formatMeters(shop.meters)} away`}
+                </>,
+              ];
+            }),
+          )}
+        />
       )}
     </>
   );

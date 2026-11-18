@@ -1,5 +1,6 @@
 import { sql } from "drizzle-orm";
-import type { ItemOption } from "@/lib/item-options";
+import { user } from "./auth-schema";
+import type { ItemDetail, ItemOption } from "@/lib/item-options";
 import {
   boolean,
   doublePrecision,
@@ -49,6 +50,8 @@ export const shops = pgTable(
     logoUrl: text("logo_url"),
     ownerName: text("owner_name"),
     ownerPhotoUrl: text("owner_photo_url"),
+    /** Property dealers: RERA registration number, shown on the shop page. */
+    reraNumber: text("rera_number"),
     /** Photos of the shop itself (front, inside), so customers know they found the right place. At most MAX_SHOP_PHOTOS. */
     shopPhotoUrls: text("shop_photo_urls")
       .array()
@@ -138,6 +141,10 @@ export const items = pgTable(
       .notNull()
       .default(sql`'{}'::text[]`),
     inStock: boolean("in_stock").notNull().default(true),
+    /** Property listings: "sale" or "rent". Null for ordinary items. */
+    listing: text("listing"),
+    /** Facts shown as a list, e.g. BHK, area, furnishing (property listings). */
+    details: jsonb("details").$type<ItemDetail[]>().notNull().default([]),
     createdAt: timestamp("created_at", { withTimezone: true }).notNull().defaultNow(),
     updatedAt: timestamp("updated_at", { withTimezone: true }).notNull().defaultNow(),
   },
@@ -193,3 +200,46 @@ export type Order = typeof orders.$inferSelect;
 
 // Login accounts and sessions (Better Auth).
 export * from "./auth-schema";
+
+/** A visitor's report about a shop or one of its items (nudity, scam, illegal goods...). */
+export const reports = pgTable(
+  "reports",
+  {
+    id: uuid("id").primaryKey().defaultRandom(),
+    shopId: uuid("shop_id")
+      .notNull()
+      .references(() => shops.id, { onDelete: "cascade" }),
+    /** Set when one item was reported; null for the whole shop. */
+    itemId: uuid("item_id").references(() => items.id, { onDelete: "set null" }),
+    reason: text("reason").notNull(),
+    details: text("details"),
+    /** Optional phone or email of the reporter. Shown to the Apnacatalog team only. */
+    contact: text("contact"),
+    /** Hashed network address; only used to limit spam reports. */
+    clientHash: text("client_hash"),
+    /** When the shop owner opened their notifications after this report. */
+    seenByShopAt: timestamp("seen_by_shop_at", { withTimezone: true }),
+    /** When the Apnacatalog team closed it. */
+    resolvedAt: timestamp("resolved_at", { withTimezone: true }),
+    createdAt: timestamp("created_at", { withTimezone: true }).notNull().defaultNow(),
+  },
+  (t) => [index("reports_shop_idx").on(t.shopId), index("reports_open_idx").on(t.resolvedAt)],
+);
+
+export type Report = typeof reports.$inferSelect;
+
+/** A browser that agreed to get push notifications for a login (Web Push). */
+export const pushSubscriptions = pgTable(
+  "push_subscriptions",
+  {
+    id: uuid("id").primaryKey().defaultRandom(),
+    userId: uuid("user_id")
+      .notNull()
+      .references(() => user.id, { onDelete: "cascade" }),
+    endpoint: text("endpoint").notNull().unique(),
+    p256dh: text("p256dh").notNull(),
+    auth: text("auth").notNull(),
+    createdAt: timestamp("created_at", { withTimezone: true }).notNull().defaultNow(),
+  },
+  (t) => [index("push_subscriptions_user_idx").on(t.userId)],
+);

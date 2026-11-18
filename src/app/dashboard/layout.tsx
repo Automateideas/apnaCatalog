@@ -1,5 +1,9 @@
 import type { Metadata } from "next";
 import Link from "next/link";
+import { Bell } from "lucide-react";
+import { and, count, eq, isNull } from "drizzle-orm";
+import { db } from "@/db";
+import { reports } from "@/db/schema";
 import { Logo } from "@/components/SiteChrome";
 import { getShopByOwner, isAdminEmail, requireUser } from "@/lib/auth";
 import { DashboardNav } from "./DashboardNav";
@@ -17,6 +21,13 @@ export const metadata: Metadata = {
 export default async function DashboardLayout({ children }: LayoutProps<"/dashboard">) {
   const user = await requireUser();
   const shop = await getShopByOwner(user.id);
+  // New reports the owner has not opened yet: the number on the bell.
+  const [{ unseen }] = shop
+    ? await db
+        .select({ unseen: count() })
+        .from(reports)
+        .where(and(eq(reports.shopId, shop.id), isNull(reports.seenByShopAt)))
+    : [{ unseen: 0 }];
 
   return (
     <>
@@ -27,6 +38,20 @@ export default async function DashboardLayout({ children }: LayoutProps<"/dashbo
             {isAdminEmail(user.email) && (
               <Link href="/admin" className={buttonVariants({ variant: "ghost", size: "sm" })}>
                 Admin
+              </Link>
+            )}
+            {shop && (
+              <Link
+                href="/dashboard/reports"
+                aria-label={unseen > 0 ? `Notifications, ${unseen} new` : "Notifications"}
+                className={buttonVariants({ variant: "ghost", size: "icon", className: "relative" })}
+              >
+                <Bell />
+                {unseen > 0 && (
+                  <span className="absolute -top-0.5 -right-0.5 flex h-5 min-w-5 items-center justify-center rounded-full bg-red-600 px-1 text-[11px] font-bold text-white">
+                    {unseen > 9 ? "9+" : unseen}
+                  </span>
+                )}
               </Link>
             )}
             {shop && (

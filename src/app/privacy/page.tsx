@@ -55,6 +55,13 @@ export default function PrivacyPage() {
           use it to allow one review per number.
         </p>
 
+        <h2 className={h2}>People who report a shop or item</h2>
+        <p>
+          A report keeps the reason and the details you write, and is shown to the shop and to the{" "}
+          {SITE_NAME} team. Your phone or email, if you give it, is shown only to the {SITE_NAME} team. To
+          stop spam reports we keep a scrambled, one-way fingerprint of your network address with it.
+        </p>
+
         <h2 className={h2}>Your location (Shops near me and distance)</h2>
         <p>
           Your phone&apos;s location is used only when you tap &quot;Shops near me&quot; or

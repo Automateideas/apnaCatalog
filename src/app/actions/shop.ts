@@ -129,7 +129,7 @@ export async function createShop(input: z.input<typeof createSchema>): Promise<A
           layout: type.layout,
           // No theme chosen yet: the shop shows the theme made for its business type.
           palette: themeForType(type.id).accents[0].id,
-          plan: launchOffer ? "paid" : "free",
+          plan: launchOffer ? "pro" : "free",
           planExpiresAt: launchOffer
             ? new Date(Date.now() + LAUNCH_OFFER_DAYS * 24 * 60 * 60 * 1000)
             : null,
@@ -161,6 +161,7 @@ const updateSchema = z.object({
   phone: z.string().optional().nullable(),
   whatsapp: z.string(),
   ownerName: optionalText(60),
+  reraNumber: optionalText(40),
   logoUrl: z.string().nullable().optional(),
   ownerPhotoUrl: z.string().nullable().optional(),
   shopPhotoUrls: z.array(z.string().max(500)).max(20).optional(),
@@ -228,6 +229,7 @@ export async function updateShop(input: z.input<typeof updateSchema>): Promise<A
       phone,
       whatsapp,
       ownerName: data.ownerName ?? null,
+      reraNumber: data.businessType === "property" ? (data.reraNumber ?? null) : null,
       logoUrl: ownMedia(data.logoUrl),
       ownerPhotoUrl: ownMedia(data.ownerPhotoUrl),
       shopPhotoUrls,

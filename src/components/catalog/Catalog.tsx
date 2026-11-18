@@ -4,15 +4,19 @@ import { useMemo, useState, useTransition } from "react";
 import { createOrder } from "@/app/actions/orders";
 import type { ItemStyle, Theme } from "@/lib/themes";
 import { useStored } from "@/lib/use-stored";
-import { cartKey, formatPriceRange, type ItemOption, itemPriceSpan, parseCartKey } from "@/lib/item-options";
-import { cx, formatPrice } from "@/lib/utils";
+import { cartKey, formatPriceRange, type ItemDetail, type ItemOption, itemPriceSpan, parseCartKey } from "@/lib/item-options";
+import { listingPrice, unavailableLabel } from "@/lib/property";
+import { cx, formatPrice, siteUrl, waLink } from "@/lib/utils";
 import { Icon } from "@/components/Icon";
 import { Alert } from "@/components/ui/alert";
 import { Input } from "@/components/ui/input";
 import { Label } from "@/components/ui/label";
 import { Textarea } from "@/components/ui/textarea";
-import { Button } from "@/components/ui/button";
+import { Button, buttonVariants } from "@/components/ui/button";
 import { Sheet, SheetClose, SheetContent, SheetTitle } from "@/components/ui/sheet";
+import { Dialog, DialogContent, DialogDescription, DialogTitle } from "@/components/ui/dialog";
+import { ReportButton } from "@/components/ReportButton";
+import { ItemCarousel } from "./ItemCarousel";
 import { PhotoViewer } from "./PhotoViewer";
 
 export type CatalogItem = {
@@ -23,6 +27,9 @@ export type CatalogItem = {
   mrp: number | null;
   maxPrice: number | null;
   options: ItemOption[];
+  /** Property listings: "sale" or "rent". */
+  listing: string | null;
+  details: ItemDetail[];
   unit: string | null;
   imageUrl: string | null;
   /** All photos, main photo first. */
@@ -34,7 +41,9 @@ export type CatalogItem = {
 export type CatalogCategory = { id: string; name: string; parentId: string | null };
 
 type Props = {
-  shop: { id: string; name: string };
+  shop: { id: string; name: string; slug: string; whatsapp: string };
+  /** "enquiry" (property dealers): each item has a WhatsApp enquiry button and there is no cart. */
+  mode?: "cart" | "enquiry";
   /** Layout choices of the shop's theme. Colours and shapes come from CSS variables. */
   look: { items: ItemStyle; center: boolean; chips: Theme["chips"] };
   items: CatalogItem[];
@@ -58,7 +67,18 @@ function parseCart(raw: string | null): Cart {
   }
 }
 
-export function Catalog({ shop, look, items, categories }: Props) {
+export function Catalog({ shop, look, items, categories, mode = "cart" }: Props) {
+  const enquiry = mode === "enquiry";
+  const pageOf = (item: CatalogItem) => `${siteUrl()}/${shop.slug}/i/${item.id}`;
+  /** WhatsApp message to the shop about one listing. */
+  const enquire = (item: CatalogItem) =>
+    waLink(shop.whatsapp, `Hi ${shop.name}, I am interested in: ${item.name} (${listingPrice(item)}).\n${pageOf(item)}`);
+  /** "2 BHK · 1,150 sq ft · Raj Nagar": the first few facts of a listing. */
+  const summary = (item: CatalogItem) =>
+    item.details
+      .filter((d) => ["BHK", "Area", "Locality"].includes(d.label))
+      .map((d) => d.value)
+      .join(" · ");
   const layout = look.items;
   const [rawCart, setRawCart] = useStored(`ac-cart-${shop.id}`);
   const [rawLast, setRawLast] = useStored(`ac-last-order-${shop.id}`);
@@ -66,7 +86,9 @@ export function Catalog({ shop, look, items, categories }: Props) {
   const [activeSub, setActiveSub] = useState<string | null>(null);
   const [query, setQuery] = useState("");
   const [cartOpen, setCartOpen] = useState(false);
-  const [viewing, setViewing] = useState<CatalogItem | null>(null);
+  const [viewing, setViewing] = useState<{ item: CatalogItem; start: number } | null>(null);
+  // The item whose details are open (tapping a card).
+  const [detail, setDetail] = useState<CatalogItem | null>(null);
   const [name, setName] = useState("");
   const [note, setNote] = useState("");
   const [error, setError] = useState<string | null>(null);
@@ -172,6 +194,25 @@ export function Catalog({ shop, look, items, categories }: Props) {
   };
 
   const stepper = (item: CatalogItem, compact = false) => {
+    if (enquiry) {
+      if (!item.inStock) {
+        return <span className="text-sm font-semibold text-(--t-muted)">{unavailableLabel(item.listing)}</span>;
+      }
+      return (
+        <a
+          href={enquire(item)}
+          target="_blank"
+          rel="noopener noreferrer"
+          className={cx(
+            "t-btn inline-flex items-center justify-center gap-1.5 border border-(--pa) font-semibold text-(--pa) hover:bg-(--ps)",
+            compact ? "px-3 py-1 text-sm" : "w-full py-1.5 text-sm",
+          )}
+          aria-label={`Enquire about ${item.name} on WhatsApp`}
+        >
+          Enquire
+        </a>
+      );
+    }
     if (!item.inStock) {
       return <span className="text-xs font-medium text-(--t-muted)">Out of stock</span>;
     }
@@ -247,10 +288,12 @@ export function Catalog({ shop, look, items, categories }: Props) {
   const price = (item: CatalogItem) => (
     <span className="whitespace-nowrap">
       <span className="font-semibold text-(--t-text)">
-        {(() => {
-          const { min, max } = itemPriceSpan(item);
-          return formatPriceRange(min, max);
-        })()}
+        {enquiry
+          ? listingPrice(item)
+          : (() => {
+              const { min, max } = itemPriceSpan(item);
+              return formatPriceRange(min, max);
+            })()}
       </span>
       {item.mrp && item.mrp > item.price && item.options.length === 0 && !item.maxPrice && (
         <span className="ml-1.5 text-xs text-(--t-muted) line-through">{formatPrice(item.mrp)}</span>
@@ -259,24 +302,41 @@ export function Catalog({ shop, look, items, categories }: Props) {
   );
 
   /** An item's main photo. Tapping it opens all of the item's photos. */
-  const photo = (item: CatalogItem, className: string) => (
-    <button
-      type="button"
-      onClick={() => setViewing(item)}
-      className={cx("relative block cursor-zoom-in", className)}
-      aria-label={
-        item.imageUrls.length > 1
-          ? `View ${item.imageUrls.length} photos of ${item.name}`
-          : `View photo of ${item.name}`
-      }
-    >
-      <img src={item.imageUrl ?? ""} alt="" loading="lazy" className="h-full w-full object-cover" />
-      {item.imageUrls.length > 1 && (
-        <span className="absolute right-1 bottom-1 rounded bg-black/60 px-1.5 py-0.5 text-[10px] font-medium text-white">
-          {item.imageUrls.length} photos
+  /** Photos of an item. Big cards slide through all of them; small ones show the first. */
+  const photo = (item: CatalogItem, className: string, slide = false) =>
+    slide && item.imageUrls.length > 1 ? (
+      <ItemCarousel urls={item.imageUrls} name={item.name} onOpen={() => setDetail(item)} className={className} />
+    ) : (
+      <button
+        type="button"
+        onClick={() => setDetail(item)}
+        className={cx("relative block cursor-pointer", className)}
+        aria-label={`Open ${item.name}`}
+      >
+        <img src={item.imageUrl ?? ""} alt="" loading="lazy" className="h-full w-full object-cover" />
+        {item.imageUrls.length > 1 && (
+          <span className="absolute right-1 bottom-1 rounded bg-black/60 px-1.5 py-0.5 text-[10px] font-medium text-white">
+            {item.imageUrls.length} photos
+          </span>
+        )}
+      </button>
+    );
+
+  /** An item's name, as the button that opens its details. */
+  const title = (item: CatalogItem, className: string) => (
+    <>
+      {enquiry && item.listing && (
+        <span className="mb-0.5 inline-block rounded-full bg-(--ps) px-2 py-0.5 text-[11px] font-semibold text-(--pa)">
+          {item.listing === "rent" ? "For rent" : "For sale"}
         </span>
       )}
-    </button>
+      <h3 className={className}>
+        <button type="button" onClick={() => setDetail(item)} className="text-left hover:underline">
+          {item.name}
+        </button>
+      </h3>
+      {enquiry && summary(item) && <p className="truncate text-xs text-(--t-muted)">{summary(item)}</p>}
+    </>
   );
 
   const noPhoto = (size: string) => (
@@ -307,12 +367,10 @@ export function Catalog({ shop, look, items, categories }: Props) {
               )}
             >
               <div className={cx(tall ? "t-photo aspect-[3/4]" : "aspect-square", "bg-(--ps)")}>
-                {item.imageUrl ? photo(item, "h-full w-full") : noPhoto("h-8 w-8")}
+                {item.imageUrl ? photo(item, "h-full w-full", true) : noPhoto("h-8 w-8")}
               </div>
               <div className={cx("flex flex-1 flex-col", tall ? "pt-2.5" : "p-2.5")}>
-                <h3 className={cx("line-clamp-2 text-sm font-medium text-(--t-text)", tall && "t-head text-base")}>
-                  {item.name}
-                </h3>
+                {title(item, cx("line-clamp-2 text-sm font-medium text-(--t-text)", tall && "t-head text-base"))}
                 {item.unit && <p className="text-xs text-(--t-muted)">{item.unit}</p>}
                 <div className="mt-1 text-sm">{price(item)}</div>
                 <div className="mt-auto pt-2">{stepper(item)}</div>
@@ -332,7 +390,7 @@ export function Catalog({ shop, look, items, categories }: Props) {
                 {item.imageUrl ? photo(item, "h-full w-full") : noPhoto("h-6 w-6")}
               </div>
               <div className="min-w-0 flex-1">
-                <h3 className="truncate text-sm font-medium text-(--t-text)">{item.name}</h3>
+                {title(item, "truncate text-sm font-medium text-(--t-text)")}
                 <p className="text-sm">
                   {price(item)}
                   {item.unit && <span className="ml-1.5 text-xs text-(--t-muted)">/ {item.unit}</span>}
@@ -351,7 +409,7 @@ export function Catalog({ shop, look, items, categories }: Props) {
           <article key={item.id} className={cx("flex gap-3 py-3.5", !item.inStock && "opacity-60")}>
             <div className="min-w-0 flex-1">
               <div className="flex items-baseline gap-2">
-                <h3 className="t-head text-[1.05rem] text-(--t-text)">{item.name}</h3>
+                {title(item, "t-head text-[1.05rem] text-(--t-text)")}
                 <span className="mb-1 hidden flex-1 border-b border-dotted border-(--t-muted) opacity-60 sm:block" />
                 {price(item)}
               </div>
@@ -635,10 +693,99 @@ export function Catalog({ shop, look, items, categories }: Props) {
         </Sheet>
       )}
 
+      {detail && (
+        <Dialog open onOpenChange={(open) => !open && setDetail(null)}>
+          <DialogContent className="t-page max-h-[92dvh] gap-0 overflow-y-auto bg-(--t-surface) p-0 sm:max-w-md">
+            {detail.imageUrls.length > 0 && (
+              <div className="aspect-square w-full overflow-hidden bg-(--ps)">
+                <ItemCarousel
+                  urls={detail.imageUrls}
+                  name={detail.name}
+                  onOpen={(i) => setViewing({ item: detail, start: i })}
+                />
+              </div>
+            )}
+            <div className="space-y-3 p-5">
+              <div>
+                <DialogTitle className="t-head text-xl text-(--t-text)">{detail.name}</DialogTitle>
+                <p className="mt-1 text-lg">
+                  {price(detail)}
+                  {detail.unit && <span className="ml-1.5 text-sm text-(--t-muted)">/ {detail.unit}</span>}
+                </p>
+              </div>
+              {detail.description ? (
+                <DialogDescription className="text-sm whitespace-pre-line text-(--t-text) opacity-90">
+                  {detail.description}
+                </DialogDescription>
+              ) : (
+                <DialogDescription className="sr-only">Price and options of {detail.name}</DialogDescription>
+              )}
+              {enquiry && detail.details.length > 0 && (
+                <dl className="grid grid-cols-2 gap-x-4 gap-y-2 rounded-(--t-radius) border border-(--t-border) p-3 text-sm">
+                  {detail.details.map((d) => (
+                    <div key={d.label}>
+                      <dt className="text-xs text-(--t-muted)">{d.label}</dt>
+                      <dd className="font-medium text-(--t-text)">{d.value}</dd>
+                    </div>
+                  ))}
+                </dl>
+              )}
+              {enquiry ? (
+                <div className="space-y-2">
+                  {detail.inStock ? (
+                    <a
+                      href={enquire(detail)}
+                      target="_blank"
+                      rel="noopener noreferrer"
+                      className={buttonVariants({ variant: "whatsapp", className: "w-full text-base" })}
+                    >
+                      Enquire on WhatsApp
+                    </a>
+                  ) : (
+                    <p className="font-semibold text-(--t-muted)">{unavailableLabel(detail.listing)}</p>
+                  )}
+                  <a href={pageOf(detail)} className="block text-center text-sm text-(--t-muted) underline">
+                    Open this listing&apos;s page to share it
+                  </a>
+                </div>
+              ) : !detail.inStock ? (
+                <p className="font-medium text-(--t-muted)">Out of stock</p>
+              ) : detail.options.length > 0 ? (
+                <ul className="divide-y divide-(--t-border) rounded-(--t-radius) border border-(--t-border)">
+                  {detail.options.map((o) => (
+                    <li key={o.id} className="flex items-center gap-3 px-3 py-2.5">
+                      <div className="min-w-0 flex-1">
+                        <p className="font-medium text-(--t-text)">{o.name}</p>
+                        <p className="text-sm text-(--t-muted)">{formatPriceRange(o.price, o.maxPrice)}</p>
+                      </div>
+                      {qtyControl(cartKey(detail.id, o.id), `${detail.name} (${o.name})`, true)}
+                    </li>
+                  ))}
+                </ul>
+              ) : (
+                <div className="max-w-40">{qtyControl(detail.id, detail.name)}</div>
+              )}
+              <Button
+                type="button"
+                variant="outline"
+                onClick={() => setDetail(null)}
+                className="t-btn w-full border-(--t-border)"
+              >
+                {cartCount > 0 ? "Continue shopping" : "Close"}
+              </Button>
+              <div className="text-center">
+                <ReportButton shopId={shop.id} itemId={detail.id} what="item" />
+              </div>
+            </div>
+          </DialogContent>
+        </Dialog>
+      )}
+
       {viewing && (
         <PhotoViewer
-          name={viewing.name}
-          urls={viewing.imageUrls.length > 0 ? viewing.imageUrls : [viewing.imageUrl ?? ""]}
+          name={viewing.item.name}
+          urls={viewing.item.imageUrls.length > 0 ? viewing.item.imageUrls : [viewing.item.imageUrl ?? ""]}
+          start={viewing.start}
           onClose={() => setViewing(null)}
         />
       )}

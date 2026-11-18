@@ -1,4 +1,5 @@
 import Link from "next/link";
+import { PushToggle } from "@/components/PushToggle";
 import QRCode from "qrcode";
 import { count, eq } from "drizzle-orm";
 import { db } from "@/db";
@@ -7,7 +8,7 @@ import { CopyButton } from "@/components/CopyButton";
 import { SendToNumberButton } from "@/components/SendToNumberButton";
 import { ratingOf } from "@/components/Stars";
 import { requireShop } from "@/lib/auth";
-import { FREE_ITEM_LIMIT, isPaid, MAX_SHOP_PHOTOS, MIN_ITEMS_TO_LIST } from "@/lib/catalog-config";
+import { isPaid, MAX_SHOP_PHOTOS, MIN_ITEMS_TO_LIST, planOf } from "@/lib/catalog-config";
 import { formatDate, SITE_NAME, siteUrl, waShareLink } from "@/lib/utils";
 import { Icon } from "@/components/Icon";
 import { Alert } from "@/components/ui/alert";
@@ -83,6 +84,8 @@ export default async function DashboardHome({ searchParams }: PageProps<"/dashbo
         </Alert>
       )}
 
+      <PushToggle />
+
       <Card className="p-5">
         <h1 className="text-xl font-bold text-slate-900">{shop.name}</h1>
         <p className="mt-3 text-sm text-slate-500">Your shop link</p>
@@ -113,7 +116,7 @@ export default async function DashboardHome({ searchParams }: PageProps<"/dashbo
         {[
           {
             label: "Items",
-            value: paid ? String(shop.itemCount) : `${shop.itemCount}/${FREE_ITEM_LIMIT}`,
+            value: planOf(shop).items === null ? String(shop.itemCount) : `${shop.itemCount}/${planOf(shop).items}`,
             href: "/dashboard/items",
           },
           { label: "Orders", value: String(orderCount), href: "/dashboard/orders" },

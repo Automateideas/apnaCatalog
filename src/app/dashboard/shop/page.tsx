@@ -17,6 +17,7 @@ export default async function ShopDetailsPage() {
           phone: shop.phone ?? "",
           whatsapp: shop.whatsapp,
           ownerName: shop.ownerName ?? "",
+          reraNumber: shop.reraNumber ?? "",
           logoUrl: shop.logoUrl,
           ownerPhotoUrl: shop.ownerPhotoUrl,
           shopPhotoUrls: shop.shopPhotoUrls,

@@ -5,10 +5,11 @@ import { db, isDbConfigured } from "@/db";
 import { shops } from "@/db/schema";
 import { IconBadge } from "@/components/Icon";
 import { NearbyShops } from "@/components/NearbyShops";
-import { ShopCard, type ShopCardData } from "@/components/ShopCard";
+import type { ShopCardData } from "@/components/ShopCard";
+import { ShopList, ShopViewToggle } from "@/components/ShopList";
 import { SiteFooter, SiteHeader } from "@/components/SiteChrome";
 import { getUser } from "@/lib/auth";
-import { BUSINESS_TYPES, FREE_ITEM_LIMIT, getBusinessType } from "@/lib/catalog-config";
+import { BUSINESS_TYPES, FREE_ITEM_LIMIT, getBusinessType, PLANS } from "@/lib/catalog-config";
 import { listedShop, paidNow } from "@/lib/shop-stats";
 import { citySlugOf, cx, SITE_NAME, siteUrl } from "@/lib/utils";
 import { Input } from "@/components/ui/input";
@@ -41,6 +42,7 @@ async function loadShops(filters: { city: string; type: string; q: string; page:
         city: shops.city,
         description: shops.description,
         logoUrl: shops.logoUrl,
+        coverUrl: sql<string | null>`${shops.shopPhotoUrls}[1]`,
         palette: shops.palette,
         theme: shops.theme,
         itemCount: shops.itemCount,
@@ -249,7 +251,7 @@ export default async function HomePage({ searchParams }: PageProps<"/">) {
         </div>
       </section>
 
-      <main className="mx-auto w-full max-w-6xl flex-1 px-4 py-6">
+      <main id="shops" className="mx-auto w-full max-w-6xl flex-1 scroll-mt-14 px-4 py-6">
         {/* Phone: one row you swipe sideways. Wider screens have no swipe, so the types wrap onto more rows. */}
         <nav
           aria-label="Shop type"
@@ -284,6 +286,7 @@ export default async function HomePage({ searchParams }: PageProps<"/">) {
 
         <div className="mt-5 flex items-baseline justify-between gap-3">
           <h2 className="text-xl font-bold text-slate-900">{heading}</h2>
+          <ShopViewToggle className="ml-auto self-center" />
           {filtered && (
             <Link href="/" className="text-sm font-medium text-brand hover:underline">
               Clear filters
@@ -296,11 +299,7 @@ export default async function HomePage({ searchParams }: PageProps<"/">) {
         {data && (
         <NearbyShops type={filters.type} q={filters.q}>
         {data.shops.length > 0 && (
-          <div className="mt-4 grid grid-cols-1 gap-3 sm:grid-cols-2 lg:grid-cols-3">
-            {data.shops.map((shop) => (
-              <ShopCard key={shop.slug} shop={shop} />
-            ))}
-          </div>
+          <ShopList shops={data.shops} className="mt-4" />
         )}
 
         {data.shops.length === 0 && (
@@ -335,7 +334,7 @@ export default async function HomePage({ searchParams }: PageProps<"/">) {
         </NearbyShops>
         )}
 
-        <section className="mt-12 rounded-2xl bg-ink px-6 py-10 text-white sm:px-10">
+        <section id="how-it-works" className="mt-12 scroll-mt-20 rounded-2xl bg-ink px-6 py-10 text-white sm:px-10">
           <h2 className="text-3xl font-bold">Have a shop? Put your catalog online in 2 minutes.</h2>
           <div className="mt-6 grid gap-5 sm:grid-cols-3">
             {[
@@ -354,7 +353,10 @@ export default async function HomePage({ searchParams }: PageProps<"/">) {
               Add your shop free
             </Link>
             <span className="text-sm text-slate-300">
-              Free forever for up to {FREE_ITEM_LIMIT} items. No app needed.
+              Free forever for up to {FREE_ITEM_LIMIT} items. Paid plans from ₹{PLANS.starter.priceMonthly}/month.{" "}
+              <Link href="/pricing" className="font-semibold text-white underline">
+                See pricing
+              </Link>
             </span>
           </div>
         </section>

@@ -14,7 +14,17 @@ import {
 import { confirmDialog, promptDialog } from "@/components/dialogs";
 import { ItemPhotos } from "@/components/ItemPhotos";
 import { discardUploads } from "@/lib/upload";
-import { formatPriceRange, type ItemOption, itemPriceSpan, MAX_ITEM_OPTIONS } from "@/lib/item-options";
+import { formatPriceRange, type ItemDetail, type ItemOption, itemPriceSpan, MAX_ITEM_OPTIONS } from "@/lib/item-options";
+import { FURNISHING, isPropertyShop, type Listing, LISTINGS, listingPrice, PROPERTY_FIELDS, unavailableLabel } from "@/lib/property";
+
+const PLACEHOLDER: Record<string, string> = {
+  BHK: "2 BHK",
+  Area: "1,150 sq ft",
+  Floor: "3rd of 7",
+  Locality: "Raj Nagar Extension",
+  Deposit: "₹36,000",
+  "Available from": "Immediately",
+};
 import { cx, type ActionResult } from "@/lib/utils";
 import { Icon, IconBadge } from "@/components/Icon";
 import { Button } from "@/components/ui/button";
@@ -35,6 +45,8 @@ type Item = {
   mrp: number | null;
   maxPrice: number | null;
   options: ItemOption[];
+  listing: string | null;
+  details: ItemDetail[];
   unit: string | null;
   imageUrl: string | null;
   imageUrls: string[];
@@ -51,6 +63,9 @@ type Draft = {
   /** Top of a price range, for work whose final price the shop sets later. */
   maxPrice: string;
   options: DraftOption[];
+  /** Property listings: sale or rent, and facts by label (BHK, Area...). */
+  listing: Listing;
+  details: Record<string, string>;
   unit: string;
   imageUrls: string[];
   /** Photos the saved item has. Any other photo in imageUrls was uploaded in this form. */
@@ -71,6 +86,8 @@ const emptyDraft: Draft = {
   mrp: "",
   maxPrice: "",
   options: [],
+  listing: "sale",
+  details: {},
   unit: "",
   imageUrls: [],
   savedImageUrls: [],
@@ -82,12 +99,20 @@ export function ItemsManager({
   items,
   categories,
   itemLimit,
+  photoLimit,
+  planName,
+  businessType,
 }: {
   items: Item[];
   categories: Category[];
   /** Null when the plan has no limit. */
   itemLimit: number | null;
+  /** Photos allowed per item on this plan. */
+  photoLimit: number;
+  planName: string;
+  businessType: string;
 }) {
+  const property = isPropertyShop(businessType);
   const router = useRouter();
   const [draft, setDraft] = useState<Draft | null>(null);
   const [formError, setFormError] = useState<string | null>(null);
@@ -169,6 +194,13 @@ export function ItemsManager({
           mrp,
           maxPrice,
           options: options.map((o) => ({ ...o, price: o.price ?? 0 })),
+          listing: property ? draft.listing : null,
+          details: property
+            ? PROPERTY_FIELDS.filter((f) => f !== "Deposit" || draft.listing === "rent").map((label) => ({
+                label,
+                value: draft.details[label] ?? "",
+              }))
+            : [],
           unit: draft.unit,
           categoryId: draft.categoryId || null,
           imageUrls: draft.imageUrls,
@@ -201,6 +233,8 @@ export function ItemsManager({
         price: String(o.price / 100),
         maxPrice: o.maxPrice ? String(o.maxPrice / 100) : "",
       })),
+      listing: item.listing === "rent" ? "rent" : "sale",
+      details: Object.fromEntries(item.details.map((d) => [d.label, d.value])),
       unit: item.unit ?? "",
       imageUrls: item.imageUrls,
       savedImageUrls: item.imageUrls,
@@ -220,7 +254,7 @@ export function ItemsManager({
           <p className="text-sm text-slate-500">
             {itemLimit === null
               ? `${items.length} items`
-              : `${items.length} of ${itemLimit} items used on the free plan`}
+              : `${items.length} of ${itemLimit} items used on the ${planName} plan`}
           </p>
         </div>
         <Button
@@ -237,7 +271,7 @@ export function ItemsManager({
 
       {atLimit && (
         <p className="rounded-xl bg-amber-50 px-4 py-3 text-sm text-amber-900">
-          You have used all {itemLimit} free items.{" "}
+          You have used all {itemLimit} items of the {planName} plan.{" "}
           <Link href="/dashboard/plan" className="font-semibold underline">
             Upgrade for unlimited items
           </Link>
@@ -414,7 +448,7 @@ export function ItemsManager({
                 <p className="truncate font-medium text-slate-900">{item.name}</p>
                 <p className="truncate text-sm text-slate-500">
                   <span className="font-semibold text-slate-800">
-                    {(() => {
+                    {property ? listingPrice(item) : (() => {
                       const { min, max } = itemPriceSpan(item);
                       return formatPriceRange(min, max);
                     })()}
@@ -437,7 +471,7 @@ export function ItemsManager({
                     item.inStock ? "bg-emerald-100 text-emerald-800" : "bg-slate-200 text-slate-600",
                   )}
                 >
-                  {item.inStock ? "In stock" : "Out of stock"}
+                  {item.inStock ? (property ? "Available" : "In stock") : property ? unavailableLabel(item.listing) : "Out of stock"}
                 </button>
                 <span className="flex gap-1 text-sm">
                   <button
@@ -485,6 +519,7 @@ export function ItemsManager({
 
             <div className="flex-1 space-y-4 overflow-y-auto px-5 py-4">
               <ItemPhotos
+                max={Math.max(photoLimit, draft.savedImageUrls.length)}
                 value={draft.imageUrls}
                 savedUrls={draft.savedImageUrls}
                 onBusyChange={setUploading}
@@ -505,10 +540,33 @@ export function ItemsManager({
                   maxLength={80}
                 />
               </div>
+              {property && (
+                <div>
+                  <Label>Listing</Label>
+                  <div className="mt-1 grid grid-cols-2 gap-2" role="radiogroup" aria-label="Listing">
+                    {LISTINGS.map((l) => (
+                      <button
+                        key={l.id}
+                        type="button"
+                        role="radio"
+                        aria-checked={draft.listing === l.id}
+                        onClick={() => setDraft({ ...draft, listing: l.id })}
+                        className={cx(
+                          "rounded-lg border-2 py-2 text-sm font-semibold",
+                          draft.listing === l.id ? "border-brand bg-brand-soft text-brand" : "border-slate-200 text-slate-600",
+                        )}
+                      >
+                        {l.name}
+                      </button>
+                    ))}
+                  </div>
+                </div>
+              )}
+
               {draft.options.length === 0 && (
                 <div className="grid grid-cols-2 gap-3">
                   <div>
-                    <Label htmlFor="item-price">Price ₹</Label>
+                    <Label htmlFor="item-price">{property && draft.listing === "rent" ? "Rent ₹ / month" : "Price ₹"}</Label>
                     <Input
                       id="item-price"
                       value={draft.price}
@@ -538,6 +596,7 @@ export function ItemsManager({
                     Fill &quot;Up to&quot; when the price depends on the work (₹200 – ₹500). Customers see the
                     range; you confirm the final price.
                   </p>
+                  {!property && (<>
                   <div>
                     <Label htmlFor="item-mrp">MRP ₹</Label>
                     <Input
@@ -561,11 +620,38 @@ export function ItemsManager({
                       placeholder="1 kg, piece"
                     />
                   </div>
+                  </>)}
                 </div>
               )}
 
+              {property && (
+                <fieldset className="grid grid-cols-2 gap-3 rounded-xl border border-slate-200 p-3">
+                  <legend className="px-1 text-sm font-semibold text-slate-800">Property details</legend>
+                  {PROPERTY_FIELDS.filter((f) => f !== "Deposit" || draft.listing === "rent").map((field) => {
+                    const id = `detail-${field.replace(/\s/g, "-").toLowerCase()}`;
+                    const value = draft.details[field] ?? "";
+                    const set = (v: string) => setDraft({ ...draft, details: { ...draft.details, [field]: v } });
+                    return (
+                      <div key={field} className={field === "Locality" ? "col-span-2" : undefined}>
+                        <Label htmlFor={id}>{field}</Label>
+                        {field === "Furnishing" ? (
+                          <NativeSelect id={id} value={value} onChange={(e) => set(e.target.value)}>
+                            <option value="">Choose</option>
+                            {FURNISHING.map((f) => (
+                              <option key={f}>{f}</option>
+                            ))}
+                          </NativeSelect>
+                        ) : (
+                          <Input id={id} value={value} onChange={(e) => set(e.target.value)} maxLength={60} placeholder={PLACEHOLDER[field]} />
+                        )}
+                      </div>
+                    );
+                  })}
+                </fieldset>
+              )}
+
               {/* Options: one item, one photo, several choices with their own price. */}
-              <fieldset className="rounded-xl border border-slate-200 p-3">
+              {!property && <fieldset className="rounded-xl border border-slate-200 p-3">
                 <legend className="px-1 text-sm font-semibold text-slate-800">Options</legend>
                 <p className="text-xs text-slate-500">
                   For choices with their own price: Dry clean / Steam press, 500 g / 1 kg, S / M / L.
@@ -660,7 +746,7 @@ export function ItemsManager({
                     />
                   </div>
                 )}
-              </fieldset>
+              </fieldset>}
               <div>
                 <Label htmlFor="item-category">
                   Category
@@ -702,7 +788,7 @@ export function ItemsManager({
                   checked={draft.inStock}
                   onChange={(e) => setDraft({ ...draft, inStock: e.target.checked })}
                 />
-                In stock
+                {property ? "Available (untick when sold or rented)" : "In stock"}
               </label>
             </div>
 
