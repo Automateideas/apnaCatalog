@@ -4,7 +4,8 @@ import { db } from "@/db";
 import { orders } from "@/db/schema";
 import { requireShop } from "@/lib/auth";
 import { FREE_ORDER_HISTORY, isPaid } from "@/lib/catalog-config";
-import { formatDateTime, formatPrice } from "@/lib/utils";
+import { formatPriceRange, maxTotalOf } from "@/lib/item-options";
+import { formatDateTime } from "@/lib/utils";
 import { IconBadge } from "@/components/Icon";
 import { Card } from "@/components/ui/card";
 
@@ -57,10 +58,10 @@ export default async function OrdersPage() {
                   </p>
                   <p className="truncate text-sm text-slate-500">
                     {formatDateTime(order.createdAt)}:{" "}
-                    {order.lines.map((l) => `${l.name} × ${l.qty}`).join(", ")}
+                    {order.lines.map((l) => `${l.name}${l.option ? ` - ${l.option}` : ""} × ${l.qty}`).join(", ")}
                   </p>
                 </div>
-                <span className="shrink-0 font-bold text-slate-900">{formatPrice(order.total)}</span>
+                <span className="shrink-0 font-bold text-slate-900">{formatPriceRange(order.total, maxTotalOf(order.lines))}</span>
               </Link>
             </li>
           ))}

@@ -4,7 +4,7 @@ import { z } from "zod";
 import { getShopByOwner, getUser } from "@/lib/auth";
 import { removeUnusedMedia } from "@/lib/media";
 import { deleteObjects, signedUploadUrl } from "@/lib/r2";
-import { mediaPathOf, mediaUrlOf } from "@/lib/supabase/env";
+import { mediaPathOf, mediaUrlOf } from "@/lib/media-url";
 
 /** Photos are shrunk in the browser first (about 250 KB); this is the hard limit. */
 const MAX_BYTES = 2 * 1024 * 1024;

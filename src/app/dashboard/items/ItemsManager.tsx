@@ -14,7 +14,8 @@ import {
 import { confirmDialog, promptDialog } from "@/components/dialogs";
 import { ItemPhotos } from "@/components/ItemPhotos";
 import { discardUploads } from "@/lib/upload";
-import { cx, formatPrice, type ActionResult } from "@/lib/utils";
+import { formatPriceRange, type ItemOption, itemPriceSpan, MAX_ITEM_OPTIONS } from "@/lib/item-options";
+import { cx, type ActionResult } from "@/lib/utils";
 import { Icon, IconBadge } from "@/components/Icon";
 import { Button } from "@/components/ui/button";
 import { Sheet, SheetClose, SheetContent, SheetTitle } from "@/components/ui/sheet";
@@ -32,6 +33,8 @@ type Item = {
   description: string | null;
   price: number;
   mrp: number | null;
+  maxPrice: number | null;
+  options: ItemOption[];
   unit: string | null;
   imageUrl: string | null;
   imageUrls: string[];
@@ -45,6 +48,9 @@ type Draft = {
   description: string;
   price: string;
   mrp: string;
+  /** Top of a price range, for work whose final price the shop sets later. */
+  maxPrice: string;
+  options: DraftOption[];
   unit: string;
   imageUrls: string[];
   /** Photos the saved item has. Any other photo in imageUrls was uploaded in this form. */
@@ -53,11 +59,18 @@ type Draft = {
   categoryId: string;
 };
 
+type DraftOption = { id?: string; name: string; price: string; maxPrice: string };
+
+/** "" for empty, NaN for not a number, else the number. */
+const num = (value: string) => (value.trim() === "" ? null : Number(value));
+
 const emptyDraft: Draft = {
   name: "",
   description: "",
   price: "",
   mrp: "",
+  maxPrice: "",
+  options: [],
   unit: "",
   imageUrls: [],
   savedImageUrls: [],
@@ -124,14 +137,26 @@ export function ItemsManager({
     event.preventDefault();
     if (!draft) return;
     setFormError(null);
-    const price = Number(draft.price);
-    if (draft.price.trim() === "" || !Number.isFinite(price) || price < 0) {
+    const hasOptions = draft.options.length > 0;
+    const options = draft.options.map((o) => ({ id: o.id, name: o.name, price: num(o.price), maxPrice: num(o.maxPrice) }));
+    if (options.some((o) => o.price === null || !Number.isFinite(o.price) || o.price < 0)) {
+      setFormError("Enter a price for every option.");
+      return;
+    }
+    if (options.some((o) => o.maxPrice !== null && !Number.isFinite(o.maxPrice))) {
+      setFormError("\"Up to\" prices must be numbers.");
+      return;
+    }
+    // With options, the item's own price is worked out from them on the server.
+    const price = hasOptions ? 0 : Number(draft.price);
+    if (!hasOptions && (draft.price.trim() === "" || !Number.isFinite(price) || price < 0)) {
       setFormError("Enter the price.");
       return;
     }
-    const mrp = draft.mrp.trim() === "" ? null : Number(draft.mrp);
-    if (mrp !== null && !Number.isFinite(mrp)) {
-      setFormError("MRP must be a number.");
+    const mrp = hasOptions ? null : num(draft.mrp);
+    const maxPrice = hasOptions ? null : num(draft.maxPrice);
+    if ((mrp !== null && !Number.isFinite(mrp)) || (maxPrice !== null && !Number.isFinite(maxPrice))) {
+      setFormError("Prices must be numbers.");
       return;
     }
     startTransition(async () => {
@@ -142,6 +167,8 @@ export function ItemsManager({
           description: draft.description,
           price,
           mrp,
+          maxPrice,
+          options: options.map((o) => ({ ...o, price: o.price ?? 0 })),
           unit: draft.unit,
           categoryId: draft.categoryId || null,
           imageUrls: draft.imageUrls,
@@ -167,6 +194,13 @@ export function ItemsManager({
       description: item.description ?? "",
       price: String(item.price / 100),
       mrp: item.mrp ? String(item.mrp / 100) : "",
+      maxPrice: item.maxPrice ? String(item.maxPrice / 100) : "",
+      options: item.options.map((o) => ({
+        id: o.id,
+        name: o.name,
+        price: String(o.price / 100),
+        maxPrice: o.maxPrice ? String(o.maxPrice / 100) : "",
+      })),
       unit: item.unit ?? "",
       imageUrls: item.imageUrls,
       savedImageUrls: item.imageUrls,
@@ -379,7 +413,13 @@ export function ItemsManager({
               <div className="min-w-0 flex-1">
                 <p className="truncate font-medium text-slate-900">{item.name}</p>
                 <p className="truncate text-sm text-slate-500">
-                  <span className="font-semibold text-slate-800">{formatPrice(item.price)}</span>
+                  <span className="font-semibold text-slate-800">
+                    {(() => {
+                      const { min, max } = itemPriceSpan(item);
+                      return formatPriceRange(min, max);
+                    })()}
+                  </span>
+                  {item.options.length > 0 && ` · ${item.options.length} options`}
                   {item.unit && ` / ${item.unit}`}
                   {catName(item.categoryId) && `, ${catName(item.categoryId)}`}
                 </p>
@@ -465,50 +505,162 @@ export function ItemsManager({
                   maxLength={80}
                 />
               </div>
-              <div className="grid grid-cols-3 gap-3">
-                <div>
-                  <Label htmlFor="item-price">
-                    Price ₹
-                  </Label>
-                  <Input
-                    id="item-price"
-                    value={draft.price}
-                    onChange={(e) => setDraft({ ...draft, price: e.target.value })}
-                    required
-                    type="number"
-                    inputMode="decimal"
-                    min="0"
-                    step="0.01"
-                  />
+              {draft.options.length === 0 && (
+                <div className="grid grid-cols-2 gap-3">
+                  <div>
+                    <Label htmlFor="item-price">Price ₹</Label>
+                    <Input
+                      id="item-price"
+                      value={draft.price}
+                      onChange={(e) => setDraft({ ...draft, price: e.target.value })}
+                      required
+                      type="number"
+                      inputMode="decimal"
+                      min="0"
+                      step="0.01"
+                    />
+                  </div>
+                  <div>
+                    <Label htmlFor="item-max">Up to ₹</Label>
+                    <Input
+                      id="item-max"
+                      value={draft.maxPrice}
+                      onChange={(e) => setDraft({ ...draft, maxPrice: e.target.value })}
+                      type="number"
+                      inputMode="decimal"
+                      min="0"
+                      step="0.01"
+                      placeholder="Optional"
+                      aria-describedby="item-max-hint"
+                    />
+                  </div>
+                  <p id="item-max-hint" className="col-span-2 -mt-1 text-xs text-slate-500">
+                    Fill &quot;Up to&quot; when the price depends on the work (₹200 – ₹500). Customers see the
+                    range; you confirm the final price.
+                  </p>
+                  <div>
+                    <Label htmlFor="item-mrp">MRP ₹</Label>
+                    <Input
+                      id="item-mrp"
+                      value={draft.mrp}
+                      onChange={(e) => setDraft({ ...draft, mrp: e.target.value })}
+                      type="number"
+                      inputMode="decimal"
+                      min="0"
+                      step="0.01"
+                      placeholder="Optional"
+                    />
+                  </div>
+                  <div>
+                    <Label htmlFor="item-unit">Unit</Label>
+                    <Input
+                      id="item-unit"
+                      value={draft.unit}
+                      onChange={(e) => setDraft({ ...draft, unit: e.target.value })}
+                      maxLength={20}
+                      placeholder="1 kg, piece"
+                    />
+                  </div>
                 </div>
-                <div>
-                  <Label htmlFor="item-mrp">
-                    MRP ₹
-                  </Label>
-                  <Input
-                    id="item-mrp"
-                    value={draft.mrp}
-                    onChange={(e) => setDraft({ ...draft, mrp: e.target.value })}
-                    type="number"
-                    inputMode="decimal"
-                    min="0"
-                    step="0.01"
-                    placeholder="Optional"
-                  />
-                </div>
-                <div>
-                  <Label htmlFor="item-unit">
-                    Unit
-                  </Label>
-                  <Input
-                    id="item-unit"
-                    value={draft.unit}
-                    onChange={(e) => setDraft({ ...draft, unit: e.target.value })}
-                    maxLength={20}
-                    placeholder="1 kg, piece"
-                  />
-                </div>
-              </div>
+              )}
+
+              {/* Options: one item, one photo, several choices with their own price. */}
+              <fieldset className="rounded-xl border border-slate-200 p-3">
+                <legend className="px-1 text-sm font-semibold text-slate-800">Options</legend>
+                <p className="text-xs text-slate-500">
+                  For choices with their own price: Dry clean / Steam press, 500 g / 1 kg, S / M / L.
+                </p>
+                {draft.options.length > 0 && (
+                  <ul className="mt-3 space-y-3">
+                    {draft.options.map((o, i) => {
+                      const setOpt = (patch: Partial<DraftOption>) =>
+                        setDraft((d) =>
+                          d ? { ...d, options: d.options.map((x, j) => (j === i ? { ...x, ...patch } : x)) } : d,
+                        );
+                      return (
+                        <li key={o.id ?? `new-${i}`} className="grid grid-cols-[1fr_5.5rem_5.5rem_auto] items-end gap-2">
+                          <div>
+                            <Label htmlFor={`opt-name-${i}`} className="text-xs">Option</Label>
+                            <Input
+                              id={`opt-name-${i}`}
+                              value={o.name}
+                              onChange={(e) => setOpt({ name: e.target.value })}
+                              required
+                              maxLength={40}
+                              placeholder="Dry clean"
+                            />
+                          </div>
+                          <div>
+                            <Label htmlFor={`opt-price-${i}`} className="text-xs">Price ₹</Label>
+                            <Input
+                              id={`opt-price-${i}`}
+                              value={o.price}
+                              onChange={(e) => setOpt({ price: e.target.value })}
+                              required
+                              type="number"
+                              inputMode="decimal"
+                              min="0"
+                              step="0.01"
+                            />
+                          </div>
+                          <div>
+                            <Label htmlFor={`opt-max-${i}`} className="text-xs">Up to ₹</Label>
+                            <Input
+                              id={`opt-max-${i}`}
+                              value={o.maxPrice}
+                              onChange={(e) => setOpt({ maxPrice: e.target.value })}
+                              type="number"
+                              inputMode="decimal"
+                              min="0"
+                              step="0.01"
+                              placeholder="—"
+                            />
+                          </div>
+                          <Button
+                            type="button"
+                            variant="ghost"
+                            size="icon"
+                            className="text-slate-500"
+                            aria-label={`Remove option ${o.name || i + 1}`}
+                            onClick={() =>
+                              setDraft((d) => (d ? { ...d, options: d.options.filter((_, j) => j !== i) } : d))
+                            }
+                          >
+                            <Icon name="x" />
+                          </Button>
+                        </li>
+                      );
+                    })}
+                  </ul>
+                )}
+                {draft.options.length < MAX_ITEM_OPTIONS && (
+                  <Button
+                    type="button"
+                    variant="outline"
+                    size="sm"
+                    className="mt-3"
+                    onClick={() =>
+                      setDraft((d) =>
+                        d ? { ...d, options: [...d.options, { name: "", price: d.options.length === 0 ? d.price : "", maxPrice: "" }] } : d,
+                      )
+                    }
+                  >
+                    + Add option
+                  </Button>
+                )}
+                {draft.options.length > 0 && (
+                  <div className="mt-3">
+                    <Label htmlFor="item-unit">Unit</Label>
+                    <Input
+                      id="item-unit"
+                      value={draft.unit}
+                      onChange={(e) => setDraft({ ...draft, unit: e.target.value })}
+                      maxLength={20}
+                      placeholder="piece"
+                    />
+                  </div>
+                )}
+              </fieldset>
               <div>
                 <Label htmlFor="item-category">
                   Category

@@ -1,7 +1,7 @@
 "use client";
 
 import { useState, useTransition } from "react";
-import { createClient } from "@/lib/supabase/client";
+import { authClient } from "@/lib/auth-client";
 import { Card } from "@/components/ui/card";
 import { Button } from "@/components/ui/button";
 import { Alert } from "@/components/ui/alert";
@@ -14,10 +14,11 @@ export function LoginForm() {
   const google = () => {
     setError(null);
     startTransition(async () => {
-      const supabase = createClient();
-      const { error } = await supabase.auth.signInWithOAuth({
+      // A new user has no shop yet, so the dashboard sends them straight to the shop form.
+      const { error } = await authClient.signIn.social({
         provider: "google",
-        options: { redirectTo: `${window.location.origin}/auth/callback` },
+        callbackURL: "/dashboard",
+        errorCallbackURL: "/login?error=1",
       });
       if (error) setError("Google sign-in could not start. Check your internet and try again.");
     });

@@ -4,7 +4,7 @@ import { redirect } from "next/navigation";
 import { Logo } from "@/components/SiteChrome";
 import { getUser } from "@/lib/auth";
 import { FREE_ITEM_LIMIT } from "@/lib/catalog-config";
-import { isSupabaseConfigured } from "@/lib/supabase/env";
+import { isAuthConfigured } from "@/lib/better-auth";
 import { LoginForm } from "./LoginForm";
 import { Alert } from "@/components/ui/alert";
 
@@ -30,11 +30,11 @@ export default async function LoginPage({ searchParams }: PageProps<"/login">) {
         <Alert variant="destructive" className="mb-4">Login did not finish. Please try again.</Alert>
       )}
 
-      {isSupabaseConfigured() ? (
+      {isAuthConfigured() ? (
         <LoginForm />
       ) : (
         <Alert variant="destructive">
-          Login is not set up yet. Add the Supabase keys to .env.local (see README).
+          Login is not set up yet. Add the Google and Better Auth keys to .env.local (see README).
         </Alert>
       )}
 

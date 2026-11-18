@@ -99,6 +99,8 @@ export default async function ShopPage({ params }: PageProps<"/[slug]">) {
         unit: items.unit,
         imageUrl: items.imageUrl,
         imageUrls: items.imageUrls,
+        maxPrice: items.maxPrice,
+        options: items.options,
         inStock: items.inStock,
         categoryId: items.categoryId,
       })

@@ -4,6 +4,7 @@ import { useMemo, useState, useTransition } from "react";
 import { createOrder } from "@/app/actions/orders";
 import type { ItemStyle, Theme } from "@/lib/themes";
 import { useStored } from "@/lib/use-stored";
+import { cartKey, formatPriceRange, type ItemOption, itemPriceSpan, parseCartKey } from "@/lib/item-options";
 import { cx, formatPrice } from "@/lib/utils";
 import { Icon } from "@/components/Icon";
 import { Alert } from "@/components/ui/alert";
@@ -20,6 +21,8 @@ export type CatalogItem = {
   description: string | null;
   price: number;
   mrp: number | null;
+  maxPrice: number | null;
+  options: ItemOption[];
   unit: string | null;
   imageUrl: string | null;
   /** All photos, main photo first. */
@@ -72,27 +75,45 @@ export function Catalog({ shop, look, items, categories }: Props) {
   const itemById = useMemo(() => new Map(items.map((i) => [i.id, i])), [items]);
   const catById = useMemo(() => new Map(categories.map((c) => [c.id, c])), [categories]);
 
-  // Drop cart entries for items that were removed or went out of stock.
+  // Drop cart entries for items (or options) that were removed or went out of stock.
   const cart = useMemo(() => {
     const parsed = parseCart(rawCart);
     const valid: Cart = {};
-    for (const [id, qty] of Object.entries(parsed)) {
-      if (itemById.get(id)?.inStock) valid[id] = qty;
+    for (const [key, qty] of Object.entries(parsed)) {
+      const { itemId, optionId } = parseCartKey(key);
+      const item = itemById.get(itemId);
+      if (!item?.inStock) continue;
+      const ok = optionId ? item.options.some((o) => o.id === optionId) : item.options.length === 0;
+      if (ok) valid[key] = qty;
     }
     return valid;
   }, [rawCart, itemById]);
 
-  const setQty = (id: string, qty: number) => {
+  // The item being added when it has options (the option picker is open).
+  const [choosing, setChoosing] = useState<CatalogItem | null>(null);
+
+  const setQty = (key: string, qty: number) => {
     const next = { ...cart };
-    if (qty <= 0) delete next[id];
-    else next[id] = Math.min(qty, 999);
+    if (qty <= 0) delete next[key];
+    else next[key] = Math.min(qty, 999);
     setRawCart(Object.keys(next).length ? JSON.stringify(next) : null);
     setError(null);
   };
 
-  const cartLines = Object.entries(cart).map(([id, qty]) => ({ item: itemById.get(id)!, qty }));
+  const cartLines = Object.entries(cart).map(([key, qty]) => {
+    const { itemId, optionId } = parseCartKey(key);
+    const item = itemById.get(itemId)!;
+    const option = optionId ? (item.options.find((o) => o.id === optionId) ?? null) : null;
+    const unitPrice = option ? option.price : item.price;
+    const unitMax = Math.max(unitPrice, (option ? option.maxPrice : item.maxPrice) ?? 0);
+    return { key, item, option, qty, unitPrice, unitMax };
+  });
   const cartCount = cartLines.reduce((n, l) => n + l.qty, 0);
-  const cartTotal = cartLines.reduce((n, l) => n + l.qty * l.item.price, 0);
+  const cartTotal = cartLines.reduce((n, l) => n + l.qty * l.unitPrice, 0);
+  const cartMax = cartLines.reduce((n, l) => n + l.qty * l.unitMax, 0);
+  /** How many of an item are in the cart, across its options. */
+  const qtyOfItem = (item: CatalogItem) =>
+    cartLines.filter((l) => l.item.id === item.id).reduce((n, l) => n + l.qty, 0);
 
   const topOf = (item: CatalogItem): string | null => {
     const cat = item.categoryId ? catById.get(item.categoryId) : undefined;
@@ -132,7 +153,7 @@ export function Catalog({ shop, look, items, categories }: Props) {
       try {
         const result = await createOrder({
           shopId: shop.id,
-          lines: cartLines.map((l) => ({ itemId: l.item.id, qty: l.qty })),
+          lines: cartLines.map((l) => ({ itemId: l.item.id, optionId: l.option?.id, qty: l.qty })),
           name: name.trim() || undefined,
           note: note.trim() || undefined,
         });
@@ -154,17 +175,40 @@ export function Catalog({ shop, look, items, categories }: Props) {
     if (!item.inStock) {
       return <span className="text-xs font-medium text-(--t-muted)">Out of stock</span>;
     }
-    const qty = cart[item.id] ?? 0;
+    // An item with options opens the picker, where each option has its own count.
+    if (item.options.length > 0) {
+      const inCart = qtyOfItem(item);
+      return (
+        <button
+          type="button"
+          onClick={() => setChoosing(item)}
+          className={cx(
+            "t-btn border font-semibold",
+            inCart > 0 ? "border-(--p) bg-(--p) text-(--pt)" : "border-(--pa) text-(--pa) hover:bg-(--ps)",
+            compact ? "px-3 py-1 text-sm" : "w-full py-1.5 text-sm",
+          )}
+          aria-label={`Choose an option of ${item.name}`}
+        >
+          {inCart > 0 ? `${inCart} added · Edit` : "Add +"}
+        </button>
+      );
+    }
+    return qtyControl(item.id, item.name, compact);
+  };
+
+  /** Add button, then − count + for one cart entry (an item, or one option of it). */
+  const qtyControl = (key: string, label: string, compact = false) => {
+    const qty = cart[key] ?? 0;
     if (qty === 0) {
       return (
         <button
           type="button"
-          onClick={() => setQty(item.id, 1)}
+          onClick={() => setQty(key, 1)}
           className={cx(
             "t-btn border border-(--pa) font-semibold text-(--pa) hover:bg-(--ps)",
             compact ? "px-3 py-1 text-sm" : "w-full py-1.5 text-sm",
           )}
-          aria-label={`Add ${item.name}`}
+          aria-label={`Add ${label}`}
         >
           Add +
         </button>
@@ -179,9 +223,9 @@ export function Catalog({ shop, look, items, categories }: Props) {
       >
         <button
           type="button"
-          onClick={() => setQty(item.id, qty - 1)}
+          onClick={() => setQty(key, qty - 1)}
           className="h-8 w-8 text-lg font-bold"
-          aria-label={`Remove one ${item.name}`}
+          aria-label={`Remove one ${label}`}
         >
           −
         </button>
@@ -190,9 +234,9 @@ export function Catalog({ shop, look, items, categories }: Props) {
         </span>
         <button
           type="button"
-          onClick={() => setQty(item.id, qty + 1)}
+          onClick={() => setQty(key, qty + 1)}
           className="h-8 w-8 text-lg font-bold"
-          aria-label={`Add one more ${item.name}`}
+          aria-label={`Add one more ${label}`}
         >
           +
         </button>
@@ -202,8 +246,13 @@ export function Catalog({ shop, look, items, categories }: Props) {
 
   const price = (item: CatalogItem) => (
     <span className="whitespace-nowrap">
-      <span className="font-semibold text-(--t-text)">{formatPrice(item.price)}</span>
-      {item.mrp && item.mrp > item.price && (
+      <span className="font-semibold text-(--t-text)">
+        {(() => {
+          const { min, max } = itemPriceSpan(item);
+          return formatPriceRange(min, max);
+        })()}
+      </span>
+      {item.mrp && item.mrp > item.price && item.options.length === 0 && !item.maxPrice && (
         <span className="ml-1.5 text-xs text-(--t-muted) line-through">{formatPrice(item.mrp)}</span>
       )}
     </span>
@@ -445,7 +494,7 @@ export function Catalog({ shop, look, items, categories }: Props) {
               <p className="text-sm text-(--t-muted)">
                 {cartCount} {cartCount === 1 ? "item" : "items"}
               </p>
-              <p className="text-lg font-bold text-(--t-text)">{formatPrice(cartTotal)}</p>
+              <p className="text-lg font-bold text-(--t-text)">{formatPriceRange(cartTotal, cartMax)}</p>
             </div>
             <Button
               type="button"
@@ -473,18 +522,21 @@ export function Catalog({ shop, look, items, categories }: Props) {
             <div className="flex-1 overflow-y-auto px-5 py-3">
               {cartLines.length === 0 && <p className="py-6 text-center text-(--t-muted)">Your cart is empty.</p>}
               <ul className="divide-y divide-(--t-border)">
-                {cartLines.map(({ item, qty }) => (
-                  <li key={item.id} className="flex items-center gap-3 py-2.5">
+                {cartLines.map(({ key, item, option, qty, unitPrice, unitMax }) => (
+                  <li key={key} className="flex items-center gap-3 py-2.5">
                     <div className="min-w-0 flex-1">
-                      <p className="truncate text-sm font-medium text-(--t-text)">{item.name}</p>
+                      <p className="truncate text-sm font-medium text-(--t-text)">
+                        {item.name}
+                        {option && <span className="text-(--t-muted)"> ({option.name})</span>}
+                      </p>
                       <p className="text-xs text-(--t-muted)">
-                        {formatPrice(item.price)} × {qty} ={" "}
+                        {formatPriceRange(unitPrice, unitMax)} × {qty} ={" "}
                         <span className="font-semibold text-(--t-text)">
-                          {formatPrice(item.price * qty)}
+                          {formatPriceRange(unitPrice * qty, unitMax * qty)}
                         </span>
                       </p>
                     </div>
-                    {stepper(item, true)}
+                    {qtyControl(key, option ? `${item.name} (${option.name})` : item.name, true)}
                   </li>
                 ))}
               </ul>
@@ -525,7 +577,7 @@ export function Catalog({ shop, look, items, categories }: Props) {
                 {error && <Alert variant="destructive" className="mb-3">{error}</Alert>}
                 <div className="mb-3 flex items-baseline justify-between">
                   <span className="text-(--t-muted)">Total</span>
-                  <span className="text-xl font-bold">{formatPrice(cartTotal)}</span>
+                  <span className="text-xl font-bold">{formatPriceRange(cartTotal, cartMax)}</span>
                 </div>
                 <Button
                   type="button"
@@ -541,6 +593,44 @@ export function Catalog({ shop, look, items, categories }: Props) {
                 </p>
               </div>
             )}
+          </SheetContent>
+        </Sheet>
+      )}
+
+      {choosing && (
+        <Sheet open onOpenChange={(open) => !open && setChoosing(null)}>
+          <SheetContent side="bottom" showCloseButton={false} className="t-page mx-auto max-h-[80dvh] w-full max-w-lg gap-0 rounded-t-2xl bg-(--t-surface) p-0 text-base">
+            <div className="flex items-center justify-between border-b border-(--t-border) px-5 py-3">
+              <SheetTitle className="t-head truncate text-lg text-(--t-text)">{choosing.name}</SheetTitle>
+              <SheetClose
+                render={<Button variant="ghost" size="icon" className="text-(--t-muted)" aria-label="Close" />}
+              >
+                <Icon name="x" />
+              </SheetClose>
+            </div>
+            <ul className="flex-1 divide-y divide-(--t-border) overflow-y-auto px-5">
+              {choosing.options.map((o) => (
+                <li key={o.id} className="flex items-center gap-3 py-3">
+                  <div className="min-w-0 flex-1">
+                    <p className="font-medium text-(--t-text)">{o.name}</p>
+                    <p className="text-sm text-(--t-muted)">
+                      {formatPriceRange(o.price, o.maxPrice)}
+                      {choosing.unit && ` / ${choosing.unit}`}
+                    </p>
+                  </div>
+                  {qtyControl(cartKey(choosing.id, o.id), `${choosing.name} (${o.name})`, true)}
+                </li>
+              ))}
+            </ul>
+            <div className="border-t border-(--t-border) px-5 py-3">
+              <Button
+                type="button"
+                onClick={() => setChoosing(null)}
+                className="t-btn w-full bg-(--p) text-(--pt) hover:bg-(--pd)"
+              >
+                Done
+              </Button>
+            </div>
           </SheetContent>
         </Sheet>
       )}

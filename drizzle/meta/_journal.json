@@ -64,6 +64,27 @@
       "when": 1794861136344,
       "tag": "0008_invite_seller",
       "breakpoints": true
+    },
+    {
+      "idx": 9,
+      "version": "7",
+      "when": 1795015983555,
+      "tag": "0009_better_auth",
+      "breakpoints": true
+    },
+    {
+      "idx": 10,
+      "version": "7",
+      "when": 1795017253551,
+      "tag": "0010_auth_uuid_default",
+      "breakpoints": true
+    },
+    {
+      "idx": 11,
+      "version": "7",
+      "when": 1795018413940,
+      "tag": "0011_item_options",
+      "breakpoints": true
     }
   ]
 }

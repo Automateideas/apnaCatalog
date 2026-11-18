@@ -21,7 +21,7 @@ import {
 } from "@/lib/catalog-config";
 import { removeUnusedMedia } from "@/lib/media";
 import { getTheme, themeForType } from "@/lib/themes";
-import { isMediaUrl } from "@/lib/supabase/env";
+import { isMediaUrl } from "@/lib/media-url";
 import {
   citySlugOf,
   normalizePhone,

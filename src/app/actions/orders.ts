@@ -6,12 +6,19 @@ import { and, count, eq, gte, inArray } from "drizzle-orm";
 import { z } from "zod";
 import { db } from "@/db";
 import { items, orders, shops, type OrderLine } from "@/db/schema";
-import { formatPrice, siteUrl, waLink, type ActionResult } from "@/lib/utils";
+import { formatPriceRange } from "@/lib/item-options";
+import { siteUrl, waLink, type ActionResult } from "@/lib/utils";
 
 const schema = z.object({
   shopId: z.uuid(),
   lines: z
-    .array(z.object({ itemId: z.uuid(), qty: z.number().int().min(1).max(999) }))
+    .array(
+      z.object({
+        itemId: z.uuid(),
+        optionId: z.string().max(12).optional().nullable(),
+        qty: z.number().int().min(1).max(999),
+      }),
+    )
     .min(1, "Your cart is empty.")
     .max(100),
   name: z.string().trim().max(60).optional(),
@@ -92,7 +99,14 @@ export async function createOrder(
   }
 
   const byId = new Map(rows.map((r) => [r.id, r]));
-  const unavailable = data.lines.filter((l) => !byId.get(l.itemId)?.inStock);
+  // An item that is gone or out of stock, or an option that was removed or renamed away.
+  const optionOf = (l: (typeof data.lines)[number]) =>
+    l.optionId ? (byId.get(l.itemId)?.options.find((o) => o.id === l.optionId) ?? null) : null;
+  const unavailable = data.lines.filter((l) => {
+    const item = byId.get(l.itemId);
+    if (!item?.inStock) return true;
+    return l.optionId ? !optionOf(l) : item.options.length > 0;
+  });
   if (unavailable.length > 0) {
     const names = unavailable
       .map((l) => byId.get(l.itemId)?.name)
@@ -107,9 +121,21 @@ export async function createOrder(
 
   const lines: OrderLine[] = data.lines.map((line) => {
     const item = byId.get(line.itemId)!;
-    return { itemId: item.id, name: item.name, unit: item.unit, qty: line.qty, price: item.price };
+    const option = optionOf(line);
+    const price = option ? option.price : item.price;
+    const max = option ? option.maxPrice : item.maxPrice;
+    return {
+      itemId: item.id,
+      name: item.name,
+      unit: item.unit,
+      qty: line.qty,
+      price,
+      option: option?.name ?? null,
+      maxPrice: max && max > price ? max : null,
+    };
   });
   const total = lines.reduce((sum, l) => sum + l.price * l.qty, 0);
+  const maxTotal = lines.reduce((sum, l) => sum + (l.maxPrice ?? l.price) * l.qty, 0);
   if (total > MAX_TOTAL_PAISE) {
     return { ok: false, error: "This order is too large to send from the catalog. Please call the shop." };
   }
@@ -140,11 +166,12 @@ export async function createOrder(
     "",
     ...shown.map(
       (l, i) =>
-        `${i + 1}. ${l.name}${l.unit ? ` (${l.unit})` : ""} x ${l.qty} = ${formatPrice(l.price * l.qty)}`,
+        `${i + 1}. ${l.name}${l.option ? ` - ${l.option}` : ""}${l.unit ? ` (${l.unit})` : ""} x ${l.qty} = ${formatPriceRange(l.price * l.qty, l.maxPrice ? l.maxPrice * l.qty : null)}`,
     ),
     ...(lines.length > shown.length ? [`...and ${lines.length - shown.length} more items`] : []),
     "",
-    `Total: ${formatPrice(total)}`,
+    `Total: ${formatPriceRange(total, maxTotal)}`,
+    ...(maxTotal > total ? ["(Final price as the shop confirms)"] : []),
     ...(data.name ? [`Name: ${data.name}`] : []),
     ...(data.note ? [`Note: ${data.note}`] : []),
     "",

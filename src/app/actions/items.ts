@@ -9,7 +9,8 @@ import { getShopByOwner, requireUser } from "@/lib/auth";
 import { FREE_ITEM_LIMIT, isPaid, MAX_ITEM_PHOTOS } from "@/lib/catalog-config";
 import { removeUnusedMedia } from "@/lib/media";
 import { refreshShopStats } from "@/lib/shop-stats";
-import { isMediaUrl } from "@/lib/supabase/env";
+import { isMediaUrl } from "@/lib/media-url";
+import { type ItemOption, MAX_ITEM_OPTIONS } from "@/lib/item-options";
 import { rupeesToPaise, type ActionResult } from "@/lib/utils";
 
 async function myShop() {
@@ -24,6 +25,20 @@ const itemSchema = z.object({
   description: z.string().trim().max(500).optional().nullable(),
   price: z.number("Enter the price.").min(0, "Enter the price.").max(10_000_000),
   mrp: z.number().min(0).max(10_000_000).optional().nullable(),
+  /** Top of a price range, in rupees. */
+  maxPrice: z.number().min(0).max(10_000_000).optional().nullable(),
+  /** Choices with their own price, in rupees. */
+  options: z
+    .array(
+      z.object({
+        id: z.string().trim().regex(/^[a-z0-9]{1,12}$/).optional(),
+        name: z.string().trim().min(1, "Give every option a name.").max(40),
+        price: z.number("Enter a price for every option.").min(0).max(10_000_000),
+        maxPrice: z.number().min(0).max(10_000_000).optional().nullable(),
+      }),
+    )
+    .max(MAX_ITEM_OPTIONS, `An item can have at most ${MAX_ITEM_OPTIONS} options.`)
+    .optional(),
   unit: z.string().trim().max(20).optional().nullable(),
   categoryId: z.uuid().optional().nullable(),
   /** Main photo first. */
@@ -48,7 +63,24 @@ export async function saveItem(input: z.input<typeof itemSchema>): Promise<Actio
     if (!cat) return { ok: false, error: "Category not found." };
   }
 
-  const price = rupeesToPaise(data.price);
+  // Options keep their id across edits, so carts that hold one still find it.
+  const options: ItemOption[] = (data.options ?? []).map((o) => {
+    const optPrice = rupeesToPaise(o.price);
+    const optMax = o.maxPrice ? rupeesToPaise(o.maxPrice) : 0;
+    return {
+      id: o.id || Math.random().toString(36).slice(2, 10),
+      name: o.name,
+      price: optPrice,
+      maxPrice: optMax > optPrice ? optMax : null,
+    };
+  });
+  if (new Set(options.map((o) => o.name.toLowerCase())).size < options.length) {
+    return { ok: false, error: "Two options have the same name." };
+  }
+  // With options, the item's own price is the lowest option price (used for sorting and "from").
+  const price = options.length > 0 ? Math.min(...options.map((o) => o.price)) : rupeesToPaise(data.price);
+  const maxRaw = data.maxPrice ? rupeesToPaise(data.maxPrice) : 0;
+  const maxPrice = options.length === 0 && maxRaw > price ? maxRaw : null;
   const mrp = data.mrp && rupeesToPaise(data.mrp) > price ? rupeesToPaise(data.mrp) : null;
   // Only photos from our own storage, no repeats, main photo first.
   const imageUrls = [...new Set((data.imageUrls ?? []).filter(isMediaUrl))];
@@ -60,7 +92,9 @@ export async function saveItem(input: z.input<typeof itemSchema>): Promise<Actio
     name: data.name,
     description: data.description || null,
     price,
-    mrp,
+    mrp: options.length > 0 ? null : mrp,
+    maxPrice,
+    options,
     unit: data.unit || null,
     categoryId: data.categoryId ?? null,
     imageUrl: imageUrls[0] ?? null,

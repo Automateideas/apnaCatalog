@@ -75,7 +75,8 @@ export default function PrivacyPage() {
         <h2 className={h2}>Who processes data for us</h2>
         <p>We use these services to run {SITE_NAME}. They handle data only to provide their service:</p>
         <ul className="list-disc space-y-1 pl-5">
-          <li>Supabase: database, photo storage and login (data kept in Mumbai, India).</li>
+          <li>Supabase: database, including login sessions (data kept in Mumbai, India).</li>
+          <li>Cloudflare R2: photo storage.</li>
           <li>Vercel: website hosting and page speed measurement.</li>
           <li>Google: &quot;Continue with Google&quot; login for shopkeepers.</li>
           <li>Mapbox: road distance for &quot;Shops near me&quot;.</li>

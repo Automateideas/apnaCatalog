@@ -3,7 +3,7 @@ import { and, arrayOverlaps, eq } from "drizzle-orm";
 import { db } from "@/db";
 import { items, shops } from "@/db/schema";
 import { deleteObjects } from "@/lib/r2";
-import { isMediaUrl, mediaPathOf } from "@/lib/supabase/env";
+import { isMediaUrl, mediaPathOf } from "@/lib/media-url";
 
 /**
  * Deletes photos from storage once nothing in the shop uses them any more.

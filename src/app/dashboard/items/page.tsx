@@ -21,6 +21,8 @@ export default async function ItemsPage() {
         description: items.description,
         price: items.price,
         mrp: items.mrp,
+        maxPrice: items.maxPrice,
+        options: items.options,
         unit: items.unit,
         imageUrl: items.imageUrl,
         imageUrls: items.imageUrls,

@@ -1,12 +1,3 @@
-export const SUPABASE_URL = (process.env.NEXT_PUBLIC_SUPABASE_URL ?? "").replace(/\/+$/, "");
-// New Supabase projects call this the "publishable" key (sb_publishable_...);
-// older ones call it the "anon" key. Either name works here.
-export const SUPABASE_ANON_KEY =
-  process.env.NEXT_PUBLIC_SUPABASE_PUBLISHABLE_KEY || process.env.NEXT_PUBLIC_SUPABASE_ANON_KEY || "";
-
-export const isSupabaseConfigured = () =>
-  SUPABASE_URL.startsWith("http") && SUPABASE_ANON_KEY.length > 0;
-
 /** Public address of the photo bucket (Cloudflare R2). Photos live at "<base>/<userId>/<file>". */
 export const MEDIA_BASE_URL = (process.env.NEXT_PUBLIC_MEDIA_BASE_URL ?? "").replace(/\/+$/, "");
 

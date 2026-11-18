@@ -35,6 +35,7 @@ export const BUSINESS_TYPES: BusinessType[] = [
   { id: "cosmetics", name: "Cosmetics / Beauty", emoji: "💄", layout: "grid", categories: ["Makeup", "Skin care", "Hair care", "Fragrance", "Bangles & bindi"] },
   { id: "furniture", name: "Furniture / Home", emoji: "🛋️", layout: "grid", categories: ["Beds", "Sofas", "Tables & chairs", "Storage", "Decor"] },
   { id: "toys", name: "Toys / Kids", emoji: "🧸", layout: "grid", categories: ["Soft toys", "Games", "Learning toys", "Ride-ons", "School bags"] },
+  { id: "laundry", name: "Laundry / Dry clean", emoji: "👔", layout: "list", categories: ["Men", "Women", "Kids", "Household"] },
   { id: "other", name: "Other", emoji: "🏪", layout: "grid", categories: ["Popular", "New arrivals"] },
 ];
 

@@ -4,28 +4,23 @@ import { redirect } from "next/navigation";
 import { eq } from "drizzle-orm";
 import { db } from "@/db";
 import { shops, type Shop } from "@/db/schema";
-import { createClient } from "@/lib/supabase/server";
-import { isSupabaseConfigured } from "@/lib/supabase/env";
+import { headers } from "next/headers";
+import { auth, isAuthConfigured } from "@/lib/better-auth";
 
 export type SessionUser = { id: string; email: string | null };
 
-/** The signed-in user, verified with Supabase. Null when signed out. */
+/** The signed-in user, checked against the session in our database. Null when signed out. */
 export const getUser = cache(async (): Promise<SessionUser | null> => {
-  // Local development only: lets you try the dashboard before setting up Supabase.
-  // Ignored in production builds. Photo upload still needs Supabase.
+  // Local development only: lets you try the dashboard before setting up Google login.
+  // Ignored in production builds.
   if (process.env.NODE_ENV === "development" && process.env.DEV_LOGIN_EMAIL) {
     return { id: "00000000-0000-4000-8000-000000000001", email: process.env.DEV_LOGIN_EMAIL };
   }
-  if (!isSupabaseConfigured()) return null;
-  const supabase = await createClient();
-  const { data, error } = await supabase.auth.getUser();
-  if (error || !data.user) return null;
+  if (!isAuthConfigured()) return null;
+  const session = await auth.api.getSession({ headers: await headers() });
+  if (!session) return null;
   // The email decides admin access and shop transfers, so only trust one Google has verified.
-  const meta = data.user.app_metadata ?? {};
-  const viaGoogle =
-    meta.provider === "google" ||
-    (Array.isArray(meta.providers) && meta.providers.includes("google"));
-  return { id: data.user.id, email: viaGoogle ? (data.user.email ?? null) : null };
+  return { id: session.user.id, email: session.user.emailVerified ? session.user.email : null };
 });
 
 export async function requireUser(): Promise<SessionUser> {

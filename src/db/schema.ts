@@ -1,4 +1,5 @@
 import { sql } from "drizzle-orm";
+import type { ItemOption } from "@/lib/item-options";
 import {
   boolean,
   doublePrecision,
@@ -20,6 +21,10 @@ export type OrderLine = {
   qty: number;
   /** Price of one unit, in paise. */
   price: number;
+  /** The chosen option, e.g. "Dry clean". */
+  option?: string | null;
+  /** Top of a price range for one unit, in paise; the shop confirms the final price. */
+  maxPrice?: number | null;
 };
 
 export const shops = pgTable(
@@ -120,6 +125,10 @@ export const items = pgTable(
     price: integer("price").notNull(),
     /** Optional MRP in paise, shown struck through. */
     mrp: integer("mrp"),
+    /** Optional top of a price range in paise ("₹200 – ₹500"); the shop confirms the final price. */
+    maxPrice: integer("max_price"),
+    /** Choices with their own price, e.g. "Dry clean" and "Steam press". `price` is then the lowest. */
+    options: jsonb("options").$type<ItemOption[]>().notNull().default([]),
     unit: text("unit"),
     /** The main photo: always the first of imageUrls. Kept as its own column for lists and counts. */
     imageUrl: text("image_url"),
@@ -181,3 +190,6 @@ export type Category = typeof categories.$inferSelect;
 export type Item = typeof items.$inferSelect;
 export type Review = typeof reviews.$inferSelect;
 export type Order = typeof orders.$inferSelect;
+
+// Login accounts and sessions (Better Auth).
+export * from "./auth-schema";

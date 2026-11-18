@@ -5,7 +5,8 @@ import { eq } from "drizzle-orm";
 import { db } from "@/db";
 import { orders, shops } from "@/db/schema";
 import { PrintButton } from "@/components/PrintButton";
-import { formatDateTime, formatPrice, SITE_NAME } from "@/lib/utils";
+import { formatPriceRange, maxTotalOf } from "@/lib/item-options";
+import { formatDateTime, SITE_NAME } from "@/lib/utils";
 import { Card } from "@/components/ui/card";
 import { buttonVariants } from "@/components/ui/button";
 import { Table, TableBody, TableCell, TableFooter, TableHead, TableHeader, TableRow } from "@/components/ui/table";
@@ -86,12 +87,13 @@ export default async function OrderPage({ params }: PageProps<"/o/[id]">) {
                 <TableCell className="py-2 pr-2 text-slate-500">{i + 1}</TableCell>
                 <TableCell className="py-2 pr-2">
                   {line.name}
+                  {line.option && <span className="text-slate-700"> - {line.option}</span>}
                   {line.unit && <span className="text-slate-500"> ({line.unit})</span>}
                 </TableCell>
-                <TableCell className="py-2 pr-2 text-right whitespace-nowrap">{formatPrice(line.price)}</TableCell>
+                <TableCell className="py-2 pr-2 text-right whitespace-nowrap">{formatPriceRange(line.price, line.maxPrice)}</TableCell>
                 <TableCell className="py-2 pr-2 text-right">{line.qty}</TableCell>
                 <TableCell className="py-2 text-right font-medium whitespace-nowrap">
-                  {formatPrice(line.price * line.qty)}
+                  {formatPriceRange(line.price * line.qty, line.maxPrice ? line.maxPrice * line.qty : null)}
                 </TableCell>
               </TableRow>
             ))}
@@ -102,7 +104,7 @@ export default async function OrderPage({ params }: PageProps<"/o/[id]">) {
                 Total
               </TableCell>
               <TableCell className="pt-3 text-right text-lg font-bold whitespace-nowrap">
-                {formatPrice(order.total)}
+                {formatPriceRange(order.total, maxTotalOf(order.lines))}
               </TableCell>
             </TableRow>
           </TableFooter>
