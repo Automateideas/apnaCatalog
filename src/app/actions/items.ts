@@ -1,6 +1,7 @@
 "use server";
 
 import { revalidatePath } from "next/cache";
+import { refreshShopPage } from "@/lib/shop-data";
 import { and, count, eq, isNull } from "drizzle-orm";
 import { z } from "zod";
 import { db } from "@/db";
@@ -149,6 +150,7 @@ export async function saveItem(input: z.input<typeof itemSchema>): Promise<Actio
   );
   await refreshShopStats(shop.id);
   revalidatePath("/dashboard", "layout");
+  refreshShopPage(shop.slug);
   return { ok: true };
 }
 
@@ -168,6 +170,7 @@ export async function deleteItem(id: string): Promise<ActionResult> {
   );
   await refreshShopStats(shop.id);
   revalidatePath("/dashboard", "layout");
+  refreshShopPage(shop.slug);
   return { ok: true };
 }
 
@@ -181,6 +184,7 @@ export async function setItemStock(id: string, inStock: boolean): Promise<Action
     .set({ inStock: Boolean(inStock), updatedAt: new Date() })
     .where(and(eq(items.id, id), eq(items.shopId, shop.id)));
   revalidatePath("/dashboard", "layout");
+  refreshShopPage(shop.slug);
   return { ok: true };
 }
 
@@ -230,6 +234,7 @@ export async function saveCategory(input: z.input<typeof categorySchema>): Promi
   }
 
   revalidatePath("/dashboard", "layout");
+  refreshShopPage(shop.slug);
   return { ok: true };
 }
 
@@ -241,5 +246,6 @@ export async function deleteCategory(id: string): Promise<ActionResult> {
   // Subcategories are removed with it; items stay and become uncategorised.
   await db.delete(categories).where(and(eq(categories.id, id), eq(categories.shopId, shop.id)));
   revalidatePath("/dashboard", "layout");
+  refreshShopPage(shop.slug);
   return { ok: true };
 }

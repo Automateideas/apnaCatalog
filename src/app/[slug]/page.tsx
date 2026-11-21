@@ -2,9 +2,6 @@ import type { Metadata, Viewport } from "next";
 import Link from "next/link";
 import { notFound } from "next/navigation";
 import { MessageCircle } from "lucide-react";
-import { and, asc, desc, eq } from "drizzle-orm";
-import { db } from "@/db";
-import { categories, items, reviews } from "@/db/schema";
 import { Avatar } from "@/components/Avatar";
 import { ShopHeader } from "@/components/catalog/ShopHeader";
 import { Catalog } from "@/components/catalog/Catalog";
@@ -18,7 +15,7 @@ import { themeCss } from "@/lib/theme-style";
 import { isPropertyShop } from "@/lib/property";
 import { resolveTheme } from "@/lib/themes";
 import { cx } from "@/lib/utils";
-import { getPublicShop } from "@/lib/shop-data";
+import { getPublicShop, getShopPage } from "@/lib/shop-data";
 import { directionsUrl, formatDate, SITE_NAME, siteUrl, waLink } from "@/lib/utils";
 import { Icon } from "@/components/Icon";
 import { buttonVariants } from "@/components/ui/button";
@@ -82,48 +79,9 @@ export async function generateViewport({ params }: PageProps<"/[slug]">): Promis
 
 export default async function ShopPage({ params }: PageProps<"/[slug]">) {
   const { slug } = await params;
-  const shop = await getPublicShop(slug);
-  if (!shop) notFound();
-
-  const [cats, itemRows, reviewRows] = await Promise.all([
-    db
-      .select({ id: categories.id, name: categories.name, parentId: categories.parentId })
-      .from(categories)
-      .where(eq(categories.shopId, shop.id))
-      .orderBy(asc(categories.sort), asc(categories.createdAt)),
-    db
-      .select({
-        id: items.id,
-        name: items.name,
-        description: items.description,
-        price: items.price,
-        mrp: items.mrp,
-        unit: items.unit,
-        imageUrl: items.imageUrl,
-        imageUrls: items.imageUrls,
-        maxPrice: items.maxPrice,
-        options: items.options,
-        listing: items.listing,
-        details: items.details,
-        inStock: items.inStock,
-        categoryId: items.categoryId,
-      })
-      .from(items)
-      .where(eq(items.shopId, shop.id))
-      .orderBy(desc(items.inStock), asc(items.createdAt)),
-    db
-      .select({
-        id: reviews.id,
-        name: reviews.name,
-        rating: reviews.rating,
-        comment: reviews.comment,
-        updatedAt: reviews.updatedAt,
-      })
-      .from(reviews)
-      .where(and(eq(reviews.shopId, shop.id), eq(reviews.isHidden, false)))
-      .orderBy(desc(reviews.updatedAt))
-      .limit(30),
-  ]);
+  const data = await getShopPage(slug);
+  if (!data) notFound();
+  const { shop, categories: cats, items: itemRows, reviews: reviewRows } = data;
 
   const type = getBusinessType(shop.businessType);
   const { theme, accent } = resolveTheme(shop);

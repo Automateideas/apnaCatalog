@@ -4,6 +4,7 @@ import { randomBytes } from "node:crypto";
 import { cookies } from "next/headers";
 import { redirect } from "next/navigation";
 import { revalidatePath } from "next/cache";
+import { refreshShopPage } from "@/lib/shop-data";
 import { count, eq } from "drizzle-orm";
 import { z } from "zod";
 import { db } from "@/db";
@@ -148,6 +149,8 @@ export async function createShop(input: z.input<typeof createSchema>): Promise<A
   }
 
   cookieStore.delete(INVITE_COOKIE);
+  // The link may have been visited before the shop existed ("not found" is cached too).
+  refreshShopPage(slug);
   // The dashboard header was rendered without a shop; refresh it so the tabs appear.
   revalidatePath("/dashboard", "layout");
   redirect("/dashboard?welcome=1");
@@ -256,6 +259,7 @@ export async function updateShop(input: z.input<typeof updateSchema>): Promise<A
 
   revalidatePath("/dashboard", "layout");
   revalidatePath(`/${shop.slug}`);
+  refreshShopPage(shop.slug);
   return { ok: true };
 }
 
@@ -287,5 +291,6 @@ export async function updateTheme(input: z.input<typeof themeSchema>): Promise<A
 
   revalidatePath("/dashboard", "layout");
   revalidatePath(`/${shop.slug}`);
+  refreshShopPage(shop.slug);
   return { ok: true };
 }

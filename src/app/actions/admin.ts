@@ -1,21 +1,25 @@
 "use server";
 
 import { revalidatePath } from "next/cache";
-import { and, eq, ne } from "drizzle-orm";
+import { and, arrayOverlaps, eq, inArray, ne, or } from "drizzle-orm";
 import { z } from "zod";
 import { db } from "@/db";
-import { reviews, shops } from "@/db/schema";
+import { items, reviews, shops, user } from "@/db/schema";
+import { isMediaUrl, mediaPathOf } from "@/lib/media-url";
+import { deleteObjects } from "@/lib/r2";
 import { requireAdmin } from "@/lib/auth";
 import { PAID_PLAN_IDS } from "@/lib/catalog-config";
 import { addPaidMonths, keepPaidPlan, rewardInviter } from "@/lib/invite";
 import { setPendingOwner } from "@/lib/owner-change";
 import { refreshShopRating } from "@/lib/shop-stats";
+import { refreshShopPage, refreshShopPageById } from "@/lib/shop-data";
 import type { ActionResult } from "@/lib/utils";
 
 export async function adminSetShopHidden(id: string, hidden: boolean): Promise<ActionResult> {
   await requireAdmin();
   if (!z.uuid().safeParse(id).success) return { ok: false, error: "Shop not found." };
   await db.update(shops).set({ isHidden: Boolean(hidden) }).where(eq(shops.id, id));
+  await refreshShopPageById(id);
   revalidatePath("/admin");
   return { ok: true };
 }
@@ -54,6 +58,7 @@ export async function adminSetShopPlan(id: string, months: number): Promise<Acti
     });
     if (!found) return { ok: false, error: "Shop not found." };
   }
+  await refreshShopPageById(id);
   revalidatePath("/admin");
   return { ok: true };
 }
@@ -91,6 +96,7 @@ export async function adminSetShopPlanUntil(id: string, date: string): Promise<A
   });
   if (!found) return { ok: false, error: "Shop not found." };
 
+  await refreshShopPageById(id);
   revalidatePath("/admin");
   return { ok: true };
 }
@@ -106,6 +112,7 @@ export async function adminSetShopTier(id: string, tier: string): Promise<Action
     .where(and(eq(shops.id, id), ne(shops.plan, "free")))
     .returning({ id: shops.id });
   if (updated.length === 0) return { ok: false, error: "Give the shop paid time first." };
+  await refreshShopPageById(id);
   revalidatePath("/admin");
   return { ok: true };
 }
@@ -118,7 +125,10 @@ export async function adminSetReviewHidden(id: string, hidden: boolean): Promise
     .set({ isHidden: Boolean(hidden), isReported: false })
     .where(eq(reviews.id, id))
     .returning({ shopId: reviews.shopId });
-  if (row) await refreshShopRating(row.shopId);
+  if (row) {
+    await refreshShopRating(row.shopId);
+    await refreshShopPageById(row.shopId);
+  }
   revalidatePath("/admin");
   return { ok: true };
 }
@@ -137,4 +147,74 @@ export async function adminSetShopLoginEmail(id: string, email: string): Promise
   const result = await setPendingOwner(shop, email);
   if (result.ok) revalidatePath("/admin");
   return result;
+}
+
+/**
+ * Deletes a shop for good: the shop with its items, categories, orders, reviews and reports
+ * (all removed by the database with the shop), the owner's login, and every photo in storage.
+ * `confirmSlug` must match the shop's link, so a stray click cannot do this.
+ */
+export async function adminDeleteShop(id: string, confirmSlug: string): Promise<ActionResult> {
+  const admin = await requireAdmin();
+  if (!z.uuid().safeParse(id).success) return { ok: false, error: "Shop not found." };
+
+  const [shop] = await db.select().from(shops).where(eq(shops.id, id)).limit(1);
+  if (!shop) return { ok: false, error: "Shop not found." };
+  if (confirmSlug.trim().toLowerCase() !== shop.slug) {
+    return { ok: false, error: `Type the shop link "${shop.slug}" exactly to delete it.` };
+  }
+  if (shop.ownerId === admin.id) return { ok: false, error: "You cannot delete your own shop from here." };
+
+  // Every photo the shop shows: logo, owner photo, shop photos and item photos.
+  const itemRows = await db.select({ urls: items.imageUrls }).from(items).where(eq(items.shopId, id));
+  const urls = [
+    ...new Set(
+      [shop.logoUrl, shop.ownerPhotoUrl, ...shop.shopPhotoUrls, ...itemRows.flatMap((row) => row.urls)].filter(
+        (url): url is string => !!url && isMediaUrl(url),
+      ),
+    ),
+  ];
+
+  // Keep any file another shop also shows (a copied photo link).
+  let keep = new Set<string>();
+  if (urls.length > 0) {
+    const [otherShops, otherItems] = await Promise.all([
+      db
+        .select({ logoUrl: shops.logoUrl, ownerPhotoUrl: shops.ownerPhotoUrl, shopPhotoUrls: shops.shopPhotoUrls })
+        .from(shops)
+        .where(
+          and(
+            ne(shops.id, id),
+            or(inArray(shops.logoUrl, urls), inArray(shops.ownerPhotoUrl, urls), arrayOverlaps(shops.shopPhotoUrls, urls)),
+          ),
+        ),
+      db
+        .select({ urls: items.imageUrls })
+        .from(items)
+        .where(and(ne(items.shopId, id), arrayOverlaps(items.imageUrls, urls))),
+    ]);
+    keep = new Set(
+      [
+        ...otherShops.flatMap((s) => [s.logoUrl, s.ownerPhotoUrl, ...s.shopPhotoUrls]),
+        ...otherItems.flatMap((row) => row.urls),
+      ].filter((url): url is string => !!url),
+    );
+  }
+
+  await db.transaction(async (tx) => {
+    await tx.delete(shops).where(eq(shops.id, id));
+    // The login goes too; its sessions and push subscriptions follow it.
+    await tx.delete(user).where(eq(user.id, shop.ownerId));
+  });
+
+  const paths = urls
+    .filter((url) => !keep.has(url))
+    .map(mediaPathOf)
+    .filter((path): path is string => path !== null);
+  if (paths.length > 0) await deleteObjects(paths);
+
+  revalidatePath("/admin");
+  revalidatePath(`/${shop.slug}`);
+  refreshShopPage(shop.slug);
+  return { ok: true };
 }

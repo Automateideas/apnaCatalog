@@ -2,6 +2,7 @@
 
 import { createHash, timingSafeEqual } from "node:crypto";
 import { revalidatePath } from "next/cache";
+import { refreshShopPage } from "@/lib/shop-data";
 import { and, count, eq, gte } from "drizzle-orm";
 import { z } from "zod";
 import { db } from "@/db";
@@ -102,6 +103,7 @@ export async function submitReview(
 
   await refreshShopRating(shop.id);
   revalidatePath(`/${data.slug}`);
+  refreshShopPage(data.slug);
   return { ok: true, data: { updated: Boolean(existing) } };
 }
 

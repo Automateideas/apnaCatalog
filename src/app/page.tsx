@@ -10,7 +10,7 @@ import { ShopList, ShopViewToggle } from "@/components/ShopList";
 import { SiteFooter, SiteHeader } from "@/components/SiteChrome";
 import { getUser } from "@/lib/auth";
 import { BUSINESS_TYPES, FREE_ITEM_LIMIT, getBusinessType, PLANS } from "@/lib/catalog-config";
-import { listedShop, paidNow } from "@/lib/shop-stats";
+import { listedShop, paidNow, shopRankScore } from "@/lib/shop-stats";
 import { citySlugOf, cx, SITE_NAME, siteUrl } from "@/lib/utils";
 import { Input } from "@/components/ui/input";
 import { NativeSelect } from "@/components/ui/native-select";
@@ -52,7 +52,7 @@ async function loadShops(filters: { city: string; type: string; q: string; page:
       })
       .from(shops)
       .where(where)
-      .orderBy(desc(paidNow), desc(shops.ratingCount), desc(shops.createdAt))
+      .orderBy(desc(shopRankScore))
       .limit(PAGE_SIZE + 1)
       .offset((filters.page - 1) * PAGE_SIZE),
     db

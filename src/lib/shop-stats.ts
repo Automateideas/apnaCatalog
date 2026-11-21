@@ -35,3 +35,16 @@ export const listedShop = and(
 /** True while a paid plan is active. Paid shops are featured first. */
 /** Plans that are featured on the home page (Pro and Business; "paid" is the old name of Pro). */
 export const paidNow = sql<boolean>`(${shops.plan} IN ('paid', 'pro', 'business') AND (${shops.planExpiresAt} IS NULL OR ${shops.planExpiresAt} > now()))`;
+
+/**
+ * Composite ranking score for the home page. Higher = shown first.
+ * Kept lightweight (no function calls) so Supabase's statement timeout is never hit.
+ */
+export const shopRankScore = sql<number>`(
+  CASE WHEN ${paidNow} THEN 40 ELSE 0 END
+  + CASE WHEN ${shops.ratingCount} > 0
+      THEN (${shops.ratingSum}::float / ${shops.ratingCount}) * LEAST(${shops.ratingCount}, 50) * 0.1
+      ELSE 0
+    END
+  + LEAST(${shops.itemCount}, 30) * 0.3
+)`;

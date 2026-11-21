@@ -14,6 +14,7 @@ import { LoginEmailButton } from "./LoginEmailButton";
 import { PushToggle } from "@/components/PushToggle";
 import { OpenReports } from "./OpenReports";
 import { PlanDateButton } from "./PlanDateButton";
+import { DeleteShopButton } from "./DeleteShopButton";
 import { Logo } from "@/components/SiteChrome";
 import { Stars } from "@/components/Stars";
 import { requireAdmin } from "@/lib/auth";
@@ -292,6 +293,7 @@ export default async function AdminPage({ searchParams }: PageProps<"/admin">) {
                             shopName={shop.name}
                             pendingEmail={shop.pendingOwnerEmail}
                           />
+                          <DeleteShopButton shopId={shop.id} shopName={shop.name} slug={shop.slug} />
                         </div>
                       </TableCell>
                     </TableRow>
