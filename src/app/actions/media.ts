@@ -5,6 +5,7 @@ import { getShopByOwner, getUser } from "@/lib/auth";
 import { removeUnusedMedia } from "@/lib/media";
 import { deleteObjects, signedUploadUrl } from "@/lib/r2";
 import { mediaPathOf, mediaUrlOf } from "@/lib/media-url";
+import { slugify } from "@/lib/utils";
 
 /** Photos are shrunk in the browser first (about 250 KB); this is the hard limit. */
 const MAX_BYTES = 2 * 1024 * 1024;
@@ -13,7 +14,18 @@ const TYPES = { "image/webp": "webp", "image/jpeg": "jpg" } as const;
 const uploadInput = z.object({
   contentType: z.enum(["image/webp", "image/jpeg"]),
   size: z.number().int().min(1).max(MAX_BYTES),
+  folder: z.string().max(200).optional(),
 });
+
+/**
+ * The sub-folder inside the shop's folder, so photos are easy to find in R2:
+ * "logo", "owner", "shop-photos" or "items/<item-name>". Anything else goes to "other".
+ */
+function subFolder(folder: string | undefined): string {
+  if (folder === "logo" || folder === "owner" || folder === "shop-photos") return folder;
+  if (folder?.startsWith("items/")) return `items/${slugify(folder.slice(6)) || "item"}`;
+  return "other";
+}
 
 /**
  * A short-lived link to upload one photo straight to R2, into the user's own folder.
@@ -27,8 +39,11 @@ export async function signPhotoUpload(
   const parsed = uploadInput.safeParse(raw);
   if (!parsed.success) return { ok: false, error: "Only JPG or WebP photos up to 2 MB can be uploaded." };
 
-  const { contentType, size } = parsed.data;
-  const path = `${user.id}/${crypto.randomUUID()}.${TYPES[contentType]}`;
+  const { contentType, size, folder } = parsed.data;
+  // "<shop-link>/<sub-folder>/<file>". Before the shop exists: "new/<login id>/<file>".
+  const shop = await getShopByOwner(user.id);
+  const base = shop ? `${shop.slug}/${subFolder(folder)}` : `new/${user.id}`;
+  const path = `${base}/${crypto.randomUUID()}.${TYPES[contentType]}`;
   try {
     const uploadUrl = await signedUploadUrl(path, contentType, size);
     return { ok: true, uploadUrl, publicUrl: mediaUrlOf(path) };
@@ -54,9 +69,12 @@ export async function discardPhotos(raw: unknown): Promise<void> {
     await removeUnusedMedia(shop.id, urls.data);
     return;
   }
-  // No shop yet (first-time setup): only the user's own folder.
+  // No shop yet (first-time setup): only the user's own folders.
   const paths = urls.data
     .map(mediaPathOf)
-    .filter((path): path is string => path !== null && path.startsWith(`${user.id}/`));
+    .filter(
+      (path): path is string =>
+        path !== null && (path.startsWith(`new/${user.id}/`) || path.startsWith(`${user.id}/`)),
+    );
   if (paths.length > 0) await deleteObjects(paths);
 }

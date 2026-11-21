@@ -547,7 +547,7 @@ export function Catalog({ shop, look, items, categories, mode = "cart" }: Props)
 
       {cartCount > 0 && !cartOpen && (
         <div className="no-print fixed inset-x-0 bottom-0 z-20 border-t border-(--t-border) bg-(--t-surface) p-3 shadow-[0_-4px_16px_rgba(0,0,0,0.12)]">
-          <div className="mx-auto flex w-full max-w-3xl items-center justify-between gap-3">
+          <div className="mx-auto flex w-full max-w-5xl items-center justify-between gap-3">
             <div>
               <p className="text-sm text-(--t-muted)">
                 {cartCount} {cartCount === 1 ? "item" : "items"}

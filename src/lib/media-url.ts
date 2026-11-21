@@ -1,4 +1,4 @@
-/** Public address of the photo bucket (Cloudflare R2). Photos live at "<base>/<userId>/<file>". */
+/** Public address of the photo bucket (Cloudflare R2). Photos live at "<base>/<shop-link>/<folder>/<file>". */
 export const MEDIA_BASE_URL = (process.env.NEXT_PUBLIC_MEDIA_BASE_URL ?? "").replace(/\/+$/, "");
 
 /**

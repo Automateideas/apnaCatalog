@@ -14,13 +14,16 @@ import { Icon } from "@/components/Icon";
 import { Alert } from "@/components/ui/alert";
 import { Card } from "@/components/ui/card";
 import { buttonVariants } from "@/components/ui/button";
+import { visitingCardPath } from "@/lib/visiting-card";
 import { InviteCard } from "./InviteCard";
+import { VisitingCard } from "./VisitingCard";
 
 export default async function DashboardHome({ searchParams }: PageProps<"/dashboard">) {
   const { shop } = await requireShop();
   const { welcome } = await searchParams;
 
   const shopUrl = `${siteUrl()}/${shop.slug}`;
+  const shareText = `See the catalog of ${shop.name} and order on WhatsApp:\n${shopUrl}`;
   const reviewUrl = `${shopUrl}/review?t=${shop.reviewToken}`;
 
   const [[{ orderCount }], qrSvg, qrPng] = await Promise.all([
@@ -99,7 +102,7 @@ export default async function DashboardHome({ searchParams }: PageProps<"/dashbo
         <div className="mt-3 flex flex-wrap gap-2">
           <CopyButton text={shopUrl} />
           <a
-            href={waShareLink(`See the catalog of ${shop.name} and order on WhatsApp:\n${shopUrl}`)}
+            href={waShareLink(shareText)}
             target="_blank"
             rel="noopener noreferrer"
             className={buttonVariants({ variant: "whatsapp" })}
@@ -107,10 +110,20 @@ export default async function DashboardHome({ searchParams }: PageProps<"/dashbo
             Share on WhatsApp
           </a>
           <SendToNumberButton
-            text={`See the catalog of ${shop.name} and order on WhatsApp:\n${shopUrl}`}
+            text={shareText}
           />
         </div>
       </Card>
+
+      {/* The card is served from the public shop page, so a hidden shop has none. */}
+      {!shop.isHidden && (
+        <VisitingCard
+          src={visitingCardPath(shop)}
+          downloadSrc={visitingCardPath(shop, { download: true })}
+          fileName={`${shop.slug}-visiting-card.png`}
+          shareText={shareText}
+        />
+      )}
 
       <section className="grid grid-cols-3 gap-3">
         {[

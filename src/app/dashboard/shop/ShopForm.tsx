@@ -108,6 +108,7 @@ export function ShopForm({ initial }: { initial: Values }) {
         <h2 className="font-bold text-slate-900">Shop</h2>
         <ImageUpload
           label="Shop logo (also used as the app icon on customers' phones)"
+          folder="logo"
           kind="square"
           value={v.logoUrl}
           onChange={(url) => set("logoUrl", url)}
@@ -163,6 +164,7 @@ export function ShopForm({ initial }: { initial: Values }) {
         </p>
         <ItemPhotos
           label="Photos of your shop"
+          folder="shop-photos"
           hint={`Up to ${MAX_SHOP_PHOTOS} photos. The first one is shown first.`}
           max={MAX_SHOP_PHOTOS}
           value={v.shopPhotoUrls}
@@ -217,6 +219,7 @@ export function ShopForm({ initial }: { initial: Values }) {
         </p>
         <ImageUpload
           label="Your photo"
+          folder="owner"
           kind="square"
           round
           value={v.ownerPhotoUrl}

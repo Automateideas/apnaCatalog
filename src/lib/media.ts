@@ -12,7 +12,8 @@ import { isMediaUrl, mediaPathOf } from "@/lib/media-url";
  * It never throws: a photo that could not be deleted only wastes a little space,
  * and that must not undo a save that already worked.
  *
- * Only files in the folder of the user who owns the shop now are deleted, so a URL copied from
+ * Only files in the shop's own folder ("<shop-link>/...") or the folder of the login that owns
+ * the shop now (older photos, "<login id>/...") are deleted, so a URL copied from
  * another shop can never remove that shop's photo. (Photos uploaded by a previous owner of a
  * shop that changed its login email therefore stay behind.)
  */
@@ -26,6 +27,7 @@ export async function removeUnusedMedia(shopId: string, urls: (string | null | u
       db
         .select({
           ownerId: shops.ownerId,
+        slug: shops.slug,
           logoUrl: shops.logoUrl,
           ownerPhotoUrl: shops.ownerPhotoUrl,
           shopPhotoUrls: shops.shopPhotoUrls,
@@ -49,7 +51,11 @@ export async function removeUnusedMedia(shopId: string, urls: (string | null | u
     const paths = candidates
       .filter((url) => !stillUsed.has(url))
       .map(mediaPathOf)
-      .filter((path): path is string => path !== null && path.startsWith(`${shop.ownerId}/`));
+      .filter(
+        (path): path is string =>
+          path !== null &&
+          [`${shop.slug}/`, `new/${shop.ownerId}/`, `${shop.ownerId}/`].some((prefix) => path.startsWith(prefix)),
+      );
     if (paths.length > 0) await deleteObjects(paths);
   } catch (error) {
     console.error("Could not delete photos from storage:", error);

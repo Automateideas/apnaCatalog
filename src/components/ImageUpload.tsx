@@ -10,12 +10,15 @@ export function ImageUpload({
   value,
   onChange,
   kind,
+  folder,
   label,
   round = false,
 }: {
   value: string | null;
   onChange: (url: string | null) => void;
   kind: PhotoKind;
+  /** Where the photo goes inside the shop's folder in storage, e.g. "logo". */
+  folder?: string;
   label: string;
   round?: boolean;
 }) {
@@ -28,7 +31,7 @@ export function ImageUpload({
     setError(null);
     setBusy(true);
     try {
-      onChange(await uploadPhoto(file, kind));
+      onChange(await uploadPhoto(file, kind, folder));
     } catch (e) {
       console.error(e);
       setError("Could not upload this photo. Try a JPG or PNG photo.");

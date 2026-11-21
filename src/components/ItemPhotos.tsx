@@ -20,10 +20,13 @@ export function ItemPhotos({
   onAdd,
   onChange,
   onBusyChange,
+  folder,
   max = MAX_ITEM_PHOTOS,
   label = "Photos",
   hint = `Up to ${max} photos. Customers see the main photo first.`,
 }: {
+  /** Where the photos go inside the shop's folder in storage, e.g. "items/Red saree". */
+  folder?: string;
   /** Most photos allowed. */
   max?: number;
   label?: string;
@@ -69,7 +72,7 @@ export function ItemPhotos({
     setProgress({ done: 0, total: files.length });
     for (const [index, file] of files.entries()) {
       try {
-        const url = await uploadPhoto(file, "item");
+        const url = await uploadPhoto(file, "item", folder);
         // The form was closed while this was uploading: nothing will ever use the file.
         if (!mounted.current) {
           void discardUploads([url]);

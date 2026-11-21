@@ -2,7 +2,7 @@ import { Skeleton } from "@/components/ui/skeleton";
 
 export default function ShopLoading() {
   return (
-    <div className="mx-auto w-full max-w-3xl px-4 py-6">
+    <div className="mx-auto w-full max-w-5xl px-4 py-6">
       {/* Shop header */}
       <div className="flex items-center gap-4">
         <Skeleton className="size-16 rounded-xl" />

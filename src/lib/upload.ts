@@ -56,12 +56,13 @@ async function compress(file: File, kind: PhotoKind): Promise<{ blob: Blob; ext:
 const TARGET_BYTES = 250 * 1024;
 
 /**
- * Shrinks one photo and uploads it straight to R2 (into the user's own folder, chosen by the
- * server). Returns its public URL.
+ * Shrinks one photo and uploads it straight to R2. `folder` is a hint for where it goes inside
+ * the shop's folder ("logo", "owner", "shop-photos", "items/<item name>"); the server decides.
+ * Returns its public URL.
  */
-export async function uploadPhoto(file: File, kind: PhotoKind): Promise<string> {
+export async function uploadPhoto(file: File, kind: PhotoKind, folder?: string): Promise<string> {
   const { blob } = await compress(file, kind);
-  const signed = await signPhotoUpload({ contentType: blob.type, size: blob.size });
+  const signed = await signPhotoUpload({ contentType: blob.type, size: blob.size, folder });
   if (!signed.ok) throw new Error(signed.error);
   const res = await fetch(signed.uploadUrl, { method: "PUT", body: blob, headers: { "content-type": blob.type } });
   if (!res.ok) throw new Error(`Upload failed (${res.status})`);

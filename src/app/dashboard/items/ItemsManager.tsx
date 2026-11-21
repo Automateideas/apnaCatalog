@@ -519,6 +519,7 @@ export function ItemsManager({
 
             <div className="flex-1 space-y-4 overflow-y-auto px-5 py-4">
               <ItemPhotos
+                folder={`items/${draft.name}`}
                 max={Math.max(photoLimit, draft.savedImageUrls.length)}
                 value={draft.imageUrls}
                 savedUrls={draft.savedImageUrls}

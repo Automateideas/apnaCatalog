@@ -56,7 +56,7 @@ function HeaderBody({ theme, name, logoUrl, subtitle, description, rating, ratin
   switch (theme.header) {
     case "center":
       return (
-        <header className="mx-auto w-full max-w-3xl px-4 pt-8 pb-2 text-center">
+        <header className="mx-auto w-full max-w-5xl px-4 pt-8 pb-2 text-center">
           {logo("mx-auto h-24 w-24 text-3xl ring-2 ring-(--p) ring-offset-4 ring-offset-(--t-bg)", true)}
           <h1 className="t-head mt-4 text-3xl leading-tight text-(--t-text) sm:text-4xl">{name}</h1>
           <p className="mt-1 text-sm text-(--t-muted)">{subtitle}</p>
@@ -85,7 +85,7 @@ function HeaderBody({ theme, name, logoUrl, subtitle, description, rating, ratin
               "radial-gradient(120% 90% at 100% 0%, color-mix(in oklab, var(--p) 55%, transparent), transparent 60%), linear-gradient(160deg, #0b0f19, #121a2b)",
           }}
         >
-          <div className="mx-auto w-full max-w-3xl px-4 pt-8 pb-10">
+          <div className="mx-auto w-full max-w-5xl px-4 pt-8 pb-10">
             <div className="flex items-center gap-4">
               {logo("h-16 w-16 border border-white/20 text-xl")}
               <p className="text-sm text-white/75">{subtitle}</p>
@@ -113,7 +113,7 @@ function HeaderBody({ theme, name, logoUrl, subtitle, description, rating, ratin
           <div className="absolute inset-0 -z-10 bg-linear-to-t from-black/85 via-black/45 to-black/10" />
           <div
             className={cx(
-              "mx-auto w-full max-w-3xl px-4 pt-28 pb-7 sm:pt-40",
+              "mx-auto w-full max-w-5xl px-4 pt-28 pb-7 sm:pt-40",
               theme.center && "flex flex-col items-center text-center",
             )}
           >
@@ -135,7 +135,7 @@ function HeaderBody({ theme, name, logoUrl, subtitle, description, rating, ratin
 
     case "minimal":
       return (
-        <header className="mx-auto w-full max-w-3xl px-4 pt-8 pb-4 text-center">
+        <header className="mx-auto w-full max-w-5xl px-4 pt-8 pb-4 text-center">
           {logoUrl && logo("mx-auto mb-4 h-14 w-14 text-base")}
           <div className="border-y border-(--t-text) py-4">
             <h1 className="t-head text-2xl tracking-[0.18em] text-(--t-text) uppercase sm:text-3xl">{name}</h1>
@@ -150,7 +150,7 @@ function HeaderBody({ theme, name, logoUrl, subtitle, description, rating, ratin
       return (
         <header className="border-b border-(--t-border) bg-(--t-surface)">
           <div className="h-1.5 bg-(--p)" />
-          <div className="mx-auto w-full max-w-3xl px-4 py-5">
+          <div className="mx-auto w-full max-w-5xl px-4 py-5">
             <div className="flex items-center gap-4">
               {logo("h-16 w-16 text-xl")}
               <div className="min-w-0">
@@ -177,7 +177,7 @@ function HeaderBody({ theme, name, logoUrl, subtitle, description, rating, ratin
           {theme.decor === "confetti" && (
             <div className="t-confetti pointer-events-none absolute inset-0 opacity-40" aria-hidden="true" />
           )}
-          <div className={cx("relative mx-auto w-full max-w-3xl px-4 pt-6 sm:pt-8", theme.decor === "hazard" ? "pb-6" : "pb-10")}>
+          <div className={cx("relative mx-auto w-full max-w-5xl px-4 pt-6 sm:pt-8", theme.decor === "hazard" ? "pb-6" : "pb-10")}>
             <div className="flex items-center gap-4">
               {logo("h-20 w-20 border-2 border-white/70 text-2xl shadow")}
               <div className="min-w-0">

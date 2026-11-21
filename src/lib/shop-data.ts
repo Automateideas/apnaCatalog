@@ -89,6 +89,9 @@ function revive(data: ShopPageData): ShopPageData {
 /** Everything the public shop page shows, or null when the shop does not exist or is hidden. */
 export const getShopPage = cache(async (slug: string): Promise<ShopPageData | null> => {
   if (!SLUG_PATTERN.test(slug)) return null;
+  // Not cached in local development: the local app and the live site share one database, and a
+  // change saved on the live site would not refresh the local cache.
+  if (process.env.NODE_ENV === "development") return loadShopPage(slug);
   const data = await unstable_cache(() => loadShopPage(slug), ["shop-page", CACHE_VERSION, slug], {
     tags: [shopTag(slug)],
     revalidate: 3600,

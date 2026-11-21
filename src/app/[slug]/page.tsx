@@ -16,6 +16,7 @@ import { isPropertyShop } from "@/lib/property";
 import { resolveTheme } from "@/lib/themes";
 import { cx } from "@/lib/utils";
 import { getPublicShop, getShopPage } from "@/lib/shop-data";
+import { CARD_SIZE, visitingCardPath } from "@/lib/visiting-card";
 import { directionsUrl, formatDate, SITE_NAME, siteUrl, waLink } from "@/lib/utils";
 import { Icon } from "@/components/Icon";
 import { buttonVariants } from "@/components/ui/button";
@@ -34,8 +35,8 @@ export async function generateMetadata({ params }: PageProps<"/[slug]">): Promis
   const description =
     shop.description ||
     `See the catalog and prices of ${shop.name}, ${shop.city}. Order on WhatsApp.`;
-  // Link previews (WhatsApp, Facebook): the first shop photo when there is one, else the shop icon.
-  const cover = shop.shopPhotoUrls[0];
+  // Link previews (WhatsApp, Facebook) show the shop's visiting card, drawn in its own theme.
+  const card = visitingCardPath(shop);
   return {
     title: { absolute: title },
     description,
@@ -50,11 +51,9 @@ export async function generateMetadata({ params }: PageProps<"/[slug]">): Promis
       title,
       description,
       url: `/${shop.slug}`,
-      images: cover
-        ? [{ url: cover, alt: shop.name }]
-        : [{ url: `/${shop.slug}/icon?size=512`, width: 512, height: 512, alt: shop.name }],
+      images: [{ url: card, ...CARD_SIZE, alt: `${shop.name} visiting card`, type: "image/png" }],
     },
-    twitter: { card: cover ? "summary_large_image" : "summary" },
+    twitter: { card: "summary_large_image", images: [card] },
   };
 }
 
@@ -140,7 +139,7 @@ export default async function ShopPage({ params }: PageProps<"/[slug]">) {
         coverUrl={shop.shopPhotoUrls[0] ?? null}
       />
 
-      <main className="mx-auto w-full max-w-3xl flex-1 px-4 pb-10">
+      <main className="mx-auto w-full max-w-5xl flex-1 px-4 pb-10">
         <div
           className={cx(
             "no-print relative z-10 grid gap-2 whitespace-nowrap",
