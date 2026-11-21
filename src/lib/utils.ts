@@ -4,7 +4,11 @@ export function siteUrl(): string {
   // On Vercel, fall back to the production domain, so canonical links and the sitemap never
   // point at localhost when NEXT_PUBLIC_SITE_URL is missing.
   const vercel = process.env.NEXT_PUBLIC_VERCEL_PROJECT_PRODUCTION_URL || process.env.VERCEL_PROJECT_PRODUCTION_URL;
-  return (process.env.NEXT_PUBLIC_SITE_URL || (vercel ? `https://${vercel}` : "http://localhost:3210")).replace(
+  let configured = process.env.NEXT_PUBLIC_SITE_URL;
+  // A localhost value copied from .env.local into Vercel would send the Google login back
+  // to localhost; ignore it there.
+  if (vercel && configured && /\/\/(localhost|127\.0\.0\.1)/.test(configured)) configured = undefined;
+  return (configured || (vercel ? `https://${vercel}` : "http://localhost:3210")).replace(
     /\/+$/,
     "",
   );

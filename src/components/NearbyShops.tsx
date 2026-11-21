@@ -3,7 +3,7 @@
 import { useEffect, useState } from "react";
 import { Loader2, LocateFixed, MapPin, X } from "lucide-react";
 import { toast } from "sonner";
-import { nearbyShops, type NearbyShop } from "@/app/actions/nearby";
+import { nearbyShops, type DetectedCity, type NearbyShop } from "@/app/actions/nearby";
 import { ShopList } from "@/components/ShopList";
 import { Button } from "@/components/ui/button";
 import {
@@ -32,6 +32,7 @@ export function NearbyShops({
 }) {
   const [state, setState] = useState<"off" | "locating" | "on">("off");
   const [list, setList] = useState<NearbyShop[]>([]);
+  const [detectedCity, setDetectedCity] = useState<DetectedCity | null>(null);
   const [roads, setRoads] = useState<Map<string, Road>>(new Map());
 
   const start = async () => {
@@ -51,6 +52,7 @@ export function NearbyShops({
       return;
     }
     setList(result.shops);
+    setDetectedCity(result.detectedCity ?? null);
     setRoads(new Map());
     setState("on");
     // If Mapbox fails, the straight-line distance simply stays.
@@ -95,9 +97,17 @@ export function NearbyShops({
       {state !== "on" && children}
 
       {state === "on" && sorted.length === 0 && (
-        <p className="mt-4 rounded-xl border border-dashed border-slate-300 p-6 text-center text-sm text-slate-600">
-          No shops with a map location match this search yet.
-        </p>
+        <div className="mt-4 rounded-xl border border-dashed border-slate-300 p-6 text-center text-sm text-slate-600">
+          <p>No shops with a map location near you yet.</p>
+          {detectedCity && (
+            <a
+              href={`/?city=${encodeURIComponent(detectedCity.citySlug)}`}
+              className="mt-2 inline-block font-semibold text-brand hover:underline"
+            >
+              See all shops in {detectedCity.city}
+            </a>
+          )}
+        </div>
       )}
 
       {state === "on" && sorted.length > 0 && (

@@ -22,7 +22,12 @@ export const isAuthConfigured = () =>
 export const auth = betterAuth({
   baseURL: siteUrl(),
   secret: process.env.BETTER_AUTH_SECRET,
-  trustedOrigins: [siteUrl(), "http://localhost:3210"],
+  trustedOrigins: [
+    siteUrl(),
+    "http://localhost:3210",
+    // Vercel preview and branch links, so the login form can at least start there.
+    ...[process.env.VERCEL_PROJECT_PRODUCTION_URL, process.env.VERCEL_URL, process.env.VERCEL_BRANCH_URL].filter(Boolean).map((host) => `https://${host}`),
+  ],
   database: drizzleAdapter(db, { provider: "pg", schema: { user, session, account, verification } }),
   advanced: { database: { generateId: "uuid" } },
   socialProviders: {

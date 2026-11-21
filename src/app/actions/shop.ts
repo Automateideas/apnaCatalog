@@ -22,6 +22,7 @@ import {
 import { removeUnusedMedia } from "@/lib/media";
 import { getTheme, themeForType } from "@/lib/themes";
 import { isMediaUrl } from "@/lib/media-url";
+import { extractCoordsFromMapsUrl } from "@/lib/geo";
 import {
   citySlugOf,
   normalizePhone,
@@ -216,6 +217,16 @@ export async function updateShop(input: z.input<typeof updateSchema>): Promise<A
   // Keep the old layout column in step with the type, for older app versions.
   const newType = getBusinessType(data.businessType);
 
+  let lat = data.lat ?? null;
+  let lng = data.lng ?? null;
+  if (lat == null && lng == null && data.mapsUrl) {
+    const extracted = await extractCoordsFromMapsUrl(data.mapsUrl).catch(() => null);
+    if (extracted) {
+      lat = extracted.lat;
+      lng = extracted.lng;
+    }
+  }
+
   await db
     .update(shops)
     .set({
@@ -233,8 +244,8 @@ export async function updateShop(input: z.input<typeof updateSchema>): Promise<A
       logoUrl: ownMedia(data.logoUrl),
       ownerPhotoUrl: ownMedia(data.ownerPhotoUrl),
       shopPhotoUrls,
-      lat: data.lat ?? null,
-      lng: data.lng ?? null,
+      lat,
+      lng,
       mapsUrl: data.mapsUrl ?? null,
       updatedAt: new Date(),
     })
