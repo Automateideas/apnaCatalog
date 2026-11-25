@@ -1,6 +1,8 @@
 /* Apnacatalog service worker: makes the site installable and lets
    already-visited catalogs open without internet. */
-const CACHE = "apnacatalog-v2";
+const CACHE = "apnacatalog-v3";
+const IMG_CACHE = "apnacatalog-images-v1";
+const IMG_MAX_AGE = 7 * 24 * 60 * 60 * 1000; // 7 days
 const OFFLINE_URL = "/offline";
 const PRIVATE = ["/dashboard", "/admin", "/auth", "/login", "/o/"];
 
@@ -17,7 +19,9 @@ self.addEventListener("activate", (event) => {
   event.waitUntil(
     caches
       .keys()
-      .then((keys) => Promise.all(keys.filter((k) => k !== CACHE).map((k) => caches.delete(k))))
+      .then((keys) =>
+        Promise.all(keys.filter((k) => k !== CACHE && k !== IMG_CACHE).map((k) => caches.delete(k))),
+      )
       .then(() => self.clients.claim()),
   );
 });
@@ -26,7 +30,11 @@ self.addEventListener("fetch", (event) => {
   const request = event.request;
   if (request.method !== "GET") return;
   const url = new URL(request.url);
-  if (url.origin !== self.location.origin) return;
+  // Allow cross-origin image requests (R2) to be intercepted; skip other cross-origin.
+  const isCrossOriginImage =
+    url.origin !== self.location.origin &&
+    /\.(jpe?g|png|webp|avif|gif|svg)(\?|$)/i.test(url.pathname);
+  if (url.origin !== self.location.origin && !isCrossOriginImage) return;
 
   // Build files never change for a given name: serve from cache first.
   if (url.pathname.startsWith("/_next/static/")) {
@@ -42,6 +50,36 @@ self.addEventListener("fetch", (event) => {
             return response;
           }),
       ),
+    );
+    return;
+  }
+
+  // Cache R2 media images and /_next/image (optimized images): cache-first with 7-day expiry.
+  const isImage =
+    url.pathname.startsWith("/_next/image") ||
+    (url.origin !== self.location.origin && /\.(jpe?g|png|webp|avif|gif|svg)(\?|$)/i.test(url.pathname));
+  if (isImage) {
+    event.respondWith(
+      caches.open(IMG_CACHE).then(async (cache) => {
+        const hit = await cache.match(request);
+        if (hit) {
+          const cached = hit.headers.get("sw-cached-at");
+          if (!cached || Date.now() - Number(cached) < IMG_MAX_AGE) return hit;
+        }
+        try {
+          const response = await fetch(request);
+          if (response.ok) {
+            const headers = new Headers(response.headers);
+            headers.set("sw-cached-at", String(Date.now()));
+            const body = await response.arrayBuffer();
+            cache.put(request, new Response(body, { status: response.status, headers }));
+            return new Response(body, { status: response.status, headers: response.headers });
+          }
+          return hit || response;
+        } catch {
+          return hit || Response.error();
+        }
+      }),
     );
     return;
   }

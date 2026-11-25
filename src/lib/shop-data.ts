@@ -13,7 +13,7 @@ import { SLUG_PATTERN } from "@/lib/utils";
  *
  * Bump CACHE_VERSION when the shape below changes: cached entries outlive a deployment.
  */
-const CACHE_VERSION = "v1";
+const CACHE_VERSION = "v2";
 const shopTag = (slug: string) => `shop:${slug}`;
 
 async function loadShopPage(slug: string) {
@@ -46,6 +46,7 @@ async function loadShopPage(slug: string) {
         details: items.details,
         inStock: items.inStock,
         categoryId: items.categoryId,
+        createdAt: items.createdAt,
       })
       .from(items)
       .where(eq(items.shopId, shop.id))
@@ -82,6 +83,7 @@ function revive(data: ShopPageData): ShopPageData {
   return {
     ...data,
     shop,
+    items: data.items.map((item) => ({ ...item, createdAt: toDate(item.createdAt)! })),
     reviews: data.reviews.map((review) => ({ ...review, updatedAt: toDate(review.updatedAt)! })),
   };
 }

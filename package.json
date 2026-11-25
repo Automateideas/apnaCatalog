@@ -16,6 +16,7 @@
   "dependencies": {
     "@base-ui/react": "^1.9.0",
     "@tailwindcss/postcss": "^4.3.5",
+    "@tanstack/react-table": "^8.21.3",
     "@vercel/speed-insights": "^2.1.0",
     "aws4fetch": "^1.0.20",
     "better-auth": "^1.7.15",
@@ -25,7 +26,7 @@
     "embla-carousel-autoplay": "^8.6.0",
     "embla-carousel-react": "^8.6.0",
     "lucide-react": "^1.73.0",
-    "next": "16.4.6",
+    "next": "^16.4.6",
     "pnpm": "^12.21.0",
     "postcss": "^8.5.33",
     "postgres": "^4.1.1",

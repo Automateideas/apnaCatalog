@@ -3,6 +3,7 @@
 import { useEffect, useState } from "react";
 import { Loader2, LocateFixed, MapPin, X } from "lucide-react";
 import { toast } from "sonner";
+
 import { nearbyShops, type DetectedCity, type DetectedLocality, type NearbyShop } from "@/app/actions/nearby";
 import { ShopList } from "@/components/ShopList";
 import { Button } from "@/components/ui/button";
@@ -30,6 +31,7 @@ export function NearbyShops({
   q: string;
   children: React.ReactNode;
 }) {
+
   const [state, setState] = useState<"off" | "locating" | "on">("off");
   const [list, setList] = useState<NearbyShop[]>([]);
   const [detectedCity, setDetectedCity] = useState<DetectedCity | null>(null);

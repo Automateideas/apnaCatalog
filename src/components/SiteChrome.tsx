@@ -1,5 +1,7 @@
 import Link from "next/link";
 import { SITE_NAME } from "@/lib/utils";
+import { DarkModeToggle } from "@/components/DarkModeToggle";
+
 import { SiteNav } from "@/components/SiteNav";
 
 export function Logo({ className = "" }: { className?: string }) {
@@ -7,7 +9,7 @@ export function Logo({ className = "" }: { className?: string }) {
     <Link
       href="/"
       aria-label={SITE_NAME}
-      className={`inline-flex items-center gap-2 text-[#1B2340] ${className}`}
+      className={`inline-flex items-center gap-2 text-[#1B2340] dark:text-slate-100 ${className}`}
     >
       {/* Same mark as public/icon-light.svg, inlined so it never flashes in late. */}
       <svg aria-hidden="true" viewBox="0 0 100 100" className="h-8 w-8 shrink-0">
@@ -25,10 +27,13 @@ export function Logo({ className = "" }: { className?: string }) {
 
 export function SiteHeader({ signedIn }: { signedIn: boolean }) {
   return (
-    <header className="sticky top-0 z-30 border-b border-slate-200 bg-white/95 backdrop-blur">
-      <div className="mx-auto flex h-14 w-full max-w-6xl items-center justify-between px-4">
+    <header className="sticky top-0 z-30 border-b border-slate-200 bg-white/95 backdrop-blur dark:border-slate-700 dark:bg-slate-900/95">
+      <div className="mx-auto flex h-14 w-full max-w-6xl items-center justify-between px-4 sm:px-6">
         <Logo />
-        <SiteNav signedIn={signedIn} />
+        <div className="flex items-center gap-1">
+          <DarkModeToggle />
+          <SiteNav signedIn={signedIn} />
+        </div>
       </div>
     </header>
   );
@@ -36,22 +41,22 @@ export function SiteHeader({ signedIn }: { signedIn: boolean }) {
 
 export function SiteFooter() {
   return (
-    <footer className="no-print mt-auto border-t border-slate-200 bg-white">
-      <div className="mx-auto flex w-full max-w-6xl flex-col items-center justify-between gap-3 px-4 py-6 text-sm text-slate-500 sm:flex-row">
+    <footer className="no-print mt-auto border-t border-slate-200 bg-white dark:border-slate-700 dark:bg-slate-900">
+      <div className="mx-auto flex w-full max-w-6xl flex-col items-center justify-between gap-3 px-4 py-6 text-sm text-slate-500 dark:text-slate-400 sm:flex-row sm:px-6">
         <p>
           © {new Date().getFullYear()} {SITE_NAME}. Made for local businesses in India.
         </p>
         <nav className="flex gap-5">
-          <Link href="/pricing" className="hover:text-slate-900">
+          <Link href="/pricing" className="hover:text-slate-900 dark:hover:text-slate-100">
             Pricing
           </Link>
-          <Link href="/login" className="hover:text-slate-900">
+          <Link href="/login" className="hover:text-slate-900 dark:hover:text-slate-100">
             Login
           </Link>
-          <Link href="/privacy" className="hover:text-slate-900">
+          <Link href="/privacy" className="hover:text-slate-900 dark:hover:text-slate-100">
             Privacy
           </Link>
-          <Link href="/terms" className="hover:text-slate-900">
+          <Link href="/terms" className="hover:text-slate-900 dark:hover:text-slate-100">
             Terms
           </Link>
         </nav>

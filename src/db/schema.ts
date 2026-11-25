@@ -15,6 +15,13 @@ import {
   type AnyPgColumn,
 } from "drizzle-orm/pg-core";
 
+export type BusinessHour = {
+  day: string;
+  open: string;
+  close: string;
+  closed: boolean;
+};
+
 export type OrderLine = {
   itemId: string;
   name: string;
@@ -82,6 +89,12 @@ export const shops = pgTable(
     ratingCount: integer("rating_count").notNull().default(0),
     itemCount: integer("item_count").notNull().default(0),
     photoCount: integer("photo_count").notNull().default(0),
+    instagram: text("instagram"),
+    facebook: text("facebook"),
+    youtube: text("youtube"),
+    businessHours: jsonb("business_hours").$type<BusinessHour[]>(),
+    announcement: text("announcement"),
+    announcementActive: boolean("announcement_active").notNull().default(false),
     createdAt: timestamp("created_at", { withTimezone: true }).notNull().defaultNow(),
     updatedAt: timestamp("updated_at", { withTimezone: true }).notNull().defaultNow(),
   },
@@ -227,6 +240,22 @@ export const reports = pgTable(
 );
 
 export type Report = typeof reports.$inferSelect;
+
+export const pageViews = pgTable(
+  "page_views",
+  {
+    id: uuid("id").primaryKey().defaultRandom(),
+    shopId: uuid("shop_id")
+      .notNull()
+      .references(() => shops.id, { onDelete: "cascade" }),
+    path: text("path").notNull(),
+    referrer: text("referrer"),
+    createdAt: timestamp("created_at", { withTimezone: true }).notNull().defaultNow(),
+  },
+  (t) => [index("page_views_shop_idx").on(t.shopId, t.createdAt)],
+);
+
+export type PageView = typeof pageViews.$inferSelect;
 
 /** A browser that agreed to get push notifications for a login (Web Push). */
 export const pushSubscriptions = pgTable(

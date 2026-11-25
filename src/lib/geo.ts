@@ -4,14 +4,29 @@ import { citySlugOf } from "@/lib/utils";
 
 const MAPBOX_TOKEN = process.env.NEXT_PUBLIC_MAPBOX_TOKEN;
 
+const MAPS_URL_ALLOW =
+  /^https:\/\/(www\.)?google\.(com|co\.\w{2,3})\/(maps|url)|^https:\/\/maps\.app\.goo\.gl\//i;
+
 /** Try to pull lat/lng from a Google Maps URL — full or short (goo.gl). */
-export async function extractCoordsFromMapsUrl(url: string): Promise<{ lat: number; lng: number } | null> {
+export async function extractCoordsFromMapsUrl(
+  url: string,
+): Promise<{ lat: number; lng: number } | null> {
+  if (!MAPS_URL_ALLOW.test(url)) return null;
+
   const direct = parseCoordsFromUrl(url);
   if (direct) return direct;
 
   if (/maps\.app\.goo\.gl|goo\.gl\/maps/i.test(url)) {
     try {
-      const res = await fetch(url, { redirect: "follow", signal: AbortSignal.timeout(5000) });
+      const res = await fetch(url, {
+        redirect: "follow",
+        signal: AbortSignal.timeout(5000),
+      });
+      if (
+        !MAPS_URL_ALLOW.test(res.url) &&
+        !/google\.(com|co\.\w{2,3})/.test(new URL(res.url).hostname)
+      )
+        return null;
       return parseCoordsFromUrl(res.url);
     } catch {
       return null;
@@ -47,27 +62,47 @@ export type GeoLocation = {
 };
 
 /** Reverse-geocode a point to locality + city via Mapbox. */
-export async function reverseGeocode(lat: number, lng: number): Promise<GeoLocation | null> {
+export async function reverseGeocode(
+  lat: number,
+  lng: number,
+): Promise<GeoLocation | null> {
   if (!MAPBOX_TOKEN) return null;
+  if (!Number.isFinite(lat) || !Number.isFinite(lng)) return null;
   try {
-    const res = await fetch(
-      `https://api.mapbox.com/geocoding/v5/mapbox.places/${lng.toFixed(6)},${lat.toFixed(6)}.json?types=locality,neighborhood,place&language=en&access_token=${MAPBOX_TOKEN}`,
-      { signal: AbortSignal.timeout(5000) },
+    const endpoint = new URL(
+      `https://api.mapbox.com/geocoding/v5/mapbox.places/${lng.toFixed(6)},${lat.toFixed(6)}.json`,
     );
+    endpoint.searchParams.set("types", "locality,neighborhood,place");
+    endpoint.searchParams.set("language", "en");
+    endpoint.searchParams.set("access_token", MAPBOX_TOKEN);
+    const res = await fetch(endpoint.href, {
+      signal: AbortSignal.timeout(5000),
+    });
     if (!res.ok) return null;
-    const data = (await res.json()) as { features?: { place_type?: string[]; text?: string }[] };
+    const data = (await res.json()) as {
+      features?: { place_type?: string[]; text?: string }[];
+    };
     const features = data.features ?? [];
-    const locality = features.find((f) => f.place_type?.some((t) => t === "locality" || t === "neighborhood"))?.text;
+    const locality = features.find((f) =>
+      f.place_type?.some((t) => t === "locality" || t === "neighborhood"),
+    )?.text;
     const city = features.find((f) => f.place_type?.includes("place"))?.text;
     if (!locality && !city) return null;
-    return { locality: locality ?? undefined, city: city ?? undefined, citySlug: city ? citySlugOf(city) : undefined };
+    return {
+      locality: locality ?? undefined,
+      city: city ?? undefined,
+      citySlug: city ? citySlugOf(city) : undefined,
+    };
   } catch {
     return null;
   }
 }
 
 /** Reverse-geocode a point to a city name via Mapbox. */
-export async function reverseGeocodeCity(lat: number, lng: number): Promise<{ city: string; citySlug: string } | null> {
+export async function reverseGeocodeCity(
+  lat: number,
+  lng: number,
+): Promise<{ city: string; citySlug: string } | null> {
   const geo = await reverseGeocode(lat, lng);
   if (!geo?.city || !geo.citySlug) return null;
   return { city: geo.city, citySlug: geo.citySlug };

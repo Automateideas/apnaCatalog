@@ -82,10 +82,16 @@ function googleFont(family: string, weight: number, text: string): Promise<Array
 
 /* ---------- Pictures ---------- */
 
+const ALLOWED_IMAGE_HOSTS = new Set(
+  [process.env.NEXT_PUBLIC_MEDIA_BASE_URL].filter(Boolean).map((u) => new URL(u!).hostname),
+);
+
 /** A photo as a data URL, or null when it cannot be loaded in time. */
 async function imageData(url: string | null | undefined): Promise<string | null> {
   if (!url) return null;
   try {
+    const host = new URL(url).hostname;
+    if (!ALLOWED_IMAGE_HOSTS.has(host)) return null;
     const res = await fetch(url, { signal: AbortSignal.timeout(4000) });
     const type = res.headers.get("content-type") ?? "";
     if (!res.ok || !type.startsWith("image/")) return null;

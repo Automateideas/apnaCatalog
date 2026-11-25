@@ -1,3 +1,4 @@
+import Image from "next/image";
 import Link from "next/link";
 import { Avatar } from "@/components/Avatar";
 import { ratingOf, Stars } from "@/components/Stars";
@@ -64,8 +65,8 @@ export function ShopCard({
         href={`/${shop.slug}`}
         className="group relative flex min-w-0 flex-col overflow-hidden rounded-xl border bg-card hover:border-slate-400"
       >
-        <div className="aspect-4/3 w-full" style={{ background: color }}>
-          {shop.coverUrl && <img src={shop.coverUrl} alt="" loading="lazy" className="h-full w-full object-cover" />}
+        <div className="relative aspect-4/3 w-full" style={{ background: color }}>
+          {shop.coverUrl && <Image src={shop.coverUrl} alt="" fill sizes="(max-width: 640px) 100vw, 33vw" className="object-cover" />}
         </div>
         {featured}
         <div className="relative px-3 pt-8 pb-3">
@@ -115,7 +116,7 @@ export function ShopCard({
       {featured}
       <Avatar name={shop.name} src={shop.logoUrl} color={color} className="h-16 w-16 text-xl" />
       <div className="min-w-0 flex-1">
-        <h3 className="truncate pr-16 font-semibold text-slate-900 group-hover:text-brand">{shop.name}</h3>
+        <h3 className={cx("truncate font-semibold text-slate-900 group-hover:text-brand", shop.featured && "pr-16")}>{shop.name}</h3>
         <p className="mt-0.5 truncate text-sm text-slate-600">
           {type.name}, {shop.city}
         </p>

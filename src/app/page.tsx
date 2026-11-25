@@ -182,42 +182,42 @@ export default async function HomePage({ searchParams }: PageProps<"/">) {
       <SiteHeader signedIn={Boolean(user)} />
 
       <section className="bg-brand text-white">
-        <div className="mx-auto grid w-full max-w-6xl items-center gap-10 px-4 py-10 sm:py-14 lg:grid-cols-[1.15fr_0.85fr]">
+        <div className="mx-auto grid w-full max-w-6xl items-center gap-10 px-4 py-10 sm:px-6 sm:py-14 lg:grid-cols-[1.15fr_0.85fr]">
           <div>
-          <h1 className="max-w-xl text-4xl font-extrabold sm:text-5xl">
-            Your city&apos;s businesses, with prices, on your phone.
-          </h1>
-          <p className="mt-3 max-w-lg text-lg text-white/80">
-            Open any catalog, pick what you need, and connect with the business on WhatsApp.
-          </p>
+            <h1 className="max-w-xl text-4xl font-extrabold sm:text-5xl">
+              Your city&apos;s businesses, with prices, on your phone.
+            </h1>
+            <p className="mt-3 max-w-lg text-lg text-white/80">
+              Open any catalog, pick what you need, and connect with the business on WhatsApp.
+            </p>
 
-          <form action="/" className="mt-6 flex max-w-xl flex-col gap-2 sm:flex-row">
-            {filters.type && <input type="hidden" name="type" value={filters.type} />}
-            <Input
-              name="q"
-              defaultValue={filters.q}
-              placeholder="Search by name"
-              aria-label="Search by name"
-              className="sm:flex-1"
-              maxLength={60}
-            />
-            <NativeSelect
-              name="city"
-              defaultValue={filters.city}
-              aria-label="City"
-              className="sm:w-48"
-            >
-              <option value="">All cities</option>
-              {data?.cities.map((c) => (
-                <option key={c.citySlug} value={c.citySlug}>
-                  {c.city} ({c.total})
-                </option>
-              ))}
-            </NativeSelect>
-            <Button variant="tag" type="submit">
-              Search
-            </Button>
-          </form>
+            <form action="/" className="mt-6 flex max-w-xl flex-col gap-2 sm:flex-row">
+              {filters.type && <input type="hidden" name="type" value={filters.type} />}
+              <Input
+                name="q"
+                defaultValue={filters.q}
+                placeholder="Search by name"
+                aria-label="Search by name"
+                className="sm:flex-1"
+                maxLength={60}
+              />
+              <NativeSelect
+                name="city"
+                defaultValue={filters.city}
+                aria-label="City"
+                className="sm:w-48"
+              >
+                <option value="">All cities</option>
+                {data?.cities.map((c) => (
+                  <option key={c.citySlug} value={c.citySlug}>
+                    {c.city} ({c.total})
+                  </option>
+                ))}
+              </NativeSelect>
+              <Button variant="tag" type="submit">
+                Search
+              </Button>
+            </form>
           </div>
 
           {/* What the product does, shown as the thing itself: an order arriving on WhatsApp. */}
@@ -250,7 +250,7 @@ export default async function HomePage({ searchParams }: PageProps<"/">) {
         </div>
       </section>
 
-      <main id="shops" className="mx-auto w-full max-w-6xl flex-1 scroll-mt-14 px-4 py-6">
+      <main id="shops" className="mx-auto w-full max-w-6xl flex-1 scroll-mt-14 px-4 py-6 sm:px-6">
         {/* Phone: one row you swipe sideways. Wider screens have no swipe, so the types wrap onto more rows. */}
         <nav
           aria-label="Shop type"
@@ -317,12 +317,13 @@ export default async function HomePage({ searchParams }: PageProps<"/">) {
         )}
 
         {(filters.page > 1 || data.hasMore) && (
-          <div className="mt-6 flex justify-center gap-3">
+          <div className="mt-6 flex items-center justify-center gap-3">
             {filters.page > 1 && (
               <Link href={link({ page: filters.page - 1 })} className={buttonVariants({ variant: "outline" })}>
                 Previous page
               </Link>
             )}
+            <span className="text-sm text-slate-500">Page {filters.page}</span>
             {data.hasMore && (
               <Link href={link({ page: filters.page + 1 })} className={buttonVariants({ variant: "outline" })}>
                 Next page
@@ -333,7 +334,7 @@ export default async function HomePage({ searchParams }: PageProps<"/">) {
         </NearbyShops>
         )}
 
-        <section id="how-it-works" className="mt-12 scroll-mt-20 rounded-2xl bg-ink px-6 py-10 text-white sm:px-10">
+        <section id="how-it-works" className="mt-12 scroll-mt-20 rounded-2xl bg-ink px-6 py-10 text-white sm:px-12">
           <h2 className="text-3xl font-bold">Have a business? Put your catalog online in 2 minutes.</h2>
           <div className="mt-6 grid gap-5 sm:grid-cols-3">
             {[

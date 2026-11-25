@@ -19,6 +19,7 @@ export function SiteNav({ signedIn }: { signedIn: boolean }) {
   const pathname = usePathname();
   const [open, setOpen] = useState(false);
   const isActive = (href: string) => (href.startsWith("/#") ? false : pathname === href);
+
   const cta = signedIn
     ? { href: "/dashboard", label: "Dashboard" }
     : { href: "/login", label: "Add your business free" };

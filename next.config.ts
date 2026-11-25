@@ -1,6 +1,12 @@
 import type { NextConfig } from "next";
 
+const mediaUrl = process.env.NEXT_PUBLIC_MEDIA_BASE_URL;
+const mediaHost = mediaUrl ? new URL(mediaUrl).hostname : undefined;
+
 const nextConfig: NextConfig = {
+  images: {
+    remotePatterns: mediaHost ? [{ protocol: "https", hostname: mediaHost }] : [],
+  },
   async headers() {
     return [
       {

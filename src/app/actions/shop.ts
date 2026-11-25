@@ -8,7 +8,7 @@ import { refreshShopPage } from "@/lib/shop-data";
 import { count, eq } from "drizzle-orm";
 import { z } from "zod";
 import { db } from "@/db";
-import { categories, shops } from "@/db/schema";
+import { categories, shops, type BusinessHour } from "@/db/schema";
 import { getShopByOwner, requireUser } from "@/lib/auth";
 import {
   BUSINESS_TYPE_IDS,
@@ -172,6 +172,23 @@ const updateSchema = z.object({
   lat: z.number().min(-90).max(90).nullable().optional(),
   lng: z.number().min(-180).max(180).nullable().optional(),
   mapsUrl: optionalText(500),
+  instagram: optionalText(200),
+  facebook: optionalText(200),
+  youtube: optionalText(200),
+  businessHours: z
+    .array(
+      z.object({
+        day: z.string(),
+        open: z.string(),
+        close: z.string(),
+        closed: z.boolean(),
+      }),
+    )
+    .max(7)
+    .nullable()
+    .optional(),
+  announcement: optionalText(300),
+  announcementActive: z.boolean().optional(),
 });
 
 /** True only for links whose host really is Google Maps (exact host match). */
@@ -250,6 +267,12 @@ export async function updateShop(input: z.input<typeof updateSchema>): Promise<A
       lat,
       lng,
       mapsUrl: data.mapsUrl ?? null,
+      instagram: data.instagram ?? null,
+      facebook: data.facebook ?? null,
+      youtube: data.youtube ?? null,
+      businessHours: (data.businessHours as BusinessHour[] | null) ?? null,
+      announcement: data.announcement ?? null,
+      announcementActive: data.announcementActive ?? false,
       updatedAt: new Date(),
     })
     .where(eq(shops.id, shop.id));

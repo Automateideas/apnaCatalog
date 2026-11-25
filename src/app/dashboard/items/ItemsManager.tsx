@@ -1,6 +1,7 @@
 "use client";
 
 import { useState, useTransition } from "react";
+import Image from "next/image";
 import Link from "next/link";
 import { useRouter } from "next/navigation";
 import { toast } from "sonner";
@@ -26,6 +27,7 @@ const PLACEHOLDER: Record<string, string> = {
   "Available from": "Immediately",
 };
 import { cx, type ActionResult } from "@/lib/utils";
+import { ChevronDown } from "lucide-react";
 import { Icon, IconBadge } from "@/components/Icon";
 import { Button } from "@/components/ui/button";
 import { Sheet, SheetClose, SheetContent, SheetTitle } from "@/components/ui/sheet";
@@ -278,9 +280,10 @@ export function ItemsManager({
         </p>
       )}
 
-      <details className="rounded-xl border bg-card p-4">
-        <summary className="cursor-pointer font-semibold text-slate-900">
+      <details className="group/cats rounded-xl border bg-card p-4">
+        <summary className="flex cursor-pointer list-none items-center justify-between font-semibold text-slate-900 [&::-webkit-details-marker]:hidden">
           Categories ({topCats.length})
+          <ChevronDown className="h-4 w-4 transition-transform group-open/cats:rotate-180" />
         </summary>
         <ul className="mt-3 space-y-3">
           {topCats.map((cat) => (
@@ -437,7 +440,7 @@ export function ItemsManager({
                   </span>
                 )}
                 {item.imageUrl ? (
-                  <img src={item.imageUrl} alt="" loading="lazy" className="h-full w-full object-cover" />
+                  <Image src={item.imageUrl} alt="" fill sizes="56px" className="object-cover" />
                 ) : (
                   <div className="flex h-full items-center justify-center text-slate-300">
                     <Icon name="camera" className="h-5 w-5" />

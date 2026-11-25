@@ -52,13 +52,12 @@ export default function RootLayout({ children }: LayoutProps<"/">) {
     <html
       lang="en-IN"
       className={`${baloo.variable} ${mukta.variable} h-full antialiased`}
+      suppressHydrationWarning
     >
-      <body
-        className="flex min-h-full flex-col"
-        cz-shortcut-listen="true"
-        data-new-gr-c-s-check-loaded="14.1347.0"
-        data-gr-ext-installed=""
-      >
+      <head>
+        <script dangerouslySetInnerHTML={{ __html: `try{if(localStorage.getItem("ac-dark-mode")==="1")document.documentElement.classList.add("dark")}catch{}` }} />
+      </head>
+      <body className="flex min-h-full flex-col">
         <SpeedInsights />
         {children}
         {/* Toasts and dialogs for every page, the public shop and home pages included. */}

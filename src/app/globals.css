@@ -82,9 +82,31 @@
   --radius: 0.5rem;
 }
 
+:root.dark {
+  color-scheme: dark;
+  --background: #0f172a;
+  --foreground: #e2e8f0;
+  --card: #1e293b;
+  --card-foreground: #e2e8f0;
+  --popover: #1e293b;
+  --popover-foreground: #e2e8f0;
+  --primary: #e2e8f0;
+  --primary-foreground: #0f172a;
+  --secondary: #1e293b;
+  --secondary-foreground: #e2e8f0;
+  --muted: #1e293b;
+  --muted-foreground: #94a3b8;
+  --accent: #1e293b;
+  --accent-foreground: #e2e8f0;
+  --destructive: #ef4444;
+  --border: #334155;
+  --input: #334155;
+  --ring: #e2e8f0;
+}
+
 body {
-  background: #fbf7f0;
-  color: #1b2340;
+  background: var(--background);
+  color: var(--foreground);
   font-family: var(--font-sans);
   font-size: 1.0625rem;
   -webkit-tap-highlight-color: transparent;
@@ -168,6 +190,63 @@ body {
 .no-scrollbar::-webkit-scrollbar {
   display: none;
 }
+
+/* Global dark-mode overrides for hardcoded light colors on public/dashboard pages.
+   Shop pages set their own theme via CSS vars and are unaffected. */
+.dark {
+  color-scheme: dark;
+}
+
+/* --- Slate utilities (bg, text, border, hover) --- */
+.dark .bg-white { background-color: var(--card) !important; }
+.dark .bg-slate-50 { background-color: var(--muted) !important; }
+.dark .bg-slate-100 { background-color: var(--muted) !important; }
+.dark .text-slate-900 { color: var(--foreground) !important; }
+.dark .text-slate-800 { color: var(--foreground) !important; }
+.dark .text-slate-700 { color: #cbd5e1 !important; }
+.dark .text-slate-600 { color: var(--muted-foreground) !important; }
+.dark .text-slate-500 { color: var(--muted-foreground) !important; }
+.dark .text-slate-400 { color: #64748b !important; }
+.dark .border-slate-200 { border-color: var(--border) !important; }
+.dark .border-slate-100 { border-color: var(--border) !important; }
+.dark .border-slate-300 { border-color: var(--border) !important; }
+.dark .divide-slate-100 > :not(:first-child) { border-color: var(--border) !important; }
+.dark .hover\:bg-slate-50:hover { background-color: var(--muted) !important; }
+.dark .hover\:bg-slate-100:hover { background-color: var(--muted) !important; }
+.dark .hover\:text-slate-900:hover { color: var(--foreground) !important; }
+.dark .hover\:border-slate-300:hover { border-color: var(--border) !important; }
+
+/* --- Brand (navy → lighter blue for text, darker navy for backgrounds) --- */
+.dark .bg-brand { background-color: #1e3a5f !important; }
+.dark .text-brand { color: #93c5fd !important; }
+.dark .border-brand { border-color: #3b82f6 !important; }
+.dark .hover\:text-brand:hover { color: #bfdbfe !important; }
+.dark .group-hover\:text-brand:is(:where(.group):hover *) { color: #93c5fd !important; }
+.dark .hover\:bg-brand:hover { background-color: #1e3a5f !important; }
+
+/* --- Brand soft (warm cream → dark surface) --- */
+.dark .bg-brand-soft { background-color: var(--muted) !important; }
+.dark .hover\:bg-brand-soft:hover { background-color: #334155 !important; }
+
+/* --- Brand dark --- */
+.dark .bg-brand-dark { background-color: #0c1322 !important; }
+
+/* --- Cream (page bg → dark background) --- */
+.dark .bg-cream { background-color: var(--background) !important; }
+
+/* --- Tag (orange – stays orange) --- */
+.dark .border-tag { border-color: #d97706 !important; }
+
+/* --- Ink (navy text/bg) --- */
+.dark .text-ink { color: var(--foreground) !important; }
+.dark .bg-ink { background-color: #1e293b !important; }
+
+/* --- Decoration --- */
+.dark .decoration-tag { text-decoration-color: #f59e0b !important; }
+
+/* --- Homepage mock card inside hero --- */
+.dark .bg-white.shadow-xl { background-color: var(--card) !important; }
+.dark .border-dashed { border-color: var(--border) !important; }
 
 @media (prefers-reduced-motion: reduce) {
   * {

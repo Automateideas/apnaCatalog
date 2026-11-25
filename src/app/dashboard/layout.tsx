@@ -18,7 +18,9 @@ export const metadata: Metadata = {
   robots: { index: false, follow: false },
 };
 
-export default async function DashboardLayout({ children }: LayoutProps<"/dashboard">) {
+export default async function DashboardLayout({
+  children,
+}: LayoutProps<"/dashboard">) {
   const user = await requireUser();
   const shop = await getShopByOwner(user.id);
   // New reports the owner has not opened yet: the number on the bell.
@@ -31,20 +33,29 @@ export default async function DashboardLayout({ children }: LayoutProps<"/dashbo
 
   return (
     <>
-      <header className="sticky top-0 z-30 border-b border-slate-200 bg-white">
-        <div className="mx-auto flex h-14 w-full max-w-4xl items-center justify-between gap-3 px-4">
+      <header className="sticky top-0 z-30 border-b border-slate-200 bg-white dark:border-slate-700 dark:bg-slate-900">
+        <div className="mx-auto flex h-14 w-full max-w-4xl items-center justify-between gap-3 px-4 sm:px-6">
           <Logo />
           <div className="flex items-center gap-1">
             {isAdminEmail(user.email) && (
-              <Link href="/admin" className={buttonVariants({ variant: "ghost", size: "sm" })}>
+              <Link
+                href="/admin"
+                className={buttonVariants({ variant: "ghost", size: "sm" })}
+              >
                 Admin
               </Link>
             )}
             {shop && (
               <Link
                 href="/dashboard/reports"
-                aria-label={unseen > 0 ? `Notifications, ${unseen} new` : "Notifications"}
-                className={buttonVariants({ variant: "ghost", size: "icon", className: "relative" })}
+                aria-label={
+                  unseen > 0 ? `Notifications, ${unseen} new` : "Notifications"
+                }
+                className={buttonVariants({
+                  variant: "ghost",
+                  size: "icon",
+                  className: "relative",
+                })}
               >
                 <Bell />
                 {unseen > 0 && (
@@ -72,7 +83,9 @@ export default async function DashboardLayout({ children }: LayoutProps<"/dashbo
         </div>
         {shop && <DashboardNav />}
       </header>
-      <main className="mx-auto w-full max-w-4xl flex-1 px-4 py-6">{children}</main>
+      <main className="mx-auto w-full max-w-4xl flex-1 px-4 py-6 sm:px-6">
+        {children}
+      </main>
     </>
   );
 }

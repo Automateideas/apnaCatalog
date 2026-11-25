@@ -4,25 +4,37 @@ import { db } from "@/db";
 import { shops } from "@/db/schema";
 import { MIN_ITEMS_TO_LIST } from "@/lib/catalog-config";
 
+const UUID_RE =
+  /^([0-9a-f]{8}-[0-9a-f]{4}-[0-9a-f]{4}-[0-9a-f]{4}-[0-9a-f]{12})$/i;
+
+function safeUuid(id: string): string {
+  const m = UUID_RE.exec(id);
+  if (!m) throw new Error("Invalid shop id");
+  return m[1];
+}
+
 /** Recounts items and item photos for a shop. Call after any item change. */
 export async function refreshShopStats(shopId: string) {
+  const id = safeUuid(shopId);
   await db.execute(sql`
     UPDATE shops SET
-      item_count = (SELECT count(*)::int FROM items WHERE shop_id = ${shopId}),
-      photo_count = (SELECT count(*)::int FROM items WHERE shop_id = ${shopId} AND image_url IS NOT NULL),
+      item_count = (SELECT count(*)::int FROM items WHERE shop_id = ${id}),
+      photo_count = (SELECT count(*)::int FROM items WHERE shop_id = ${id} AND image_url IS NOT NULL),
       updated_at = now()
-    WHERE id = ${shopId}
+    WHERE id = ${id}
   `);
 }
 
 /** Recomputes the rating from visible reviews. Call after any review change. */
 export async function refreshShopRating(shopId: string) {
-  await db.execute(sql`
-    UPDATE shops SET
-      rating_count = (SELECT count(*)::int FROM reviews WHERE shop_id = ${shopId} AND NOT is_hidden),
-      rating_sum = (SELECT coalesce(sum(rating), 0)::int FROM reviews WHERE shop_id = ${shopId} AND NOT is_hidden)
-    WHERE id = ${shopId}
-  `);
+  const id = safeUuid(shopId);
+  await db
+    .update(shops)
+    .set({
+      ratingCount: sql<number>`(SELECT count(*)::int FROM reviews WHERE shop_id = ${id} AND NOT is_hidden)`,
+      ratingSum: sql<number>`(SELECT coalesce(sum(rating), 0)::int FROM reviews WHERE shop_id = ${id} AND NOT is_hidden)`,
+    })
+    .where(eq(shops.id, id));
 }
 
 /** Shops shown on the home page: not hidden, enough items, at least one photo. */

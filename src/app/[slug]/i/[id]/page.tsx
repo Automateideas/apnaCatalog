@@ -8,6 +8,7 @@ import { z } from "zod";
 import { db } from "@/db";
 import { items } from "@/db/schema";
 import { ItemCarousel } from "@/components/catalog/ItemCarousel";
+import { ShopToolbar } from "@/components/catalog/ShopToolbar";
 import { ReportButton } from "@/components/ReportButton";
 import { buttonVariants } from "@/components/ui/button";
 import { getBusinessType } from "@/lib/catalog-config";
@@ -70,6 +71,7 @@ export default async function ItemPage({ params }: Params) {
   return (
     <div className="t-page flex flex-1 flex-col">
       <style>{`${themeCss(":root", theme, accent)}body{background:var(--t-bg)}`}</style>
+      <ShopToolbar />
 
       <main className="mx-auto w-full max-w-xl flex-1 px-4 py-4">
         <Link href={`/${shop.slug}`} className="inline-flex items-center gap-1.5 text-sm font-medium text-(--t-muted) hover:text-(--t-text)">

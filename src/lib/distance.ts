@@ -38,10 +38,21 @@ export async function roadDistances(
 ) {
   const result = new Map<string, Road>();
   if (!MAPBOX_TOKEN || list.length === 0) return result;
-  const coords = [from, ...list].map((p) => `${p.lng.toFixed(6)},${p.lat.toFixed(6)}`).join(";");
-  const url =
-    `https://api.mapbox.com/directions-matrix/v1/mapbox/${profile}/${coords}` +
-    `?sources=0&annotations=distance,duration&access_token=${MAPBOX_TOKEN}`;
+  const points = [from, ...list];
+  if (
+    !points.every(
+      ({ lat, lng }) =>
+        Number.isFinite(lat) && Number.isFinite(lng) && Math.abs(lat) <= 90 && Math.abs(lng) <= 180,
+    )
+  ) {
+    return result;
+  }
+  const coords = points.map((p) => `${p.lng.toFixed(6)},${p.lat.toFixed(6)}`).join(";");
+  const url = new URL("https://api.mapbox.com/directions-matrix/v1/mapbox/" + profile + "/" + coords);
+  url.searchParams.set("sources", "0");
+  url.searchParams.set("annotations", "distance,duration");
+  url.searchParams.set("access_token", MAPBOX_TOKEN);
+  if (url.protocol !== "https:" || url.hostname !== "api.mapbox.com") return result;
   const res = await fetch(url);
   if (!res.ok) return result;
   const data = (await res.json()) as { distances?: (number | null)[][]; durations?: (number | null)[][] };

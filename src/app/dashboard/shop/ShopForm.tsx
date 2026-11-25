@@ -5,6 +5,7 @@ import { useRouter } from "next/navigation";
 import { updateShop } from "@/app/actions/shop";
 import { ImageUpload } from "@/components/ImageUpload";
 import { ItemPhotos } from "@/components/ItemPhotos";
+import type { BusinessHour } from "@/db/schema";
 import { BUSINESS_TYPES, MAX_SHOP_PHOTOS } from "@/lib/catalog-config";
 import { discardUploads } from "@/lib/upload";
 import { Icon } from "@/components/Icon";
@@ -32,6 +33,12 @@ type Values = {
   lat: number | null;
   lng: number | null;
   mapsUrl: string;
+  instagram: string;
+  facebook: string;
+  youtube: string;
+  businessHours: BusinessHour[] | null;
+  announcement: string;
+  announcementActive: boolean;
 };
 
 export function ShopForm({ initial }: { initial: Values }) {
@@ -210,6 +217,76 @@ export function ShopForm({ initial }: { initial: Values }) {
             />
           </div>
         </div>
+      </Card>
+
+      <Card className="space-y-4 p-5">
+        <h2 className="font-bold text-slate-900">Social media</h2>
+        <p className="-mt-2 text-sm text-slate-600">Optional. Links shown on your catalog page.</p>
+        <div>
+          <Label htmlFor="s-instagram">Instagram</Label>
+          <Input id="s-instagram" value={v.instagram} onChange={(e) => set("instagram", e.target.value)} maxLength={200} placeholder="https://instagram.com/yourpage" />
+        </div>
+        <div>
+          <Label htmlFor="s-facebook">Facebook</Label>
+          <Input id="s-facebook" value={v.facebook} onChange={(e) => set("facebook", e.target.value)} maxLength={200} placeholder="https://facebook.com/yourpage" />
+        </div>
+        <div>
+          <Label htmlFor="s-youtube">YouTube</Label>
+          <Input id="s-youtube" value={v.youtube} onChange={(e) => set("youtube", e.target.value)} maxLength={200} placeholder="https://youtube.com/@yourchannel" />
+        </div>
+      </Card>
+
+      <Card className="space-y-4 p-5">
+        <h2 className="font-bold text-slate-900">Business hours</h2>
+        <p className="-mt-2 text-sm text-slate-600">Optional. Shown on your catalog page.</p>
+        {(() => {
+          const DAYS = ["Monday", "Tuesday", "Wednesday", "Thursday", "Friday", "Saturday", "Sunday"];
+          const hours: BusinessHour[] = v.businessHours ?? DAYS.map((d) => ({ day: d, open: "09:00", close: "21:00", closed: false }));
+          const setHour = (i: number, patch: Partial<BusinessHour>) => {
+            const next = hours.map((h, j) => (j === i ? { ...h, ...patch } : h));
+            set("businessHours", next);
+          };
+          return (
+            <div className="space-y-2">
+              {hours.map((h, i) => (
+                <div key={h.day} className="flex flex-wrap items-center gap-2 text-sm">
+                  <span className="w-20 font-medium text-slate-700">{h.day.slice(0, 3)}</span>
+                  {h.closed ? (
+                    <span className="text-slate-400">Closed</span>
+                  ) : (
+                    <>
+                      <input type="time" value={h.open} onChange={(e) => setHour(i, { open: e.target.value })} className="rounded border border-slate-300 px-2 py-1" />
+                      <span className="text-slate-400">to</span>
+                      <input type="time" value={h.close} onChange={(e) => setHour(i, { close: e.target.value })} className="rounded border border-slate-300 px-2 py-1" />
+                    </>
+                  )}
+                  <label className="ml-auto flex items-center gap-1.5 text-xs text-slate-500">
+                    <input type="checkbox" checked={h.closed} onChange={(e) => setHour(i, { closed: e.target.checked })} />
+                    Closed
+                  </label>
+                </div>
+              ))}
+              {v.businessHours && (
+                <button type="button" onClick={() => set("businessHours", null)} className="text-xs text-slate-500 underline">
+                  Remove business hours
+                </button>
+              )}
+            </div>
+          );
+        })()}
+      </Card>
+
+      <Card className="space-y-4 p-5">
+        <h2 className="font-bold text-slate-900">Announcement</h2>
+        <p className="-mt-2 text-sm text-slate-600">Optional banner shown at the top of your catalog.</p>
+        <div>
+          <Label htmlFor="s-announcement">Message</Label>
+          <Textarea id="s-announcement" rows={2} value={v.announcement} onChange={(e) => set("announcement", e.target.value)} maxLength={300} placeholder="Sale! 20% off on all items this weekend" />
+        </div>
+        <label className="flex items-center gap-2 text-sm">
+          <input type="checkbox" checked={v.announcementActive} onChange={(e) => set("announcementActive", e.target.checked)} className="size-4 rounded border-slate-300" />
+          <span className="font-medium text-slate-700">Show announcement on catalog</span>
+        </label>
       </Card>
 
       <Card className="space-y-4 p-5">

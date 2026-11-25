@@ -55,6 +55,16 @@ function isDarkColor(hex: string): boolean {
   return r * 0.299 + g * 0.587 + b * 0.114 < 128;
 }
 
+function hexToRgb(hex: string): [number, number, number] {
+  const n = parseInt(hex.slice(1), 16);
+  return [(n >> 16) & 255, (n >> 8) & 255, n & 255];
+}
+
+function rgbToHex(r: number, g: number, b: number): string {
+  return "#" + [r, g, b].map((c) => Math.round(Math.max(0, Math.min(255, c))).toString(16).padStart(2, "0")).join("");
+}
+
+
 /** A font stack that still shows Hindi well when the theme font has no Devanagari. */
 export function fontStack(key: FontKey): string {
   return `${FONTS[key].style.fontFamily}, ${mukta.style.fontFamily}, ui-sans-serif, system-ui, sans-serif`;
@@ -116,10 +126,78 @@ export function themeVars(theme: Theme, accent: Accent): Record<string, string> 
   };
 }
 
+/**
+ * Mix a small amount of the theme's background hue into a neutral dark base.
+ * This gives each theme a subtle warm/cool character without garish saturation.
+ */
+function tintedDark(base: [number, number, number], themeHex: string, amount: number): string {
+  const [tr, tg, tb] = hexToRgb(themeHex);
+  return rgbToHex(
+    base[0] + (tr - base[0]) * amount,
+    base[1] + (tg - base[1]) * amount,
+    base[2] + (tb - base[2]) * amount,
+  );
+}
+
+/**
+ * Dark-mode overrides for a light theme's colour variables.
+ * Uses a neutral dark palette with a subtle hue tint from the theme.
+ * Already-dark themes return an empty object.
+ */
+function darkVars(theme: Theme, accent: Accent): Record<string, string> {
+  if (theme.dark) return {};
+  const c = theme.colors;
+  const tint = 0.08;
+  const darkBg = tintedDark([17, 17, 20], c.bg, tint);
+  const darkSurface = tintedDark([26, 26, 30], c.bg, tint);
+  const darkBorder = tintedDark([48, 48, 54], c.bg, tint * 1.5);
+  const darkText = "#e8e6e3";
+  const darkMuted = "#9ca3af";
+  const darkAccentSoft = tintedDark([30, 30, 36], accent.primary, 0.12);
+  const darkShadow = theme.card === "shadow"
+    ? "0 1px 2px rgb(0 0 0 / 0.3), 0 6px 20px rgb(0 0 0 / 0.25)"
+    : undefined;
+  const vars: Record<string, string> = {
+    "--t-bg": darkBg,
+    "--t-surface": darkSurface,
+    "--t-text": darkText,
+    "--t-muted": darkMuted,
+    "--t-border": darkBorder,
+    "--t-card-border": theme.card === "pop"
+      ? `2px solid ${darkBorder}`
+      : theme.card === "flat"
+        ? "0 solid transparent"
+        : `1px solid ${darkBorder}`,
+    "--ps": darkAccentSoft,
+    "--pa": accent.primary,
+    "--background": darkBg,
+    "--foreground": darkText,
+    "--card": darkSurface,
+    "--card-foreground": darkText,
+    "--popover": darkSurface,
+    "--popover-foreground": darkText,
+    "--muted": darkAccentSoft,
+    "--muted-foreground": darkMuted,
+    "--border": darkBorder,
+    "--input": darkBorder,
+  };
+  if (darkShadow) vars["--t-shadow"] = darkShadow;
+  return vars;
+}
+
 /** The variables as one CSS rule, e.g. for `:root` so portalled sheets get them. */
 export function themeCss(selector: string, theme: Theme, accent: Accent): string {
   const body = Object.entries(themeVars(theme, accent))
     .map(([k, v]) => `${k}:${v}`)
     .join(";");
-  return `${selector}{${body}}`;
+  const dark = darkVars(theme, accent);
+  const darkBody = Object.entries(dark)
+    .map(([k, v]) => `${k}:${v}`)
+    .join(";");
+  let css = `${selector}{${body}}`;
+  if (darkBody) {
+    const darkSelector = selector === ":root" ? ":root.dark" : `.dark ${selector}`;
+    css += `${darkSelector}{${darkBody}}`;
+  }
+  return css;
 }

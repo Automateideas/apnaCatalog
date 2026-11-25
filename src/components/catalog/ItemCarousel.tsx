@@ -4,6 +4,7 @@ import { useEffect, useMemo, useRef, useState } from "react";
 import Autoplay from "embla-carousel-autoplay";
 import { cx } from "@/lib/utils";
 import { MOTION } from "@/lib/motion-flags";
+import Image from "next/image";
 import {
   Carousel,
   type CarouselApi,
@@ -71,10 +72,10 @@ export function ItemCarousel({
     <button
       type="button"
       onClick={() => onOpen?.(i)}
-      className="block h-full w-full cursor-pointer"
+      className="relative block h-full w-full cursor-pointer"
       aria-label={many ? `Photo ${i + 1} of ${urls.length}: ${name}` : `Open ${name}`}
     >
-      <img src={url} alt="" loading={i === 0 ? "eager" : "lazy"} className="h-full w-full object-cover" />
+      <Image src={url} alt="" fill sizes="(max-width: 640px) 50vw, 33vw" className="object-cover" priority={i === 0} />
     </button>
   );
 

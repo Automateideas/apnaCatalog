@@ -1,7 +1,7 @@
 "use client";
 
 import { useEffect, useRef, useState } from "react";
-import { Plus, Star, X } from "lucide-react";
+import { Camera, Plus, Star, X } from "lucide-react";
 import { toast } from "sonner";
 import { MAX_ITEM_PHOTOS } from "@/lib/catalog-config";
 import { discardUploads, uploadPhoto } from "@/lib/upload";
@@ -41,6 +41,7 @@ export function ItemPhotos({
   onBusyChange?: (busy: boolean) => void;
 }) {
   const inputRef = useRef<HTMLInputElement>(null);
+  const cameraRef = useRef<HTMLInputElement>(null);
   const [progress, setProgress] = useState<{ done: number; total: number } | null>(null);
   const mounted = useRef(true);
   useEffect(() => {
@@ -113,7 +114,7 @@ export function ItemPhotos({
       <ul className="grid grid-cols-4 gap-2 sm:grid-cols-5">
         {value.map((url, index) => (
           <li key={url} className="relative aspect-square overflow-hidden rounded-xl border border-slate-200 bg-slate-100">
-            <img src={url} alt={`Photo ${index + 1}`} className="h-full w-full object-cover" />
+            <img src={url} alt={`Photo ${index + 1}`} className="h-full w-full object-contain" />
             {index === 0 ? (
               <span className="absolute bottom-1 left-1 rounded bg-brand px-1.5 py-0.5 text-[10px] font-semibold text-white">
                 Main
@@ -142,27 +143,40 @@ export function ItemPhotos({
         ))}
 
         {room > 0 && (
-          <li>
-            <button
-              type="button"
-              disabled={busy}
-              onClick={() => inputRef.current?.click()}
-              className="flex aspect-square w-full flex-col items-center justify-center gap-0.5 rounded-xl border border-dashed border-slate-300 bg-card text-xs font-medium text-slate-600 hover:border-slate-400 hover:bg-slate-50 disabled:opacity-60"
-            >
-              {progress ? (
-                <span aria-live="polite">
-                  {progress.done}/{progress.total}
-                  <br />
-                  Uploading
-                </span>
-              ) : (
-                <>
-                  <Plus className="size-5" />
-                  Add photo
-                </>
-              )}
-            </button>
-          </li>
+          <>
+            <li>
+              <button
+                type="button"
+                disabled={busy}
+                onClick={() => inputRef.current?.click()}
+                className="flex aspect-square w-full flex-col items-center justify-center gap-0.5 rounded-xl border border-dashed border-slate-300 bg-card text-xs font-medium text-slate-600 hover:border-slate-400 hover:bg-slate-50 disabled:opacity-60"
+              >
+                {progress ? (
+                  <span aria-live="polite">
+                    {progress.done}/{progress.total}
+                    <br />
+                    Uploading
+                  </span>
+                ) : (
+                  <>
+                    <Plus className="size-5" />
+                    Gallery
+                  </>
+                )}
+              </button>
+            </li>
+            <li>
+              <button
+                type="button"
+                disabled={busy}
+                onClick={() => cameraRef.current?.click()}
+                className="flex aspect-square w-full flex-col items-center justify-center gap-0.5 rounded-xl border border-dashed border-slate-300 bg-card text-xs font-medium text-slate-600 hover:border-slate-400 hover:bg-slate-50 disabled:opacity-60"
+              >
+                <Camera className="size-5" />
+                Camera
+              </button>
+            </li>
+          </>
         )}
       </ul>
 
@@ -171,6 +185,14 @@ export function ItemPhotos({
         type="file"
         accept="image/*"
         multiple
+        className="hidden"
+        onChange={(e) => pick(e.target.files)}
+      />
+      <input
+        ref={cameraRef}
+        type="file"
+        accept="image/*"
+        capture="environment"
         className="hidden"
         onChange={(e) => pick(e.target.files)}
       />

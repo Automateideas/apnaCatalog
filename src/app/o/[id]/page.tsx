@@ -40,7 +40,7 @@ export default async function OrderPage({ params }: PageProps<"/o/[id]">) {
   const { order } = row;
 
   return (
-    <main className="mx-auto w-full max-w-2xl flex-1 px-4 py-6">
+    <main className="mx-auto w-full max-w-2xl flex-1 px-4 py-6 sm:px-6">
       <Card className="p-5 print:border-0 print:shadow-none">
         <div className="flex items-start justify-between gap-4 border-b border-slate-200 pb-4">
           <div>

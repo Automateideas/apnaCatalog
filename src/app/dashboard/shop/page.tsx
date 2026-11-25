@@ -24,6 +24,12 @@ export default async function ShopDetailsPage() {
           lat: shop.lat,
           lng: shop.lng,
           mapsUrl: shop.mapsUrl ?? "",
+          instagram: shop.instagram ?? "",
+          facebook: shop.facebook ?? "",
+          youtube: shop.youtube ?? "",
+          businessHours: shop.businessHours ?? null,
+          announcement: shop.announcement ?? "",
+          announcementActive: shop.announcementActive,
         }}
       />
     </div>
