@@ -265,7 +265,7 @@ export default async function ShopPage({ params }: PageProps<"/[slug]">) {
           </Link>
           .{" "}
           <Link href="/login" className="underline">
-            Make yours free
+            Create yours free
           </Link>
         </footer>
       )}

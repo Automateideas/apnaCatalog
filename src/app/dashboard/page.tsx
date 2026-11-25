@@ -43,7 +43,7 @@ export default async function DashboardHome({ searchParams }: PageProps<"/dashbo
       text: `Add at least ${MIN_ITEMS_TO_LIST} items (${Math.min(shop.itemCount, MIN_ITEMS_TO_LIST)}/${MIN_ITEMS_TO_LIST})`,
       href: "/dashboard/items",
     },
-    { done: hasPhoto, text: "Add your shop logo or one item photo", href: "/dashboard/shop" },
+    { done: hasPhoto, text: "Add your logo or one item photo", href: "/dashboard/shop" },
   ];
 
   // What customers look for before they trust a new shop and walk in.
@@ -55,7 +55,7 @@ export default async function DashboardHome({ searchParams }: PageProps<"/dashbo
     },
     {
       done: shop.shopPhotoUrls.length > 0,
-      text: `Add photos of your shop, so customers know they reached the right place (${shop.shopPhotoUrls.length}/${MAX_SHOP_PHOTOS})`,
+      text: `Add photos of your business, so customers know they reached the right place (${shop.shopPhotoUrls.length}/${MAX_SHOP_PHOTOS})`,
       href: "/dashboard/shop",
     },
     {
@@ -65,7 +65,7 @@ export default async function DashboardHome({ searchParams }: PageProps<"/dashbo
     },
     {
       done: Boolean(shop.address),
-      text: "Add your shop address",
+      text: "Add your business address",
       href: "/dashboard/shop",
     },
   ];
@@ -75,14 +75,14 @@ export default async function DashboardHome({ searchParams }: PageProps<"/dashbo
     <div className="space-y-5">
       {welcome && (
         <Alert variant="success">
-          Your shop is created{paid ? " and you got the launch offer: all paid features free" : ""}
+          Your catalog is created{paid ? " and you got the launch offer: all paid features free" : ""}
           . Now add your items.
         </Alert>
       )}
 
       {shop.isHidden && (
         <Alert variant="destructive">
-          Your shop is hidden by the {SITE_NAME} team and customers cannot open it. Contact support
+          Your catalog is hidden by the {SITE_NAME} team and customers cannot open it. Contact support
           from the Plan page.
         </Alert>
       )}
@@ -91,7 +91,7 @@ export default async function DashboardHome({ searchParams }: PageProps<"/dashbo
 
       <Card className="p-5">
         <h1 className="text-xl font-bold text-slate-900">{shop.name}</h1>
-        <p className="mt-3 text-sm text-slate-500">Your shop link</p>
+        <p className="mt-3 text-sm text-slate-500">Your catalog link</p>
         <a
           href={shopUrl}
           target="_blank"
@@ -148,11 +148,11 @@ export default async function DashboardHome({ searchParams }: PageProps<"/dashbo
 
       <Card className="p-5">
         <h2 className="font-bold text-slate-900">
-          {listed ? "Your shop is on the home page" : "Get listed on the home page"}
+          {listed ? "Your business is on the home page" : "Get listed on the home page"}
         </h2>
         <p className="mt-1 text-sm text-slate-600">
           {listed
-            ? `People searching for shops in ${shop.city} can find you.`
+            ? `People searching for businesses in ${shop.city} can find you.`
             : "Your link already works. Finish these steps to also appear in the city listing."}
         </p>
         <Steps steps={steps} />
@@ -161,14 +161,14 @@ export default async function DashboardHome({ searchParams }: PageProps<"/dashbo
       {/* Hidden once everything is filled in. */}
       {trustLeft > 0 && (
         <Card className="p-5">
-          <h2 className="font-bold text-slate-900">Help customers trust your shop</h2>
+          <h2 className="font-bold text-slate-900">Help customers trust your business</h2>
           <p className="mt-1 text-sm text-slate-600">
-            New customers want to see who runs the shop, what it looks like and how to reach it.{" "}
+            New customers want to see who runs the business, what it looks like and how to reach it.{" "}
             {trustLeft === 1 ? "1 thing left." : `${trustLeft} things left.`}
           </p>
           <Steps steps={trust} />
           <Link href="/dashboard/shop" className={buttonVariants({ className: "mt-4" })}>
-            Fill in shop details
+            Fill in business details
           </Link>
         </Card>
       )}
@@ -177,7 +177,7 @@ export default async function DashboardHome({ searchParams }: PageProps<"/dashbo
         <Card className="p-5">
           <h2 className="font-bold text-slate-900">QR code for your counter</h2>
           <p className="mt-1 text-sm text-slate-600">
-            Print it and stick it in your shop. Customers scan it to open your catalog.
+            Print it and display it. Customers scan it to open your catalog.
           </p>
           <div
             className="mx-auto mt-3 w-44"

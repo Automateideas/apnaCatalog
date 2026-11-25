@@ -40,20 +40,35 @@ function coord(latStr: string, lngStr: string) {
   return { lat: Number(lat.toFixed(6)), lng: Number(lng.toFixed(6)) };
 }
 
-/** Reverse-geocode a point to a city name via Mapbox. */
-export async function reverseGeocodeCity(lat: number, lng: number): Promise<{ city: string; citySlug: string } | null> {
+export type GeoLocation = {
+  locality?: string;
+  city?: string;
+  citySlug?: string;
+};
+
+/** Reverse-geocode a point to locality + city via Mapbox. */
+export async function reverseGeocode(lat: number, lng: number): Promise<GeoLocation | null> {
   if (!MAPBOX_TOKEN) return null;
   try {
     const res = await fetch(
-      `https://api.mapbox.com/geocoding/v5/mapbox.places/${lng.toFixed(6)},${lat.toFixed(6)}.json?types=place&language=en&access_token=${MAPBOX_TOKEN}`,
+      `https://api.mapbox.com/geocoding/v5/mapbox.places/${lng.toFixed(6)},${lat.toFixed(6)}.json?types=locality,neighborhood,place&language=en&access_token=${MAPBOX_TOKEN}`,
       { signal: AbortSignal.timeout(5000) },
     );
     if (!res.ok) return null;
-    const data = (await res.json()) as { features?: { text?: string }[] };
-    const city = data.features?.[0]?.text;
-    if (!city) return null;
-    return { city, citySlug: citySlugOf(city) };
+    const data = (await res.json()) as { features?: { place_type?: string[]; text?: string }[] };
+    const features = data.features ?? [];
+    const locality = features.find((f) => f.place_type?.some((t) => t === "locality" || t === "neighborhood"))?.text;
+    const city = features.find((f) => f.place_type?.includes("place"))?.text;
+    if (!locality && !city) return null;
+    return { locality: locality ?? undefined, city: city ?? undefined, citySlug: city ? citySlugOf(city) : undefined };
   } catch {
     return null;
   }
+}
+
+/** Reverse-geocode a point to a city name via Mapbox. */
+export async function reverseGeocodeCity(lat: number, lng: number): Promise<{ city: string; citySlug: string } | null> {
+  const geo = await reverseGeocode(lat, lng);
+  if (!geo?.city || !geo.citySlug) return null;
+  return { city: geo.city, citySlug: geo.citySlug };
 }

@@ -104,10 +104,10 @@ export async function generateMetadata({ searchParams }: PageProps<"/">): Promis
   const typeName = type ? getBusinessType(type).name : "";
   const where = city ? ` in ${cityFromSlug(city)}` : "";
   // Type names already say what they are ("Gift shop", "Kirana / Grocery", "Medical store").
-  const title = `${typeName || "Shops"}${where}: catalogs with prices`;
+  const title = `${typeName || "Businesses"}${where}: catalogs with prices`;
   return {
     title: { absolute: `${title} | ${SITE_NAME}` },
-    description: `See catalogs and prices of ${typeName ? typeName.toLowerCase() : "local"} shops${where}. Order on WhatsApp, no app needed.`,
+    description: `See catalogs and prices of ${typeName ? typeName.toLowerCase() : "local"} businesses${where}. Order on WhatsApp, no app needed.`,
     alternates: { canonical },
     robots,
     openGraph: { title, url: canonical },
@@ -135,7 +135,7 @@ export default async function HomePage({ searchParams }: PageProps<"/">) {
       data = await loadShops(filters);
     } catch (error) {
       console.error("Home page could not load shops", error);
-      problem = "Shops could not be loaded right now. Please try again in a minute.";
+      problem = "Businesses could not be loaded right now. Please try again in a minute.";
     }
   }
 
@@ -155,10 +155,10 @@ export default async function HomePage({ searchParams }: PageProps<"/">) {
   const cityName = data?.cities.find((c) => c.citySlug === filters.city)?.city;
   const filtered = Boolean(filters.city || filters.type || filters.q);
   const heading = filters.type
-    ? `${getBusinessType(filters.type).name} shops${cityName ? ` in ${cityName}` : ""}`
+    ? `${getBusinessType(filters.type).name}${cityName ? ` in ${cityName}` : ""}`
     : cityName
-      ? `Shops in ${cityName}`
-      : "Shops near you";
+      ? `Businesses in ${cityName}`
+      : "Businesses near you";
 
   // Lets Google show a search box for the site in its results.
   const jsonLd = {
@@ -185,11 +185,10 @@ export default async function HomePage({ searchParams }: PageProps<"/">) {
         <div className="mx-auto grid w-full max-w-6xl items-center gap-10 px-4 py-10 sm:py-14 lg:grid-cols-[1.15fr_0.85fr]">
           <div>
           <h1 className="max-w-xl text-4xl font-extrabold sm:text-5xl">
-            Your city&apos;s shops, with prices, on your phone.
+            Your city&apos;s businesses, with prices, on your phone.
           </h1>
           <p className="mt-3 max-w-lg text-lg text-white/80">
-            Open a shop&apos;s catalog, pick what you need, and send the order to the shopkeeper on
-            WhatsApp.
+            Open any catalog, pick what you need, and connect with the business on WhatsApp.
           </p>
 
           <form action="/" className="mt-6 flex max-w-xl flex-col gap-2 sm:flex-row">
@@ -197,8 +196,8 @@ export default async function HomePage({ searchParams }: PageProps<"/">) {
             <Input
               name="q"
               defaultValue={filters.q}
-              placeholder="Search a shop by name"
-              aria-label="Search a shop by name"
+              placeholder="Search by name"
+              aria-label="Search by name"
               className="sm:flex-1"
               maxLength={60}
             />
@@ -306,13 +305,13 @@ export default async function HomePage({ searchParams }: PageProps<"/">) {
           <Card className="mt-4 px-6 py-12 text-center">
             <IconBadge name="store" />
             <p className="mt-3 font-semibold text-slate-900">
-              {filtered ? "No shops match this search yet." : "No shops are listed yet."}
+              {filtered ? "No businesses match this search yet." : "No businesses are listed yet."}
             </p>
             <p className="mt-1 text-sm text-slate-600">
-              Own a shop? Add it free and be the first one here.
+              Have a business? Add it free and be the first one here.
             </p>
             <Link href="/login" className={buttonVariants({ className: "mt-5" })}>
-              Add your shop free
+              Add your business free
             </Link>
           </Card>
         )}
@@ -335,7 +334,7 @@ export default async function HomePage({ searchParams }: PageProps<"/">) {
         )}
 
         <section id="how-it-works" className="mt-12 scroll-mt-20 rounded-2xl bg-ink px-6 py-10 text-white sm:px-10">
-          <h2 className="text-3xl font-bold">Have a shop? Put your catalog online in 2 minutes.</h2>
+          <h2 className="text-3xl font-bold">Have a business? Put your catalog online in 2 minutes.</h2>
           <div className="mt-6 grid gap-5 sm:grid-cols-3">
             {[
               ["1. Add your items", "Name, price and a photo. Do it from your phone."],
@@ -350,7 +349,7 @@ export default async function HomePage({ searchParams }: PageProps<"/">) {
           </div>
           <div className="mt-7 flex flex-wrap items-center gap-4">
             <Link href="/login" className={buttonVariants({ variant: "tag" })}>
-              Add your shop free
+              Add your business free
             </Link>
             <span className="text-sm text-slate-300">
               Free forever for up to {FREE_ITEM_LIMIT} items. Paid plans from ₹{PLANS.starter.priceMonthly}/month.{" "}

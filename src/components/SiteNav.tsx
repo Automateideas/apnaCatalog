@@ -9,7 +9,7 @@ import { Button, buttonVariants } from "@/components/ui/button";
 import { Sheet, SheetContent, SheetDescription, SheetTitle } from "@/components/ui/sheet";
 
 const LINKS = [
-  { href: "/#shops", label: "Find shops" },
+  { href: "/#shops", label: "Find businesses" },
   { href: "/#how-it-works", label: "How it works" },
   { href: "/pricing", label: "Pricing" },
 ];
@@ -20,8 +20,8 @@ export function SiteNav({ signedIn }: { signedIn: boolean }) {
   const [open, setOpen] = useState(false);
   const isActive = (href: string) => (href.startsWith("/#") ? false : pathname === href);
   const cta = signedIn
-    ? { href: "/dashboard", label: "My shop" }
-    : { href: "/login", label: "Add your shop free" };
+    ? { href: "/dashboard", label: "Dashboard" }
+    : { href: "/login", label: "Add your business free" };
 
   return (
     <>
@@ -51,7 +51,7 @@ export function SiteNav({ signedIn }: { signedIn: boolean }) {
 
       <div className="flex items-center gap-2 md:hidden">
         <Link href={cta.href} className={buttonVariants({ size: "sm" })}>
-          {signedIn ? "My shop" : "Add shop"}
+          {signedIn ? "Dashboard" : "Get started"}
         </Link>
         <Button variant="ghost" size="icon" aria-label="Open menu" aria-expanded={open} onClick={() => setOpen(true)}>
           <Menu />

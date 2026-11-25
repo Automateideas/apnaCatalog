@@ -6,11 +6,12 @@ import { db } from "@/db";
 import { shops } from "@/db/schema";
 import type { ShopCardData } from "@/components/ShopCard";
 import { BUSINESS_TYPES } from "@/lib/catalog-config";
-import { reverseGeocodeCity } from "@/lib/geo";
+import { reverseGeocode } from "@/lib/geo";
 import { listedShop, paidNow } from "@/lib/shop-stats";
 
 export type NearbyShop = ShopCardData & { lat: number; lng: number; meters: number };
 export type DetectedCity = { city: string; citySlug: string };
+export type DetectedLocality = { locality?: string; city?: string; citySlug?: string };
 
 const input = z.object({
   lat: z.number().min(-90).max(90),
@@ -26,7 +27,7 @@ const LIMIT = 24;
  * The listed shops closest to a point, by straight-line distance.
  * The customer's location is only used for this query: it is not saved or logged.
  */
-export async function nearbyShops(raw: unknown): Promise<{ ok: true; shops: NearbyShop[]; detectedCity?: DetectedCity } | { ok: false }> {
+export async function nearbyShops(raw: unknown): Promise<{ ok: true; shops: NearbyShop[]; detectedCity?: DetectedCity; detectedLocality?: DetectedLocality } | { ok: false }> {
   const parsed = input.safeParse(raw);
   if (!parsed.success) return { ok: false };
   const { lat, lng } = parsed.data;
@@ -74,12 +75,15 @@ export async function nearbyShops(raw: unknown): Promise<{ ok: true; shops: Near
 
     const mapped = rows.map((r) => ({ ...r, lat: r.lat!, lng: r.lng!, meters: Number(r.meters) }));
 
+    const geo = await reverseGeocode(lat, lng).catch(() => null);
+    const detectedLocality = geo ?? undefined;
+    const detectedCity = geo?.city && geo.citySlug ? { city: geo.city, citySlug: geo.citySlug } : undefined;
+
     if (mapped.length === 0) {
-      const detected = await reverseGeocodeCity(lat, lng).catch(() => null);
-      return { ok: true, shops: [], detectedCity: detected ?? undefined };
+      return { ok: true, shops: [], detectedCity, detectedLocality };
     }
 
-    return { ok: true, shops: mapped };
+    return { ok: true, shops: mapped, detectedCity, detectedLocality };
   } catch (error) {
     console.error("Nearby shops could not be loaded", error);
     return { ok: false };

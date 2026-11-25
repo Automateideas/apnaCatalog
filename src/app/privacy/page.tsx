@@ -20,17 +20,17 @@ export default function PrivacyPage() {
         <h1 className="text-2xl font-bold text-slate-900">Privacy policy</h1>
         <p className="text-sm text-slate-500">Last updated: {UPDATED}</p>
         <p>
-          {SITE_NAME} lets shops publish a catalog and lets customers find shops, send orders and
+          {SITE_NAME} lets businesses publish a catalog and lets customers find them, send orders and
           write reviews. This page explains what personal data we collect, why, who can see it, and
           your rights. It follows India&apos;s Digital Personal Data Protection Act, 2023 and the
           Information Technology Act, 2000 and its rules.
         </p>
 
-        <h2 className={h2}>Shopkeepers</h2>
+        <h2 className={h2}>Business owners</h2>
         <p>
-          We store your login email, shop name, city, address, phone and WhatsApp numbers, shop
-          location, logo, shop photos, your name and photo if you add them, and your items. We use
-          them to run your shop page and dashboard. Everything on your shop page is public. Your
+          We store your login email, business name, city, address, phone and WhatsApp numbers,
+          location, logo, photos, your name and photo if you add them, and your items. We use
+          them to run your catalog page and dashboard. Everything on your catalog page is public. Your
           email is never shown publicly. If you open another shop&apos;s invite link, a cookie
           remembers that shop for 30 days, and when you create your shop we store which shop
           invited you. The shop that invited you only sees how many sellers joined through its
@@ -62,18 +62,18 @@ export default function PrivacyPage() {
           stop spam reports we keep a scrambled, one-way fingerprint of your network address with it.
         </p>
 
-        <h2 className={h2}>Your location (Shops near me and distance)</h2>
+        <h2 className={h2}>Your location (Near me and distance)</h2>
         <p>
-          Your phone&apos;s location is used only when you tap &quot;Shops near me&quot; or
-          &quot;How far is this shop from me?&quot; and allow it in your browser. You can say no,
+          Your phone&apos;s location is used only when you tap &quot;Near me&quot; or
+          &quot;How far is this from me?&quot; and allow it in your browser. You can say no,
           and you can turn it off any time in your browser settings. We use it at that moment to
-          find the closest shops and send it to Mapbox to get the road distance and travel time.{" "}
+          find the closest businesses and send it to Mapbox to get the road distance and travel time.{" "}
           <strong>We do not save your location</strong> and we do not use it for anything else.
         </p>
 
         <h2 className={h2}>Cookies and browser storage</h2>
         <p>
-          We use cookies only to keep shopkeepers logged in and to remember an invite link. Your
+          We use cookies only to keep business owners logged in and to remember an invite link. Your
           cart and small settings are kept in your own browser. We do not use advertising or
           tracking cookies. We measure page speed with Vercel Speed Insights, which does not
           identify you.
@@ -85,8 +85,8 @@ export default function PrivacyPage() {
           <li>Supabase: database, including login sessions (data kept in Mumbai, India).</li>
           <li>Cloudflare R2: photo storage.</li>
           <li>Vercel: website hosting and page speed measurement.</li>
-          <li>Google: &quot;Continue with Google&quot; login for shopkeepers.</li>
-          <li>Mapbox: road distance for &quot;Shops near me&quot;.</li>
+          <li>Google: &quot;Continue with Google&quot; login for business owners.</li>
+          <li>Mapbox: road distance for &quot;Near me&quot;.</li>
           <li>WhatsApp: orders and messages are sent by you through your own WhatsApp.</li>
         </ul>
         <p>Some of these services may process data outside India.</p>
@@ -114,7 +114,7 @@ export default function PrivacyPage() {
           <li>complain to our Grievance Officer (below).</li>
         </ul>
         <p>
-          Shopkeepers can edit their details any time from the dashboard. For anything else,
+          Business owners can edit their details any time from the dashboard. For anything else,
           contact the Grievance Officer. If you are not happy with our answer, you can complain to
           the Data Protection Board of India.
         </p>

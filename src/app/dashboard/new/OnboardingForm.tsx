@@ -114,7 +114,7 @@ export function OnboardingForm({ host }: { host: string }) {
 
       <div>
         <Label htmlFor="shop-slug">
-          Your shop link
+          Your catalog link
         </Label>
         <div className="flex items-center overflow-hidden rounded-xl border border-slate-300 bg-slate-50 focus-within:border-brand focus-within:ring-2 focus-within:ring-brand/20">
           <span className="pl-3 text-sm whitespace-nowrap text-slate-500">{host}/</span>
@@ -124,7 +124,7 @@ export function OnboardingForm({ host }: { host: string }) {
             value={slug}
             onChange={(e) => setCustomSlug(e.target.value.toLowerCase().replace(/[^a-z0-9-]/g, "-"))}
             maxLength={50}
-            placeholder="your-shop-name"
+            placeholder="your-business-name"
             autoCapitalize="none"
             spellCheck={false}
           />
@@ -137,7 +137,7 @@ export function OnboardingForm({ host }: { host: string }) {
       {error && <Alert variant="destructive">{error}</Alert>}
 
       <Button type="submit" className="w-full text-base" disabled={pending}>
-        {pending ? "Creating your shop..." : "Create my shop"}
+        {pending ? "Creating your catalog..." : "Create my catalog"}
       </Button>
     </form>
   );

@@ -37,7 +37,7 @@ export default async function OrdersPage() {
           <IconBadge name="receipt" />
           <p className="mt-3 font-semibold text-slate-900">No orders yet</p>
           <p className="mt-1 text-sm text-slate-600">
-            Share your shop link. When a customer sends an order, it shows up here too.
+            Share your catalog link. When a customer sends an order, it shows up here too.
           </p>
         </Card>
       ) : (

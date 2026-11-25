@@ -47,7 +47,7 @@ export function VisitingCard({
         await navigator.share({ files: [file], text: shareText });
       } else {
         download();
-        toast.success("Card saved. Attach it in WhatsApp with your shop link.");
+        toast.success("Card saved. Attach it in WhatsApp with your catalog link.");
       }
     } catch (error) {
       // The person closed the share sheet: nothing to do.
@@ -62,12 +62,12 @@ export function VisitingCard({
     <Card className="p-5">
       <h2 className="font-bold text-slate-900">Your visiting card</h2>
       <p className="mt-1 text-sm text-slate-600">
-        Made from your shop details in your theme and colour. It shows up by itself when you share
-        your shop link on WhatsApp. Change the theme and the card changes too.
+        Made from your business details in your theme and colour. It shows up by itself when you share
+        your catalog link on WhatsApp. Change the theme and the card changes too.
       </p>
       <img
         src={src}
-        alt="Visiting card of your shop"
+        alt="Your visiting card"
         width={1200}
         height={630}
         className="mt-3 h-auto w-full rounded-lg border bg-slate-50"

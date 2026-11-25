@@ -23,11 +23,11 @@ const mukta = Mukta({
 export const metadata: Metadata = {
   metadataBase: new URL(siteUrl()),
   title: {
-    default: `${SITE_NAME} - Online catalog for your shop`,
+    default: `${SITE_NAME} - Online catalog for your business`,
     template: `%s | ${SITE_NAME}`,
   },
   description:
-    "Make a free online catalog for your shop in 2 minutes. Share one link, get orders on WhatsApp. Find local shops in your city.",
+    "Make a free online catalog for your business in 2 minutes. Share one link, get orders on WhatsApp. Find local businesses in your city.",
   applicationName: SITE_NAME,
   manifest: "/manifest.webmanifest",
   icons: {

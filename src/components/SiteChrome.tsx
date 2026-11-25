@@ -39,14 +39,14 @@ export function SiteFooter() {
     <footer className="no-print mt-auto border-t border-slate-200 bg-white">
       <div className="mx-auto flex w-full max-w-6xl flex-col items-center justify-between gap-3 px-4 py-6 text-sm text-slate-500 sm:flex-row">
         <p>
-          © {new Date().getFullYear()} {SITE_NAME}. Made for local shops in India.
+          © {new Date().getFullYear()} {SITE_NAME}. Made for local businesses in India.
         </p>
         <nav className="flex gap-5">
           <Link href="/pricing" className="hover:text-slate-900">
             Pricing
           </Link>
           <Link href="/login" className="hover:text-slate-900">
-            Shop login
+            Login
           </Link>
           <Link href="/privacy" className="hover:text-slate-900">
             Privacy

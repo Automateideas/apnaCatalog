@@ -2,7 +2,7 @@ import { ImageResponse } from "next/og";
 import { SITE_NAME } from "@/lib/utils";
 
 // The preview card shown when the site link is shared on WhatsApp, Facebook or X.
-export const alt = `${SITE_NAME}: your city's shops, with prices, on your phone`;
+export const alt = `${SITE_NAME}: your city's businesses, with prices, on your phone`;
 export const size = { width: 1200, height: 630 };
 export const contentType = "image/png";
 
@@ -36,10 +36,10 @@ export default function Image() {
         </div>
         <div style={{ display: "flex", flexDirection: "column", gap: 20 }}>
           <div style={{ fontSize: 76, fontWeight: 800, lineHeight: 1.05, maxWidth: 980 }}>
-            Your city&apos;s shops, with prices, on your phone.
+            Your city&apos;s businesses, with prices, on your phone.
           </div>
           <div style={{ fontSize: 34, color: "rgba(251,247,240,0.75)" }}>
-            See the catalog. Order on WhatsApp. Free catalog for shops.
+            See the catalog. Order on WhatsApp. Free for all businesses.
           </div>
         </div>
       </div>

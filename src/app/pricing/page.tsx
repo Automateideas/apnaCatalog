@@ -14,9 +14,9 @@ export const metadata: Metadata = {
 };
 
 const FAQ: [string, string][] = [
-  ["Do I need to pay to start?", `No. Every shop starts on the Free plan, with up to ${PLANS.free.items} items. No card needed.`],
-  ["How do I pay for a plan?", "From your dashboard, message us on WhatsApp and pay by UPI. We switch on the plan for your shop."],
-  ["What happens when a plan ends?", "Your shop moves to the Free plan. Nothing is deleted and your shop stays online."],
+  ["Do I need to pay to start?", `No. Every business starts on the Free plan, with up to ${PLANS.free.items} items. No card needed.`],
+  ["How do I pay for a plan?", "From your dashboard, message us on WhatsApp and pay by UPI. We switch on the plan for your business."],
+  ["What happens when a plan ends?", "Your business moves to the Free plan. Nothing is deleted and your catalog stays online."],
   ["Do customers pay anything?", "No. Customers see your catalog and send orders on WhatsApp for free."],
 ];
 
@@ -28,7 +28,7 @@ export default async function PricingPage() {
     <>
       <SiteHeader signedIn={Boolean(user)} />
       <main className="mx-auto w-full max-w-6xl flex-1 px-4 py-10">
-        <h1 className="text-3xl font-extrabold text-slate-900 sm:text-4xl">Simple prices for every shop</h1>
+        <h1 className="text-3xl font-extrabold text-slate-900 sm:text-4xl">Simple prices for every business</h1>
         <p className="mt-2 max-w-2xl text-lg text-slate-600">
           Start free. Upgrade when you need more items, more photos or a featured spot on the home page.
         </p>

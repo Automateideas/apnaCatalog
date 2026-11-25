@@ -85,6 +85,7 @@ export function Catalog({ shop, look, items, categories, mode = "cart" }: Props)
   const [activeCat, setActiveCat] = useState<string>("all");
   const [activeSub, setActiveSub] = useState<string | null>(null);
   const [query, setQuery] = useState("");
+  const [sort, setSort] = useState<string>("default");
   const [cartOpen, setCartOpen] = useState(false);
   const [viewing, setViewing] = useState<{ item: CatalogItem; start: number } | null>(null);
   // The item whose details are open (tapping a card).
@@ -158,16 +159,27 @@ export function Catalog({ shop, look, items, categories, mode = "cart" }: Props)
     return true;
   });
 
+  const sorted = (() => {
+    if (sort === "default") return visible;
+    const copy = [...visible];
+    switch (sort) {
+      case "price-asc": return copy.sort((a, b) => a.price - b.price);
+      case "price-desc": return copy.sort((a, b) => b.price - a.price);
+      case "name": return copy.sort((a, b) => a.name.localeCompare(b.name));
+      default: return copy;
+    }
+  })();
+
   const sections: { title: string | null; items: CatalogItem[] }[] =
-    activeCat === "all" && !q && topCats.length > 0
+    sort === "default" && activeCat === "all" && !q && topCats.length > 0
       ? [
           ...topCats.map((c) => ({
             title: c.name,
-            items: visible.filter((i) => topOf(i) === c.id),
+            items: sorted.filter((i) => topOf(i) === c.id),
           })),
-          { title: "More items", items: visible.filter((i) => topOf(i) === null) },
+          { title: "More items", items: sorted.filter((i) => topOf(i) === null) },
         ].filter((s) => s.items.length > 0)
-      : [{ title: null, items: visible }];
+      : [{ title: null, items: sorted }];
 
   const sendOrder = () => {
     setError(null);
@@ -457,28 +469,58 @@ export function Catalog({ shop, look, items, categories, mode = "cart" }: Props)
         </Alert>
       )}
 
-      {items.length > 6 && (
-        <Input
-          type="search"
-          value={query}
-          onChange={(e) => setQuery(e.target.value)}
-          placeholder="Search items"
-          aria-label="Search items"
-          className="mb-3"
-        />
+      {items.length > 1 && (
+        <div className="mb-3 flex gap-2">
+          {items.length > 6 && (
+            <Input
+              type="search"
+              value={query}
+              onChange={(e) => setQuery(e.target.value)}
+              placeholder="Search items"
+              aria-label="Search items"
+              className="flex-1"
+            />
+          )}
+          <select
+            value={sort}
+            onChange={(e) => setSort(e.target.value)}
+            aria-label="Sort by"
+            className={cx(
+              "h-9 rounded-(--t-radius) border border-(--t-border) bg-(--t-surface) px-2 text-sm text-(--t-text)",
+              items.length <= 6 && "ml-auto",
+            )}
+          >
+            <option value="default">Default</option>
+            <option value="price-asc">Price: Low → High</option>
+            <option value="price-desc">Price: High → Low</option>
+            <option value="name">Name: A → Z</option>
+          </select>
+        </div>
       )}
 
       {topCats.length > 1 && (
         <nav
           aria-label="Categories"
           className={cx(
-            "no-scrollbar sticky top-0 z-10 -mx-4 flex overflow-x-auto bg-(--t-bg)/95 px-4 py-2 backdrop-blur",
+            "no-scrollbar sticky top-0 z-10 -mx-4 flex items-center overflow-x-auto bg-(--t-bg)/95 px-4 py-2 backdrop-blur",
             look.chips === "underline" ? "gap-4" : "gap-2",
           )}
         >
+          <select
+            value={activeCat}
+            onChange={(e) => { setActiveCat(e.target.value); setActiveSub(null); }}
+            aria-label="Select category"
+            className="mr-1 h-8 shrink-0 rounded-(--t-radius) border border-(--t-border) bg-(--t-surface) px-2 text-sm text-(--t-text)"
+          >
+            <option value="all">All categories</option>
+            {topCats.map((c) => (
+              <option key={c.id} value={c.id}>{c.name}</option>
+            ))}
+          </select>
+          <span className="hidden h-5 w-px bg-(--t-border) sm:block" />
           <button
             type="button"
-            className={chip(activeCat === "all")}
+            className={cx(chip(activeCat === "all"), "hidden sm:inline-flex")}
             onClick={() => {
               setActiveCat("all");
               setActiveSub(null);
@@ -490,7 +532,7 @@ export function Catalog({ shop, look, items, categories, mode = "cart" }: Props)
             <button
               key={c.id}
               type="button"
-              className={chip(activeCat === c.id)}
+              className={cx(chip(activeCat === c.id), "hidden sm:inline-flex")}
               onClick={() => {
                 setActiveCat(c.id);
                 setActiveSub(null);
@@ -503,14 +545,25 @@ export function Catalog({ shop, look, items, categories, mode = "cart" }: Props)
       )}
 
       {subCats.length > 0 && (
-        <div className="no-scrollbar -mx-4 flex gap-2 overflow-x-auto px-4 pb-1">
+        <div className="no-scrollbar -mx-4 flex items-center gap-2 overflow-x-auto px-4 pb-1">
+          <select
+            value={activeSub ?? ""}
+            onChange={(e) => setActiveSub(e.target.value || null)}
+            aria-label="Sub-category"
+            className="h-7 shrink-0 rounded border border-(--t-border) bg-(--t-surface) px-1.5 text-xs text-(--t-text) sm:hidden"
+          >
+            <option value="">All sub-categories</option>
+            {subCats.map((c) => (
+              <option key={c.id} value={c.id}>{c.name}</option>
+            ))}
+          </select>
           {[{ id: null as string | null, name: "All" }, ...subCats].map((c) => (
             <button
               key={c.id ?? "all"}
               type="button"
               onClick={() => setActiveSub(c.id)}
               className={cx(
-                "rounded-lg px-2.5 py-1 text-xs font-medium whitespace-nowrap",
+                "hidden rounded-lg px-2.5 py-1 text-xs font-medium whitespace-nowrap sm:inline-flex",
                 activeSub === c.id ? "bg-(--ps) text-(--pa)" : "text-(--t-muted) hover:bg-(--ps)",
               )}
             >

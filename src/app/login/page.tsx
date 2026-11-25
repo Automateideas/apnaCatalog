@@ -9,8 +9,8 @@ import { LoginForm } from "./LoginForm";
 import { Alert } from "@/components/ui/alert";
 
 export const metadata: Metadata = {
-  title: "Shop login",
-  description: "Log in or create your free shop catalog.",
+  title: "Login",
+  description: "Log in or create your free online catalog.",
 };
 
 export default async function LoginPage({ searchParams }: PageProps<"/login">) {
@@ -21,7 +21,7 @@ export default async function LoginPage({ searchParams }: PageProps<"/login">) {
   return (
     <main className="mx-auto flex w-full max-w-md flex-1 flex-col justify-center px-4 py-10">
       <Logo className="mb-6 self-center" />
-      <h1 className="text-center text-2xl font-bold text-slate-900">Open your shop online</h1>
+      <h1 className="text-center text-2xl font-bold text-slate-900">Start your online catalog</h1>
       <p className="mt-2 mb-6 text-center text-slate-600">
         Free for up to {FREE_ITEM_LIMIT} items. New or returning, continue with Google.
       </p>

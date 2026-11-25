@@ -44,7 +44,7 @@ export default async function ReviewPage({ params, searchParams }: PageProps<"/[
           <IconBadge name="link" />
           <h2 className="mt-3 text-lg font-bold">This review link is not valid</h2>
           <p className="mt-2 text-sm text-slate-600">
-            Reviews can be written only from the link the shop sends to its customers. Please ask{" "}
+            Reviews can be written only from the link the business sends to its customers. Please ask{" "}
             {shop.name} to send you the link again.
           </p>
           <Link href={`/${shop.slug}`} className={buttonVariants({ variant: "outline", className: "mt-5" })}>

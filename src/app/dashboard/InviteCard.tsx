@@ -18,7 +18,7 @@ export async function InviteCard({ shop }: { shop: Pick<Shop, "id" | "slug"> }) 
     .where(eq(shops.invitedBy, shop.id));
 
   const url = inviteUrl(shop.slug);
-  const shareText = `I made an online catalog for my shop on ${SITE_NAME}. Customers see my items and order on WhatsApp. Make yours free:\n${url}`;
+  const shareText = `I made an online catalog for my business on ${SITE_NAME}. Customers see my items and order on WhatsApp. Make yours free:\n${url}`;
 
   return (
     <Card className="p-5">

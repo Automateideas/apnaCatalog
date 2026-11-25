@@ -3,7 +3,7 @@
 import { useEffect, useState } from "react";
 import { Loader2, LocateFixed, MapPin, X } from "lucide-react";
 import { toast } from "sonner";
-import { nearbyShops, type DetectedCity, type NearbyShop } from "@/app/actions/nearby";
+import { nearbyShops, type DetectedCity, type DetectedLocality, type NearbyShop } from "@/app/actions/nearby";
 import { ShopList } from "@/components/ShopList";
 import { Button } from "@/components/ui/button";
 import {
@@ -33,6 +33,7 @@ export function NearbyShops({
   const [state, setState] = useState<"off" | "locating" | "on">("off");
   const [list, setList] = useState<NearbyShop[]>([]);
   const [detectedCity, setDetectedCity] = useState<DetectedCity | null>(null);
+  const [detectedLocality, setDetectedLocality] = useState<DetectedLocality | null>(null);
   const [roads, setRoads] = useState<Map<string, Road>>(new Map());
 
   const start = async () => {
@@ -48,11 +49,12 @@ export function NearbyShops({
     const result = await nearbyShops({ ...from, type, q }).catch(() => ({ ok: false as const }));
     if (!result.ok) {
       setState("off");
-      toast.error("Could not find shops near you. Check your internet and try again.");
+      toast.error("Could not find businesses near you. Check your internet and try again.");
       return;
     }
     setList(result.shops);
     setDetectedCity(result.detectedCity ?? null);
+    setDetectedLocality(result.detectedLocality ?? null);
     setRoads(new Map());
     setState("on");
     // If Mapbox fails, the straight-line distance simply stays.
@@ -81,16 +83,22 @@ export function NearbyShops({
       <div className="mt-3 flex flex-wrap items-center gap-2">
         {state === "on" ? (
           <Button type="button" variant="outline" size="sm" onClick={() => setState("off")}>
-            <X /> Show all shops
+            <X /> Show all
           </Button>
         ) : (
           <Button type="button" variant="outline" size="sm" onClick={start} disabled={state === "locating"}>
             {state === "locating" ? <Loader2 className="animate-spin" /> : <LocateFixed />}
-            {state === "locating" ? "Finding your location..." : "Shops near me"}
+            {state === "locating" ? "Finding your location..." : "Near me"}
           </Button>
         )}
-        {state === "on" && (
-          <span className="text-sm text-slate-500">Closest first. Only shops that set their map location.</span>
+        {state === "on" && detectedLocality?.locality && (
+          <span className="text-sm font-medium text-slate-700">
+            <MapPin className="mr-0.5 inline size-3.5" />
+            {detectedLocality.locality}{detectedLocality.city ? `, ${detectedLocality.city}` : ""}
+          </span>
+        )}
+        {state === "on" && !detectedLocality?.locality && (
+          <span className="text-sm text-slate-500">Closest first. Only businesses that set their map location.</span>
         )}
       </div>
 
@@ -98,21 +106,31 @@ export function NearbyShops({
 
       {state === "on" && sorted.length === 0 && (
         <div className="mt-4 rounded-xl border border-dashed border-slate-300 p-6 text-center text-sm text-slate-600">
-          <p>No shops with a map location near you yet.</p>
+          <p>
+            No businesses with a map location near
+            {detectedLocality?.locality ? ` ${detectedLocality.locality}` : " you"} yet.
+          </p>
           {detectedCity && (
             <a
               href={`/?city=${encodeURIComponent(detectedCity.citySlug)}`}
               className="mt-2 inline-block font-semibold text-brand hover:underline"
             >
-              See all shops in {detectedCity.city}
+              See all in {detectedCity.city}
             </a>
           )}
         </div>
       )}
 
+      {state === "on" && sorted.length > 0 && detectedLocality?.locality && (
+        <h3 className="mt-4 text-lg font-semibold text-slate-900">
+          Businesses near {detectedLocality.locality}
+          {detectedLocality.city ? `, ${detectedLocality.city}` : ""}
+        </h3>
+      )}
+
       {state === "on" && sorted.length > 0 && (
         <ShopList
-          className="mt-4"
+          className={detectedLocality?.locality ? "mt-2" : "mt-4"}
           shops={sorted}
           distances={Object.fromEntries(
             sorted.map((shop) => {
