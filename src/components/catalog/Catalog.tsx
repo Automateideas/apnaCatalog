@@ -1,11 +1,6 @@
 "use client";
 
-import {
-  useCallback,
-  useMemo,
-  useState,
-  useTransition,
-} from "react";
+import { useCallback, useMemo, useState, useTransition } from "react";
 import { createOrder } from "@/app/actions/orders";
 import type { ItemStyle, Theme } from "@/lib/themes";
 import { useStored } from "@/lib/use-stored";
@@ -273,7 +268,11 @@ export function Catalog({
     return true;
   });
 
-  const onSale = (item: CatalogItem) => item.salePrice != null && item.salePrice > 0 && item.salePrice < item.price && item.options.length === 0;
+  const onSale = (item: CatalogItem) =>
+    item.salePrice != null &&
+    item.salePrice > 0 &&
+    item.salePrice < item.price &&
+    item.options.length === 0;
 
   const sorted = (() => {
     if (sort === "default") return visible;
@@ -292,10 +291,16 @@ export function Catalog({
 
   const saleItems = sorted.filter((i) => onSale(i));
 
-  const sections: { title: string | null; sale?: boolean; items: CatalogItem[] }[] =
+  const sections: {
+    title: string | null;
+    sale?: boolean;
+    items: CatalogItem[];
+  }[] =
     sort === "default" && activeCat === "all" && !q && topCats.length > 0
       ? [
-          ...(saleItems.length > 0 ? [{ title: "Discounted", sale: true, items: saleItems }] : []),
+          ...(saleItems.length > 0
+            ? [{ title: "Discounted", sale: true, items: saleItems }]
+            : []),
           ...topCats.map((c) => ({
             title: c.name,
             items: sorted.filter((i) => topOf(i) === c.id),
@@ -540,9 +545,11 @@ export function Catalog({
     if (item.options.length > 0 || item.maxPrice) return null;
     const displayPrice = effectivePrice(item);
     // Sale discount: compare salePrice to the regular selling price.
-    if (onSale(item)) return Math.round(((item.price - item.salePrice!) / item.price) * 100);
+    if (onSale(item))
+      return Math.round(((item.price - item.salePrice!) / item.price) * 100);
     // MRP discount: compare selling price to MRP.
-    if (item.mrp && item.mrp > item.price) return Math.round(((item.mrp - item.price) / item.mrp) * 100);
+    if (item.mrp && item.mrp > item.price)
+      return Math.round(((item.mrp - item.price) / item.mrp) * 100);
     return null;
   };
 
@@ -554,8 +561,8 @@ export function Catalog({
           className={cx(
             "grid",
             tall
-              ? "grid-cols-2 gap-x-3 gap-y-8 sm:grid-cols-3"
-              : "grid-cols-2 gap-3 sm:grid-cols-3 lg:grid-cols-4",
+              ? "grid-cols-2 gap-x-3 gap-y-8 sm:grid-cols-3 lg:grid-cols-4"
+              : "grid-cols-2 gap-3 sm:grid-cols-3 lg:grid-cols-5",
           )}
         >
           {list.map((item) => {
@@ -573,7 +580,7 @@ export function Catalog({
                 {/* Photo */}
                 <div
                   className={cx(
-                    tall ? "aspect-[3/4]" : "aspect-[4/3]",
+                    tall ? "aspect-3/4" : "aspect-4/3",
                     "relative overflow-hidden bg-(--ps)",
                     tall && "t-photo",
                   )}
@@ -601,7 +608,11 @@ export function Catalog({
                     <button
                       type="button"
                       onClick={() => toggleFav(item.id)}
-                      aria-label={favs.has(item.id) ? "Remove from favorites" : "Add to favorites"}
+                      aria-label={
+                        favs.has(item.id)
+                          ? "Remove from favorites"
+                          : "Add to favorites"
+                      }
                       className={cx(
                         "flex size-7 items-center justify-center rounded-full shadow-md transition-all",
                         favs.has(item.id)
@@ -609,7 +620,12 @@ export function Catalog({
                           : "bg-white/80 text-slate-500 opacity-0 group-hover:opacity-100 sm:flex",
                       )}
                     >
-                      <Heart className={cx("size-3.5", favs.has(item.id) && "fill-red-500")} />
+                      <Heart
+                        className={cx(
+                          "size-3.5",
+                          favs.has(item.id) && "fill-red-500",
+                        )}
+                      />
                     </button>
                     <button
                       type="button"
@@ -623,7 +639,9 @@ export function Catalog({
                 </div>
 
                 {/* Info */}
-                <div className={cx("flex flex-1 flex-col", tall ? "pt-3" : "p-3")}>
+                <div
+                  className={cx("flex flex-1 flex-col", tall ? "pt-3" : "p-3")}
+                >
                   {title(
                     item,
                     cx(
@@ -632,7 +650,9 @@ export function Catalog({
                     ),
                   )}
                   {item.unit && (
-                    <p className="mt-0.5 text-xs text-(--t-muted)">{item.unit}</p>
+                    <p className="mt-0.5 text-xs text-(--t-muted)">
+                      {item.unit}
+                    </p>
                   )}
                   <div className="mt-1.5 flex flex-wrap items-baseline gap-x-1.5 gap-y-0.5">
                     {price(item)}
@@ -659,8 +679,10 @@ export function Catalog({
                   !item.inStock && "opacity-60",
                 )}
               >
-                <div className="t-photo relative h-[72px] w-[72px] shrink-0 overflow-hidden bg-(--ps)">
-                  {item.imageUrl ? photo(item, "h-full w-full") : noPhoto("h-6 w-6")}
+                <div className="t-photo relative h-18 w-18 shrink-0 overflow-hidden bg-(--ps)">
+                  {item.imageUrl
+                    ? photo(item, "h-full w-full")
+                    : noPhoto("h-6 w-6")}
                   {pct && pct >= 5 && (
                     <span className="absolute bottom-0 left-0 right-0 bg-red-500 py-0.5 text-center text-[9px] font-bold text-white">
                       {pct}% off
@@ -673,20 +695,34 @@ export function Catalog({
                   )}
                 </div>
                 <div className="min-w-0 flex-1">
-                  {title(item, "line-clamp-2 text-sm font-medium leading-snug text-(--t-text)")}
+                  {title(
+                    item,
+                    "line-clamp-2 text-sm font-medium leading-snug text-(--t-text)",
+                  )}
                   <div className="mt-1 flex flex-wrap items-baseline gap-x-1.5">
                     {price(item)}
                   </div>
-                  {item.unit && <p className="text-xs text-(--t-muted)">{item.unit}</p>}
+                  {item.unit && (
+                    <p className="text-xs text-(--t-muted)">{item.unit}</p>
+                  )}
                 </div>
                 <div className="flex shrink-0 flex-col items-end gap-2">
                   <button
                     type="button"
                     onClick={() => toggleFav(item.id)}
-                    aria-label={favs.has(item.id) ? "Remove from favorites" : "Add to favorites"}
+                    aria-label={
+                      favs.has(item.id)
+                        ? "Remove from favorites"
+                        : "Add to favorites"
+                    }
                     className="text-(--t-muted) transition-colors hover:text-(--t-text)"
                   >
-                    <Heart className={cx("size-4", favs.has(item.id) && "fill-red-500 text-red-500")} />
+                    <Heart
+                      className={cx(
+                        "size-4",
+                        favs.has(item.id) && "fill-red-500 text-red-500",
+                      )}
+                    />
                   </button>
                   {stepper(item, true)}
                 </div>
@@ -717,18 +753,33 @@ export function Catalog({
                       New
                     </span>
                   )}
-                  {title(item, "t-head text-[1.05rem] leading-snug text-(--t-text)")}
+                  {title(
+                    item,
+                    "t-head text-[1.05rem] leading-snug text-(--t-text)",
+                  )}
                   {(item.description || item.unit) && (
                     <p className="mt-0.5 line-clamp-2 text-sm text-(--t-muted)">
-                      {[item.unit, item.description].filter(Boolean).join(" · ")}
+                      {[item.unit, item.description]
+                        .filter(Boolean)
+                        .join(" · ")}
                     </p>
                   )}
                 </div>
                 <div className="shrink-0 text-right">
-                  <p className="text-base font-bold" style={{ color: "var(--p)" }}>{price(item)}</p>
-                  {item.mrp && item.mrp > item.price && item.options.length === 0 && !item.maxPrice && (
-                    <p className="text-xs text-(--t-muted) line-through">{formatPrice(item.mrp)}</p>
-                  )}
+                  <p
+                    className="text-base font-bold"
+                    style={{ color: "var(--p)" }}
+                  >
+                    {price(item)}
+                  </p>
+                  {item.mrp &&
+                    item.mrp > item.price &&
+                    item.options.length === 0 &&
+                    !item.maxPrice && (
+                      <p className="text-xs text-(--t-muted) line-through">
+                        {formatPrice(item.mrp)}
+                      </p>
+                    )}
                 </div>
               </div>
               <div className="mt-2.5 flex items-center gap-2">
@@ -736,10 +787,19 @@ export function Catalog({
                 <button
                   type="button"
                   onClick={() => toggleFav(item.id)}
-                  aria-label={favs.has(item.id) ? "Remove from favorites" : "Add to favorites"}
+                  aria-label={
+                    favs.has(item.id)
+                      ? "Remove from favorites"
+                      : "Add to favorites"
+                  }
                   className="text-(--t-muted) transition-colors hover:text-(--t-text)"
                 >
-                  <Heart className={cx("size-4", favs.has(item.id) && "fill-red-500 text-red-500")} />
+                  <Heart
+                    className={cx(
+                      "size-4",
+                      favs.has(item.id) && "fill-red-500 text-red-500",
+                    )}
+                  />
                 </button>
                 <button
                   type="button"
@@ -1166,7 +1226,10 @@ export function Catalog({
         <Dialog open onOpenChange={(open) => !open && setDetail(null)}>
           <DialogContent className="t-page max-h-[92dvh] gap-0 overflow-y-auto bg-(--t-surface) p-0 sm:max-w-md">
             {detail.imageUrls.length > 0 && (
-              <div className="relative w-full bg-(--ps)" style={{ aspectRatio: "4/3" }}>
+              <div
+                className="relative w-full bg-(--ps)"
+                style={{ aspectRatio: "4/3" }}
+              >
                 <ItemCarousel
                   urls={detail.imageUrls}
                   name={detail.name}

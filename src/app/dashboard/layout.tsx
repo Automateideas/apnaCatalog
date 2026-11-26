@@ -6,11 +6,10 @@ import { db } from "@/db";
 import { reports } from "@/db/schema";
 import { Logo } from "@/components/SiteChrome";
 import { getShopByOwner, isAdminEmail, requireUser } from "@/lib/auth";
-import { DashboardNav } from "./DashboardNav";
 import { Icon } from "@/components/Icon";
 import { Button, buttonVariants } from "@/components/ui/button";
+import { DashboardNav, DashboardSidebar } from "./DashboardNavClient";
 
-// Every dashboard page depends on who is logged in, so never prerender them.
 export const dynamic = "force-dynamic";
 
 export const metadata: Metadata = {
@@ -23,7 +22,6 @@ export default async function DashboardLayout({
 }: LayoutProps<"/dashboard">) {
   const user = await requireUser();
   const shop = await getShopByOwner(user.id);
-  // New reports the owner has not opened yet: the number on the bell.
   const [{ unseen }] = shop
     ? await db
         .select({ unseen: count() })
@@ -34,28 +32,19 @@ export default async function DashboardLayout({
   return (
     <>
       <header className="sticky top-0 z-30 border-b border-slate-200 bg-white dark:border-slate-700 dark:bg-slate-900">
-        <div className="mx-auto flex h-14 w-full max-w-4xl items-center justify-between gap-3 px-4 sm:px-6">
+        <div className="mx-auto flex h-14 w-full max-w-7xl items-center justify-between gap-3 px-4 sm:px-6">
           <Logo />
           <div className="flex items-center gap-1">
             {isAdminEmail(user.email) && (
-              <Link
-                href="/admin"
-                className={buttonVariants({ variant: "ghost", size: "sm" })}
-              >
+              <Link href="/admin" className={buttonVariants({ variant: "ghost", size: "sm" })}>
                 Admin
               </Link>
             )}
             {shop && (
               <Link
                 href="/dashboard/reports"
-                aria-label={
-                  unseen > 0 ? `Notifications, ${unseen} new` : "Notifications"
-                }
-                className={buttonVariants({
-                  variant: "ghost",
-                  size: "icon",
-                  className: "relative",
-                })}
+                aria-label={unseen > 0 ? `Notifications, ${unseen} new` : "Notifications"}
+                className={buttonVariants({ variant: "ghost", size: "icon", className: "relative" })}
               >
                 <Bell />
                 {unseen > 0 && (
@@ -70,9 +59,8 @@ export default async function DashboardLayout({
                 href={`/${shop.slug}`}
                 target="_blank"
                 className={buttonVariants({ variant: "outline", size: "sm" })}
-                aria-label="View shop"
               >
-                <span className="hidden sm:inline">View shop</span> <Icon name="external" />
+                View shop <Icon name="external" />
               </Link>
             )}
             <form action="/auth/signout" method="post">
@@ -83,11 +71,16 @@ export default async function DashboardLayout({
             </form>
           </div>
         </div>
-        {shop && <DashboardNav />}
       </header>
-      <main className="mx-auto w-full max-w-4xl flex-1 px-4 py-6 sm:px-6">
-        {children}
-      </main>
+      <div className="mx-auto w-full max-w-7xl flex-1 px-4 sm:px-6">
+        {shop && <DashboardNav />}
+        <div className="flex gap-8 py-6">
+          {shop && <DashboardSidebar />}
+          <main className="min-w-0 flex-1">
+            {children}
+          </main>
+        </div>
+      </div>
     </>
   );
 }

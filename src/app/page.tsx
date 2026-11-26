@@ -182,12 +182,12 @@ export default async function HomePage({ searchParams }: PageProps<"/">) {
       <SiteHeader signedIn={Boolean(user)} />
 
       <section className="bg-brand text-white">
-        <div className="mx-auto grid w-full max-w-6xl items-center gap-10 px-4 py-10 sm:px-6 sm:py-14 lg:grid-cols-[1.15fr_0.85fr]">
+        <div className="mx-auto grid w-full max-w-6xl items-center gap-10 px-4 py-12 sm:px-6 sm:py-16 lg:grid-cols-[1.15fr_0.85fr] lg:py-20">
           <div>
-            <h1 className="max-w-xl text-4xl font-extrabold sm:text-5xl">
+            <h1 className="max-w-xl text-4xl font-extrabold sm:text-5xl lg:text-6xl">
               Your city&apos;s businesses, with prices, on your phone.
             </h1>
-            <p className="mt-3 max-w-lg text-lg text-white/80">
+            <p className="mt-3 max-w-lg text-lg text-white/80 lg:text-xl">
               Open any catalog, pick what you need, and connect with the business on WhatsApp.
             </p>
 
@@ -334,8 +334,8 @@ export default async function HomePage({ searchParams }: PageProps<"/">) {
         </NearbyShops>
         )}
 
-        <section id="how-it-works" className="mt-12 scroll-mt-20 rounded-2xl bg-ink px-6 py-10 text-white sm:px-12">
-          <h2 className="text-3xl font-bold">Have a business? Put your catalog online in 2 minutes.</h2>
+        <section id="how-it-works" className="mt-12 scroll-mt-20 rounded-2xl bg-ink px-6 py-10 text-white sm:px-12 lg:px-16 lg:py-14">
+          <h2 className="text-3xl font-bold lg:text-4xl">Have a business? Put your catalog online in 2 minutes.</h2>
           <div className="mt-6 grid gap-5 sm:grid-cols-3">
             {[
               ["1. Add your items", "Name, price and a photo. Do it from your phone."],

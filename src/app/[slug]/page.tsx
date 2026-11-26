@@ -181,9 +181,7 @@ export default async function ShopPage({ params }: PageProps<"/[slug]">) {
       <main className="mx-auto w-full max-w-5xl flex-1 px-4 pb-10 sm:px-6">
         <div
           className={cx(
-            "no-print relative z-10 grid gap-2 whitespace-nowrap",
-            directions ? "grid-cols-3" : "grid-cols-2",
-            // Overlap the coloured header a little, unless it ends in a decoration.
+            "no-print relative z-10 flex flex-wrap gap-2 whitespace-nowrap",
             overlap ? "-mt-5" : "mt-4",
           )}
         >
@@ -210,7 +208,6 @@ export default async function ShopPage({ params }: PageProps<"/[slug]">) {
           >
             <Icon name="phone" /> Call
           </a>
-          {/* No map location yet: a button that goes nowhere only confuses, so it is left out. */}
           {directions && (
             <a
               href={directions}

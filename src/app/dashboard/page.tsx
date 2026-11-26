@@ -125,7 +125,7 @@ export default async function DashboardHome({ searchParams }: PageProps<"/dashbo
         />
       )}
 
-      <section className="grid grid-cols-3 gap-2 sm:gap-3">
+      <section className="grid grid-cols-3 gap-3 sm:gap-4">
         {[
           {
             label: "Items",
@@ -140,7 +140,7 @@ export default async function DashboardHome({ searchParams }: PageProps<"/dashbo
           },
         ].map((stat) => (
           <Link key={stat.label} href={stat.href} className="rounded-xl border bg-card p-4 hover:border-slate-300">
-            <p className="text-2xl font-bold text-slate-900">{stat.value}</p>
+            <p className="text-2xl font-bold text-slate-900 lg:text-3xl">{stat.value}</p>
             <p className="text-sm text-slate-500">{stat.label}</p>
           </Link>
         ))}

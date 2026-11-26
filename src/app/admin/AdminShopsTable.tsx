@@ -22,7 +22,13 @@ import { ActionButton } from "@/components/ActionButton";
 import { LoginEmailButton } from "./LoginEmailButton";
 import { PlanDateButton } from "./PlanDateButton";
 import { DeleteShopButton } from "./DeleteShopButton";
-import { getBusinessType, isPaid, PAID_PLAN_IDS, planOf, PLANS } from "@/lib/catalog-config";
+import {
+  getBusinessType,
+  isPaid,
+  PAID_PLAN_IDS,
+  planOf,
+  PLANS,
+} from "@/lib/catalog-config";
 import { formatDate } from "@/lib/utils";
 import { Button } from "@/components/ui/button";
 import { Input } from "@/components/ui/input";
@@ -55,10 +61,21 @@ export type AdminShopRow = {
 };
 
 function dateInIndia(date: Date): string {
-  return new Intl.DateTimeFormat("en-CA", { timeZone: "Asia/Kolkata" }).format(date);
+  return new Intl.DateTimeFormat("en-CA", { timeZone: "Asia/Kolkata" }).format(
+    date,
+  );
 }
 
-function SortableHeader({ column, children }: { column: { toggleSorting: (desc?: boolean) => void; getIsSorted: () => false | "asc" | "desc" }; children: React.ReactNode }) {
+function SortableHeader({
+  column,
+  children,
+}: {
+  column: {
+    toggleSorting: (desc?: boolean) => void;
+    getIsSorted: () => false | "asc" | "desc";
+  };
+  children: React.ReactNode;
+}) {
   const sorted = column.getIsSorted();
   return (
     <button
@@ -67,7 +84,9 @@ function SortableHeader({ column, children }: { column: { toggleSorting: (desc?:
       onClick={() => column.toggleSorting(sorted === "asc")}
     >
       {children}
-      <ArrowUpDown className={`size-3.5 ${sorted ? "text-brand" : "text-slate-400"}`} />
+      <ArrowUpDown
+        className={`size-3.5 ${sorted ? "text-brand" : "text-slate-400"}`}
+      />
     </button>
   );
 }
@@ -75,18 +94,27 @@ function SortableHeader({ column, children }: { column: { toggleSorting: (desc?:
 const columns: ColumnDef<AdminShopRow>[] = [
   {
     accessorKey: "name",
-    header: ({ column }) => <SortableHeader column={column}>Shop</SortableHeader>,
+    header: ({ column }) => (
+      <SortableHeader column={column}>Shop</SortableHeader>
+    ),
     cell: ({ row }) => {
       const shop = row.original;
       return (
-        <div className="min-w-[180px]">
-          <Link href={`/${shop.slug}`} target="_blank" className="font-medium text-brand underline">
+        <div className="min-w-45">
+          <Link
+            href={`/${shop.slug}`}
+            target="_blank"
+            className="font-medium text-brand underline"
+          >
             {shop.name}
           </Link>
           <p className="text-xs text-slate-500">
-            /{shop.slug} · {getBusinessType(shop.businessType).name} · {shop.city}
+            /{shop.slug} · {getBusinessType(shop.businessType).name} ·{" "}
+            {shop.city}
           </p>
-          <p className="text-xs text-slate-400">Joined {formatDate(new Date(shop.createdAt))}</p>
+          <p className="text-xs text-slate-400">
+            Joined {formatDate(new Date(shop.createdAt))}
+          </p>
           {shop.inviterSlug && (
             <p className="text-xs text-slate-500">
               Invited by /{shop.inviterSlug} ·{" "}
@@ -95,7 +123,11 @@ const columns: ColumnDef<AdminShopRow>[] = [
                 : "inviter gets free month on first paid plan"}
             </p>
           )}
-          {shop.isHidden && <Badge variant="destructive" className="mt-1">Hidden</Badge>}
+          {shop.isHidden && (
+            <Badge variant="destructive" className="mt-1">
+              Hidden
+            </Badge>
+          )}
         </div>
       );
     },
@@ -117,7 +149,7 @@ const columns: ColumnDef<AdminShopRow>[] = [
     cell: ({ row }) => {
       const shop = row.original;
       return (
-        <div className="min-w-[140px] text-xs text-slate-600">
+        <div className="min-w-35 text-xs text-slate-600">
           <p>{shop.ownerEmail ?? "-"}</p>
           {shop.pendingOwnerEmail && (
             <p className="text-amber-700">Moving to {shop.pendingOwnerEmail}</p>
@@ -129,56 +161,81 @@ const columns: ColumnDef<AdminShopRow>[] = [
   },
   {
     accessorKey: "itemCount",
-    header: ({ column }) => <SortableHeader column={column}>Items</SortableHeader>,
-    cell: ({ getValue }) => <span className="tabular-nums">{getValue<number>()}</span>,
+    header: ({ column }) => (
+      <SortableHeader column={column}>Items</SortableHeader>
+    ),
+    cell: ({ getValue }) => (
+      <span className="tabular-nums">{getValue<number>()}</span>
+    ),
   },
   {
     accessorKey: "plan",
-    header: ({ column }) => <SortableHeader column={column}>Plan</SortableHeader>,
+    header: ({ column }) => (
+      <SortableHeader column={column}>Plan</SortableHeader>
+    ),
     cell: ({ row }) => {
       const shop = row.original;
-      const planFields = { plan: shop.plan, planExpiresAt: shop.planExpiresAt ? new Date(shop.planExpiresAt) : null };
+      const planFields = {
+        plan: shop.plan,
+        planExpiresAt: shop.planExpiresAt ? new Date(shop.planExpiresAt) : null,
+      };
       const paid = isPaid(planFields);
       const plan = planOf(planFields);
       return (
-        <div className="min-w-[80px]">
-          <span className={paid ? "font-semibold text-emerald-700" : "text-slate-600"}>
+        <div className="min-w-20">
+          <span
+            className={
+              paid ? "font-semibold text-emerald-700" : "text-slate-600"
+            }
+          >
             {plan.name}
           </span>
           {paid && shop.planExpiresAt && (
-            <p className="text-xs text-slate-500">till {formatDate(new Date(shop.planExpiresAt))}</p>
+            <p className="text-xs text-slate-500">
+              till {formatDate(new Date(shop.planExpiresAt))}
+            </p>
           )}
         </div>
       );
     },
     sortingFn: (rowA, rowB) => {
       const order = ["free", "starter", "pro", "business"];
-      return order.indexOf(rowA.original.plan) - order.indexOf(rowB.original.plan);
+      return (
+        order.indexOf(rowA.original.plan) - order.indexOf(rowB.original.plan)
+      );
     },
   },
   {
     accessorKey: "createdAt",
-    header: ({ column }) => <SortableHeader column={column}>Joined</SortableHeader>,
+    header: ({ column }) => (
+      <SortableHeader column={column}>Joined</SortableHeader>
+    ),
     cell: ({ row }) => (
       <span className="whitespace-nowrap text-xs text-slate-500">
         {formatDate(new Date(row.original.createdAt))}
       </span>
     ),
     sortingFn: (rowA, rowB) =>
-      new Date(rowA.original.createdAt).getTime() - new Date(rowB.original.createdAt).getTime(),
+      new Date(rowA.original.createdAt).getTime() -
+      new Date(rowB.original.createdAt).getTime(),
   },
   {
     id: "actions",
     header: "Actions",
     cell: ({ row }) => {
       const shop = row.original;
-      const planFields = { plan: shop.plan, planExpiresAt: shop.planExpiresAt ? new Date(shop.planExpiresAt) : null };
+      const planFields = {
+        plan: shop.plan,
+        planExpiresAt: shop.planExpiresAt ? new Date(shop.planExpiresAt) : null,
+      };
       const paid = isPaid(planFields);
       const currentPlan = planOf(planFields);
       return (
-        <div className="min-w-[200px] space-y-2.5">
+        <div className="min-w-50 space-y-2.5">
           <div>
-            <p className="mb-1 text-[11px] font-semibold uppercase tracking-wider text-slate-400">Plan</p>
+            <p className="mb-1 text-[11px] font-semibold uppercase tracking-wider text-slate-400">
+              Plan
+            </p>
             <div className="flex flex-wrap items-center gap-1.5">
               <ActionButton
                 size="xs"
@@ -199,20 +256,26 @@ const columns: ColumnDef<AdminShopRow>[] = [
               <PlanDateButton
                 shopId={shop.id}
                 shopName={shop.name}
-                currentDate={paid && shop.planExpiresAt ? dateInIndia(new Date(shop.planExpiresAt)) : null}
+                currentDate={
+                  paid && shop.planExpiresAt
+                    ? dateInIndia(new Date(shop.planExpiresAt))
+                    : null
+                }
               />
               {paid &&
-                PAID_PLAN_IDS.filter((id) => id !== currentPlan.id).map((id) => (
-                  <ActionButton
-                    key={id}
-                    size="xs"
-                    action={adminSetShopTier.bind(null, shop.id, id)}
-                    confirm={`Switch ${shop.name} to the ${PLANS[id].name} plan? The end date stays the same.`}
-                    success={`${shop.name} is now on ${PLANS[id].name}.`}
-                  >
-                    {PLANS[id].name}
-                  </ActionButton>
-                ))}
+                PAID_PLAN_IDS.filter((id) => id !== currentPlan.id).map(
+                  (id) => (
+                    <ActionButton
+                      key={id}
+                      size="xs"
+                      action={adminSetShopTier.bind(null, shop.id, id)}
+                      confirm={`Switch ${shop.name} to the ${PLANS[id].name} plan? The end date stays the same.`}
+                      success={`${shop.name} is now on ${PLANS[id].name}.`}
+                    >
+                      {PLANS[id].name}
+                    </ActionButton>
+                  ),
+                )}
               {shop.plan !== "free" && (
                 <ActionButton
                   size="xs"
@@ -228,7 +291,9 @@ const columns: ColumnDef<AdminShopRow>[] = [
           </div>
 
           <div>
-            <p className="mb-1 text-[11px] font-semibold uppercase tracking-wider text-slate-400">Account</p>
+            <p className="mb-1 text-[11px] font-semibold uppercase tracking-wider text-slate-400">
+              Account
+            </p>
             <div className="flex flex-wrap items-center gap-1.5">
               <LoginEmailButton
                 shopId={shop.id}
@@ -247,7 +312,11 @@ const columns: ColumnDef<AdminShopRow>[] = [
               >
                 {shop.isHidden ? "Unhide" : "Hide"}
               </ActionButton>
-              <DeleteShopButton shopId={shop.id} shopName={shop.name} slug={shop.slug} />
+              <DeleteShopButton
+                shopId={shop.id}
+                shopName={shop.name}
+                slug={shop.slug}
+              />
             </div>
           </div>
         </div>
@@ -257,7 +326,10 @@ const columns: ColumnDef<AdminShopRow>[] = [
 ];
 
 export function AdminShopsTable({ data }: { data: AdminShopRow[] }) {
-  const [sorting, setSorting] = useState<SortingState>([{ id: "createdAt", desc: true }]);
+  "use no memo";
+  const [sorting, setSorting] = useState<SortingState>([
+    { id: "createdAt", desc: true },
+  ]);
   const [globalFilter, setGlobalFilter] = useState("");
 
   const table = useReactTable({
@@ -303,15 +375,21 @@ export function AdminShopsTable({ data }: { data: AdminShopRow[] }) {
       </div>
 
       <div className="rounded-xl border bg-card overflow-x-auto">
-        <Table className="w-full min-w-[800px] text-sm">
+        <Table className="w-full min-w-200 text-sm">
           <TableHeader>
             {table.getHeaderGroups().map((headerGroup) => (
-              <TableRow key={headerGroup.id} className="bg-slate-50 text-left text-slate-500">
+              <TableRow
+                key={headerGroup.id}
+                className="bg-slate-50 text-left text-slate-500"
+              >
                 {headerGroup.headers.map((header) => (
                   <TableHead key={header.id} className="px-3 py-2.5">
                     {header.isPlaceholder
                       ? null
-                      : flexRender(header.column.columnDef.header, header.getContext())}
+                      : flexRender(
+                          header.column.columnDef.header,
+                          header.getContext(),
+                        )}
                   </TableHead>
                 ))}
               </TableRow>
@@ -320,17 +398,26 @@ export function AdminShopsTable({ data }: { data: AdminShopRow[] }) {
           <TableBody>
             {table.getRowModel().rows.length > 0 ? (
               table.getRowModel().rows.map((row) => (
-                <TableRow key={row.id} className="align-top transition-colors hover:bg-slate-50/50">
+                <TableRow
+                  key={row.id}
+                  className="align-top transition-colors hover:bg-slate-50/50"
+                >
                   {row.getVisibleCells().map((cell) => (
                     <TableCell key={cell.id} className="px-3 py-2.5">
-                      {flexRender(cell.column.columnDef.cell, cell.getContext())}
+                      {flexRender(
+                        cell.column.columnDef.cell,
+                        cell.getContext(),
+                      )}
                     </TableCell>
                   ))}
                 </TableRow>
               ))
             ) : (
               <TableRow>
-                <TableCell colSpan={columns.length} className="px-3 py-8 text-center text-slate-500">
+                <TableCell
+                  colSpan={columns.length}
+                  className="px-3 py-8 text-center text-slate-500"
+                >
                   No shops found.
                 </TableCell>
               </TableRow>

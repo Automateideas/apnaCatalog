@@ -112,6 +112,12 @@ body {
   -webkit-tap-highlight-color: transparent;
 }
 
+@media (min-width: 1024px) {
+  body {
+    font-size: 1rem;
+  }
+}
+
 /* In the base layer, so a shop theme's heading font (t-head) can replace it. */
 @layer base {
   h1,

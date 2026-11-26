@@ -87,7 +87,7 @@ export function ItemCarousel({
         setApi={setApi}
         opts={{ loop: true }}
         plugins={[plugin]}
-        className="h-full [&_[data-slot=carousel-content]]:h-full [&_[data-slot=carousel-content]>div]:h-full"
+        className="h-full **:data-[slot=carousel-content]:h-full **:data-[slot=carousel-content]>div:h-full"
         aria-label={`${urls.length} photos of ${name}`}
       >
         <CarouselContent className="ml-0">
