@@ -54,9 +54,6 @@ export default function RootLayout({ children }: LayoutProps<"/">) {
       className={`${baloo.variable} ${mukta.variable} h-full antialiased`}
       suppressHydrationWarning
     >
-      <head>
-        <script dangerouslySetInnerHTML={{ __html: `try{if(localStorage.getItem("ac-dark-mode")==="1")document.documentElement.classList.add("dark")}catch{}` }} />
-      </head>
       <body className="flex min-h-full flex-col">
         <SpeedInsights />
         {children}

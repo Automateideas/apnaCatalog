@@ -17,7 +17,7 @@ import { isPropertyShop, listingPrice, unavailableLabel } from "@/lib/property";
 import { getPublicShop } from "@/lib/shop-data";
 import { themeCss } from "@/lib/theme-style";
 import { resolveTheme } from "@/lib/themes";
-import { cx, siteUrl, waLink, waShareLink } from "@/lib/utils";
+import { cx, formatPrice, siteUrl, waLink, waShareLink } from "@/lib/utils";
 
 export const dynamic = "force-dynamic";
 
@@ -66,7 +66,8 @@ export default async function ItemPage({ params }: Params) {
   const property = isPropertyShop(shop.businessType);
   const url = `${siteUrl()}/${shop.slug}/i/${item.id}`;
   const span = itemPriceSpan(item);
-  const price = property ? listingPrice(item) : formatPriceRange(span.min, span.max);
+  const hassale = item.salePrice != null && item.salePrice > 0 && item.salePrice < item.price && item.options.length === 0;
+  const price = property ? listingPrice(item) : hassale ? formatPrice(item.salePrice!) : formatPriceRange(span.min, span.max);
 
   return (
     <div className="t-page flex flex-1 flex-col">
@@ -91,10 +92,23 @@ export default async function ItemPage({ params }: Params) {
             </span>
           )}
           <h1 className="t-head text-2xl text-(--t-text)">{item.name}</h1>
-          <p className="text-xl font-bold text-(--t-text)">
-            {price}
-            {!property && item.unit && <span className="ml-1.5 text-sm font-normal text-(--t-muted)">/ {item.unit}</span>}
-          </p>
+          <div className="flex flex-wrap items-baseline gap-x-2 gap-y-0.5">
+            <p className="text-xl font-bold text-(--t-text)">
+              {price}
+            </p>
+            {hassale && (
+              <span className="text-sm text-(--t-muted) line-through">{formatPrice(item.price)}</span>
+            )}
+            {item.mrp && item.mrp > item.price && item.options.length === 0 && !item.maxPrice && (
+              <span className="text-sm text-(--t-muted) line-through">{formatPrice(item.mrp)}</span>
+            )}
+            {hassale && (
+              <span className="rounded-full bg-red-500 px-2 py-0.5 text-xs font-bold text-white">
+                {Math.round(((item.price - item.salePrice!) / item.price) * 100)}% off
+              </span>
+            )}
+            {!property && item.unit && <span className="text-sm text-(--t-muted)">/ {item.unit}</span>}
+          </div>
 
           {item.details.length > 0 && (
             <dl className="t-card grid grid-cols-2 gap-x-4 gap-y-3 p-4 text-sm">

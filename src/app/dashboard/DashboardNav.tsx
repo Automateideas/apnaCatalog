@@ -24,7 +24,7 @@ export function DashboardNav() {
   return (
     <nav
       aria-label="Dashboard"
-      className="no-scrollbar lg:hidden mx-auto flex w-full max-w-7xl gap-1 overflow-x-auto px-2 sm:px-6"
+      className="no-scrollbar flex w-full overflow-x-auto"
     >
       {TABS.map((tab) => (
         <Link
@@ -32,40 +32,15 @@ export function DashboardNav() {
           href={tab.href}
           aria-current={isActive(pathname, tab.href) ? "page" : undefined}
           className={cx(
-            "border-b-2 px-3 py-2.5 text-sm font-medium whitespace-nowrap",
+            "border-b-2 px-3 py-2.5 text-sm font-medium whitespace-nowrap transition-colors",
             isActive(pathname, tab.href)
-              ? "border-tag text-brand dark:border-tag dark:text-slate-100"
-              : "border-transparent text-slate-600 hover:text-slate-900 dark:text-slate-400 dark:hover:text-slate-100",
+              ? "border-brand text-brand dark:border-blue-400 dark:text-blue-400"
+              : "border-transparent text-slate-500 hover:text-slate-800 dark:text-slate-400 dark:hover:text-slate-100",
           )}
         >
           {tab.label}
         </Link>
       ))}
     </nav>
-  );
-}
-
-export function DashboardSidebar() {
-  const pathname = usePathname();
-  return (
-    <aside className="hidden lg:block w-52 shrink-0">
-      <nav aria-label="Dashboard" className="sticky top-20 flex flex-col gap-0.5">
-        {TABS.map((tab) => (
-          <Link
-            key={tab.href}
-            href={tab.href}
-            aria-current={isActive(pathname, tab.href) ? "page" : undefined}
-            className={cx(
-              "rounded-lg px-3 py-2 text-sm font-medium",
-              isActive(pathname, tab.href)
-                ? "bg-brand text-white"
-                : "text-slate-600 hover:bg-slate-100 hover:text-slate-900 dark:text-slate-400 dark:hover:bg-slate-800 dark:hover:text-slate-100",
-            )}
-          >
-            {tab.label}
-          </Link>
-        ))}
-      </nav>
-    </aside>
   );
 }

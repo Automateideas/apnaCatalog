@@ -8,7 +8,7 @@ import { Logo } from "@/components/SiteChrome";
 import { getShopByOwner, isAdminEmail, requireUser } from "@/lib/auth";
 import { Icon } from "@/components/Icon";
 import { Button, buttonVariants } from "@/components/ui/button";
-import { DashboardNav, DashboardSidebar } from "./DashboardNavClient";
+import { DashboardNav } from "./DashboardNavClient";
 
 export const dynamic = "force-dynamic";
 
@@ -32,7 +32,7 @@ export default async function DashboardLayout({
   return (
     <>
       <header className="sticky top-0 z-30 border-b border-slate-200 bg-white dark:border-slate-700 dark:bg-slate-900">
-        <div className="mx-auto flex h-14 w-full max-w-7xl items-center justify-between gap-3 px-4 sm:px-6">
+        <div className="mx-auto flex h-14 w-full max-w-5xl items-center justify-between gap-3 px-4 sm:px-6">
           <Logo />
           <div className="flex items-center gap-1">
             {isAdminEmail(user.email) && (
@@ -71,15 +71,18 @@ export default async function DashboardLayout({
             </form>
           </div>
         </div>
+        {shop && (
+          <div className="border-t border-slate-100 dark:border-slate-800">
+            <div className="mx-auto w-full max-w-5xl px-4 sm:px-6">
+              <DashboardNav />
+            </div>
+          </div>
+        )}
       </header>
-      <div className="mx-auto w-full max-w-7xl flex-1 px-4 sm:px-6">
-        {shop && <DashboardNav />}
-        <div className="flex gap-8 py-6">
-          {shop && <DashboardSidebar />}
-          <main className="min-w-0 flex-1">
-            {children}
-          </main>
-        </div>
+      <div className="mx-auto w-full max-w-5xl flex-1 px-4 sm:px-6">
+        <main className="py-6">
+          {children}
+        </main>
       </div>
     </>
   );

@@ -9,7 +9,7 @@ import { SendToNumberButton } from "@/components/SendToNumberButton";
 import { ratingOf } from "@/components/Stars";
 import { requireShop } from "@/lib/auth";
 import { isPaid, MAX_SHOP_PHOTOS, MIN_ITEMS_TO_LIST, planOf } from "@/lib/catalog-config";
-import { formatDate, SITE_NAME, siteUrl, waShareLink } from "@/lib/utils";
+import { cx, formatDate, SITE_NAME, siteUrl, waShareLink } from "@/lib/utils";
 import { Icon } from "@/components/Icon";
 import { Alert } from "@/components/ui/alert";
 import { Card } from "@/components/ui/card";
@@ -89,16 +89,30 @@ export default async function DashboardHome({ searchParams }: PageProps<"/dashbo
 
       <PushToggle />
 
+      {/* Shop name + link + share */}
       <Card className="p-5">
-        <h1 className="text-xl font-bold text-slate-900">{shop.name}</h1>
-        <p className="mt-3 text-sm text-slate-500">Your catalog link</p>
-        <a
-          href={shopUrl}
-          target="_blank"
-          className="font-semibold break-all text-brand hover:underline"
-        >
-          {shopUrl.replace(/^https?:\/\//, "")}
-        </a>
+        <div className="flex items-start justify-between gap-3">
+          <div className="min-w-0">
+            <h1 className="text-xl font-bold text-slate-900">{shop.name}</h1>
+            <a
+              href={shopUrl}
+              target="_blank"
+              className="mt-0.5 block text-sm font-medium break-all text-brand hover:underline"
+            >
+              {shopUrl.replace(/^https?:\/\//, "")}
+            </a>
+          </div>
+          <span
+            className={cx(
+              "shrink-0 rounded-full px-2.5 py-0.5 text-xs font-semibold",
+              listed
+                ? "bg-emerald-50 text-emerald-700"
+                : "bg-amber-50 text-amber-700",
+            )}
+          >
+            {listed ? "Listed" : "Not listed"}
+          </span>
+        </div>
         <div className="mt-3 flex flex-wrap gap-2">
           <CopyButton text={shopUrl} />
           <a
@@ -109,23 +123,12 @@ export default async function DashboardHome({ searchParams }: PageProps<"/dashbo
           >
             Share on WhatsApp
           </a>
-          <SendToNumberButton
-            text={shareText}
-          />
+          <SendToNumberButton text={shareText} />
         </div>
       </Card>
 
-      {/* The card is served from the public shop page, so a hidden shop has none. */}
-      {!shop.isHidden && (
-        <VisitingCard
-          src={visitingCardPath(shop)}
-          downloadSrc={visitingCardPath(shop, { download: true })}
-          fileName={`${shop.slug}-visiting-card.png`}
-          shareText={shareText}
-        />
-      )}
-
-      <section className="grid grid-cols-3 gap-3 sm:gap-4">
+      {/* Stats */}
+      <section className="grid grid-cols-3 gap-3">
         {[
           {
             label: "Items",
@@ -135,67 +138,85 @@ export default async function DashboardHome({ searchParams }: PageProps<"/dashbo
           { label: "Orders", value: String(orderCount), href: "/dashboard/orders" },
           {
             label: "Rating",
-            value: shop.ratingCount ? `${ratingOf(shop).toFixed(1)} / 5` : "-",
+            value: shop.ratingCount ? `${ratingOf(shop).toFixed(1)}★` : "—",
             href: "/dashboard/reviews",
           },
         ].map((stat) => (
-          <Link key={stat.label} href={stat.href} className="rounded-xl border bg-card p-4 hover:border-slate-300">
-            <p className="text-2xl font-bold text-slate-900 lg:text-3xl">{stat.value}</p>
-            <p className="text-sm text-slate-500">{stat.label}</p>
+          <Link
+            key={stat.label}
+            href={stat.href}
+            className="rounded-xl border bg-card p-4 hover:border-slate-300 hover:shadow-sm transition-shadow"
+          >
+            <p className="text-2xl font-bold tabular-nums text-slate-900">{stat.value}</p>
+            <p className="mt-0.5 text-sm text-slate-500">{stat.label}</p>
           </Link>
         ))}
       </section>
 
-      <Card className="p-5">
-        <h2 className="font-bold text-slate-900">
-          {listed ? "Your business is on the home page" : "Get listed on the home page"}
-        </h2>
-        <p className="mt-1 text-sm text-slate-600">
-          {listed
-            ? `People searching for businesses in ${shop.city} can find you.`
-            : "Your link already works. Finish these steps to also appear in the city listing."}
-        </p>
-        <Steps steps={steps} />
-      </Card>
-
-      {/* Hidden once everything is filled in. */}
-      {trustLeft > 0 && (
-        <Card className="p-5">
-          <h2 className="font-bold text-slate-900">Help customers trust your business</h2>
-          <p className="mt-1 text-sm text-slate-600">
-            New customers want to see who runs the business, what it looks like and how to reach it.{" "}
-            {trustLeft === 1 ? "1 thing left." : `${trustLeft} things left.`}
-          </p>
-          <Steps steps={trust} />
-          <Link href="/dashboard/shop" className={buttonVariants({ className: "mt-4" })}>
-            Fill in business details
-          </Link>
+      {/* Get listed / trust steps */}
+      {(!listed || trustLeft > 0) && (
+        <Card className="divide-y divide-slate-100 overflow-hidden p-0">
+          {!listed && (
+            <div className="p-5">
+              <h2 className="font-bold text-slate-900">Get listed on the home page</h2>
+              <p className="mt-1 text-sm text-slate-500">
+                Your link already works. Finish these steps to also appear in the city listing.
+              </p>
+              <Steps steps={steps} />
+            </div>
+          )}
+          {trustLeft > 0 && (
+            <div className="p-5">
+              <h2 className="font-bold text-slate-900">Help customers trust your business</h2>
+              <p className="mt-1 text-sm text-slate-500">
+                {trustLeft === 1 ? "1 thing left" : `${trustLeft} things left`} — owner photo, shop photos, map location.
+              </p>
+              <Steps steps={trust} />
+              <Link href="/dashboard/shop" className={buttonVariants({ className: "mt-4" })}>
+                Fill in business details
+              </Link>
+            </div>
+          )}
         </Card>
       )}
 
-      <div className="grid gap-5 sm:grid-cols-2">
+      {listed && trustLeft === 0 && (
+        <div className="flex items-center gap-2 rounded-xl bg-emerald-50 px-4 py-3 text-sm text-emerald-800">
+          <span className="flex size-5 shrink-0 items-center justify-center rounded-full bg-emerald-500 text-white">
+            <Icon name="check" className="h-3 w-3" />
+          </span>
+          Your business is fully set up and listed in {shop.city}.
+        </div>
+      )}
+
+      {/* QR + Review side by side */}
+      <div className="grid gap-4 sm:grid-cols-2">
         <Card className="p-5">
           <h2 className="font-bold text-slate-900">QR code for your counter</h2>
-          <p className="mt-1 text-sm text-slate-600">
-            Print it and display it. Customers scan it to open your catalog.
+          <p className="mt-1 text-sm text-slate-500">
+            Print and display it. Customers scan to open your catalog.
           </p>
           <div
-            className="mx-auto mt-3 w-44"
+            className="mx-auto mt-4 w-40"
             role="img"
             aria-label="QR code of your shop link"
             dangerouslySetInnerHTML={{ __html: qrSvg }}
           />
-          <a href={qrPng} download={`${shop.slug}-qr.png`} className={buttonVariants({ variant: "outline", className: "mt-3 w-full" })}>
+          <a
+            href={qrPng}
+            download={`${shop.slug}-qr.png`}
+            className={buttonVariants({ variant: "outline", className: "mt-3 w-full" })}
+          >
             Download QR code
           </a>
         </Card>
 
         <Card className="p-5">
-          <h2 className="font-bold text-slate-900">Ask customers for a review</h2>
-          <p className="mt-1 text-sm text-slate-600">
-            Only people who get this link from you can write a review. Send it to happy customers.
+          <h2 className="font-bold text-slate-900">Ask for a review</h2>
+          <p className="mt-1 text-sm text-slate-500">
+            Only people who get this link from you can write a review.
           </p>
-          <div className="mt-3 flex flex-col gap-2">
+          <div className="mt-4 flex flex-col gap-2">
             <a
               href={waShareLink(
                 `Thank you for shopping at ${shop.name}! Please rate us, it takes 30 seconds:\n${reviewUrl}`,
@@ -211,11 +232,21 @@ export default async function DashboardHome({ searchParams }: PageProps<"/dashbo
         </Card>
       </div>
 
+      {/* Visiting card */}
+      {!shop.isHidden && (
+        <VisitingCard
+          src={visitingCardPath(shop)}
+          downloadSrc={visitingCardPath(shop, { download: true })}
+          fileName={`${shop.slug}-visiting-card.png`}
+          shareText={shareText}
+        />
+      )}
+
       <InviteCard shop={shop} />
 
       {paid && shop.planExpiresAt && (
         <p className="rounded-xl bg-amber-50 px-4 py-3 text-sm text-amber-900">
-          Paid plan is active until <strong>{formatDate(shop.planExpiresAt)}</strong>.{" "}
+          Paid plan active until <strong>{formatDate(shop.planExpiresAt)}</strong>.{" "}
           <Link href="/dashboard/plan" className="font-semibold underline">
             See plan
           </Link>
