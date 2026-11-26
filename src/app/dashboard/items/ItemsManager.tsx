@@ -46,6 +46,7 @@ type Item = {
   price: number;
   mrp: number | null;
   maxPrice: number | null;
+  salePrice: number | null;
   options: ItemOption[];
   listing: string | null;
   details: ItemDetail[];
@@ -64,6 +65,8 @@ type Draft = {
   mrp: string;
   /** Top of a price range, for work whose final price the shop sets later. */
   maxPrice: string;
+  /** Discounted / clearance price. When set, item appears in the "Discounted" section. */
+  salePrice: string;
   options: DraftOption[];
   /** Property listings: sale or rent, and facts by label (BHK, Area...). */
   listing: Listing;
@@ -87,6 +90,7 @@ const emptyDraft: Draft = {
   price: "",
   mrp: "",
   maxPrice: "",
+  salePrice: "",
   options: [],
   listing: "sale",
   details: {},
@@ -182,7 +186,8 @@ export function ItemsManager({
     }
     const mrp = hasOptions ? null : num(draft.mrp);
     const maxPrice = hasOptions ? null : num(draft.maxPrice);
-    if ((mrp !== null && !Number.isFinite(mrp)) || (maxPrice !== null && !Number.isFinite(maxPrice))) {
+    const salePrice = hasOptions ? null : num(draft.salePrice);
+    if ((mrp !== null && !Number.isFinite(mrp)) || (maxPrice !== null && !Number.isFinite(maxPrice)) || (salePrice !== null && !Number.isFinite(salePrice))) {
       setFormError("Prices must be numbers.");
       return;
     }
@@ -195,6 +200,7 @@ export function ItemsManager({
           price,
           mrp,
           maxPrice,
+          salePrice,
           options: options.map((o) => ({ ...o, price: o.price ?? 0 })),
           listing: property ? draft.listing : null,
           details: property
@@ -229,6 +235,7 @@ export function ItemsManager({
       price: String(item.price / 100),
       mrp: item.mrp ? String(item.mrp / 100) : "",
       maxPrice: item.maxPrice ? String(item.maxPrice / 100) : "",
+      salePrice: item.salePrice ? String(item.salePrice / 100) : "",
       options: item.options.map((o) => ({
         id: o.id,
         name: o.name,
@@ -456,6 +463,11 @@ export function ItemsManager({
                       return formatPriceRange(min, max);
                     })()}
                   </span>
+                  {item.salePrice != null && item.salePrice > 0 && (
+                    <span className="ml-1.5 rounded bg-red-100 px-1.5 py-0.5 text-xs font-semibold text-red-700">
+                      Sale ₹{item.salePrice / 100}
+                    </span>
+                  )}
                   {item.options.length > 0 && ` · ${item.options.length} options`}
                   {item.unit && ` / ${item.unit}`}
                   {catName(item.categoryId) && `, ${catName(item.categoryId)}`}
@@ -623,6 +635,23 @@ export function ItemsManager({
                       maxLength={20}
                       placeholder="1 kg, piece"
                     />
+                  </div>
+                  <div className="col-span-2">
+                    <Label htmlFor="item-sale">Discounted price ₹</Label>
+                    <Input
+                      id="item-sale"
+                      value={draft.salePrice}
+                      onChange={(e) => setDraft({ ...draft, salePrice: e.target.value })}
+                      type="number"
+                      inputMode="decimal"
+                      min="0"
+                      step="0.01"
+                      placeholder="Optional"
+                      aria-describedby="item-sale-hint"
+                    />
+                    <p id="item-sale-hint" className="mt-1 text-xs text-slate-500">
+                      Set a discounted price to run a sale. The item will appear in the &quot;Discounted&quot; section on your shop page.
+                    </p>
                   </div>
                   </>)}
                 </div>

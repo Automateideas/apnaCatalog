@@ -29,6 +29,8 @@ const itemSchema = z.object({
   mrp: z.number().min(0).max(10_000_000).optional().nullable(),
   /** Top of a price range, in rupees. */
   maxPrice: z.number().min(0).max(10_000_000).optional().nullable(),
+  /** Discounted / clearance price, in rupees. */
+  salePrice: z.number().min(0).max(10_000_000).optional().nullable(),
   /** Choices with their own price, in rupees. */
   options: z
     .array(
@@ -90,6 +92,8 @@ export async function saveItem(input: z.input<typeof itemSchema>): Promise<Actio
   const maxRaw = data.maxPrice ? rupeesToPaise(data.maxPrice) : 0;
   const maxPrice = options.length === 0 && maxRaw > price ? maxRaw : null;
   const mrp = data.mrp && rupeesToPaise(data.mrp) > price ? rupeesToPaise(data.mrp) : null;
+  const saleRaw = data.salePrice ? rupeesToPaise(data.salePrice) : 0;
+  const salePrice = options.length === 0 && saleRaw > 0 && saleRaw < price ? saleRaw : null;
   // Only photos from our own storage, no repeats, main photo first.
   const imageUrls = [...new Set((data.imageUrls ?? []).filter(isMediaUrl))];
 
@@ -105,6 +109,7 @@ export async function saveItem(input: z.input<typeof itemSchema>): Promise<Actio
     price,
     mrp: options.length > 0 ? null : mrp,
     maxPrice,
+    salePrice: options.length > 0 ? null : salePrice,
     options,
     unit: data.unit || null,
     categoryId: data.categoryId ?? null,

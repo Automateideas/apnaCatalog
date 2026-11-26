@@ -51,6 +51,8 @@ export type CatalogItem = {
   price: number;
   mrp: number | null;
   maxPrice: number | null;
+  /** Discounted / clearance price in paise. When set, customers pay this instead of `price`. */
+  salePrice: number | null;
   options: ItemOption[];
   /** Property listings: "sale" or "rent". */
   listing: string | null;
@@ -218,13 +220,16 @@ export function Catalog({
     setError(null);
   };
 
+  /** The price a customer actually pays for one unit. */
+  const effectivePrice = (item: CatalogItem) => item.salePrice ?? item.price;
+
   const cartLines = Object.entries(cart).map(([key, qty]) => {
     const { itemId, optionId } = parseCartKey(key);
     const item = itemById.get(itemId)!;
     const option = optionId
       ? (item.options.find((o) => o.id === optionId) ?? null)
       : null;
-    const unitPrice = option ? option.price : item.price;
+    const unitPrice = option ? option.price : effectivePrice(item);
     const unitMax = Math.max(
       unitPrice,
       (option ? option.maxPrice : item.maxPrice) ?? 0,
@@ -268,14 +273,16 @@ export function Catalog({
     return true;
   });
 
+  const onSale = (item: CatalogItem) => item.salePrice != null && item.salePrice > 0 && item.salePrice < item.price && item.options.length === 0;
+
   const sorted = (() => {
     if (sort === "default") return visible;
     const copy = [...visible];
     switch (sort) {
       case "price-asc":
-        return copy.sort((a, b) => a.price - b.price);
+        return copy.sort((a, b) => effectivePrice(a) - effectivePrice(b));
       case "price-desc":
-        return copy.sort((a, b) => b.price - a.price);
+        return copy.sort((a, b) => effectivePrice(b) - effectivePrice(a));
       case "name":
         return copy.sort((a, b) => a.name.localeCompare(b.name));
       default:
@@ -283,9 +290,12 @@ export function Catalog({
     }
   })();
 
-  const sections: { title: string | null; items: CatalogItem[] }[] =
+  const saleItems = sorted.filter((i) => onSale(i));
+
+  const sections: { title: string | null; sale?: boolean; items: CatalogItem[] }[] =
     sort === "default" && activeCat === "all" && !q && topCats.length > 0
       ? [
+          ...(saleItems.length > 0 ? [{ title: "Discounted", sale: true, items: saleItems }] : []),
           ...topCats.map((c) => ({
             title: c.name,
             items: sorted.filter((i) => topOf(i) === c.id),
@@ -295,7 +305,12 @@ export function Catalog({
             items: sorted.filter((i) => topOf(i) === null),
           },
         ].filter((s) => s.items.length > 0)
-      : [{ title: null, items: sorted }];
+      : sort === "default" && activeCat === "all" && !q && saleItems.length > 0
+        ? [
+            { title: "Discounted", sale: true, items: saleItems },
+            { title: null, items: sorted },
+          ]
+        : [{ title: null, items: sorted }];
 
   const sendOrder = () => {
     setError(null);
@@ -437,11 +452,18 @@ export function Catalog({
       <span className="font-semibold text-(--t-text)">
         {enquiry
           ? listingPrice(item)
-          : (() => {
-              const { min, max } = itemPriceSpan(item);
-              return formatPriceRange(min, max);
-            })()}
+          : onSale(item)
+            ? formatPrice(item.salePrice!)
+            : (() => {
+                const { min, max } = itemPriceSpan(item);
+                return formatPriceRange(min, max);
+              })()}
       </span>
+      {onSale(item) && (
+        <span className="ml-1.5 text-xs text-(--t-muted) line-through">
+          {formatPrice(item.price)}
+        </span>
+      )}
       {item.mrp &&
         item.mrp > item.price &&
         item.options.length === 0 &&
@@ -515,14 +537,13 @@ export function Catalog({
   );
 
   const discount = (item: CatalogItem) => {
-    if (
-      !item.mrp ||
-      item.mrp <= item.price ||
-      item.options.length > 0 ||
-      item.maxPrice
-    )
-      return null;
-    return Math.round(((item.mrp - item.price) / item.mrp) * 100);
+    if (item.options.length > 0 || item.maxPrice) return null;
+    const displayPrice = effectivePrice(item);
+    // Sale discount: compare salePrice to the regular selling price.
+    if (onSale(item)) return Math.round(((item.price - item.salePrice!) / item.price) * 100);
+    // MRP discount: compare selling price to MRP.
+    if (item.mrp && item.mrp > item.price) return Math.round(((item.mrp - item.price) / item.mrp) * 100);
+    return null;
   };
 
   const renderItems = (list: CatalogItem[]) => {
@@ -614,14 +635,7 @@ export function Catalog({
                     <p className="mt-0.5 text-xs text-(--t-muted)">{item.unit}</p>
                   )}
                   <div className="mt-1.5 flex flex-wrap items-baseline gap-x-1.5 gap-y-0.5">
-                    <span className="text-base font-bold text-(--t-text)">
-                      {enquiry
-                        ? listingPrice(item)
-                        : (() => { const { min, max } = itemPriceSpan(item); return formatPriceRange(min, max); })()}
-                    </span>
-                    {item.mrp && item.mrp > item.price && item.options.length === 0 && !item.maxPrice && (
-                      <span className="text-xs text-(--t-muted) line-through">{formatPrice(item.mrp)}</span>
-                    )}
+                    {price(item)}
                   </div>
                   <div className="mt-auto pt-3">{stepper(item)}</div>
                 </div>
@@ -661,10 +675,7 @@ export function Catalog({
                 <div className="min-w-0 flex-1">
                   {title(item, "line-clamp-2 text-sm font-medium leading-snug text-(--t-text)")}
                   <div className="mt-1 flex flex-wrap items-baseline gap-x-1.5">
-                    <span className="text-sm font-bold text-(--t-text)">{price(item)}</span>
-                    {item.mrp && item.mrp > item.price && item.options.length === 0 && !item.maxPrice && (
-                      <span className="text-xs text-(--t-muted) line-through">{formatPrice(item.mrp)}</span>
-                    )}
+                    {price(item)}
                   </div>
                   {item.unit && <p className="text-xs text-(--t-muted)">{item.unit}</p>}
                 </div>

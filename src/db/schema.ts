@@ -157,6 +157,8 @@ export const items = pgTable(
     inStock: boolean("in_stock").notNull().default(true),
     /** Property listings: "sale" or "rent". Null for ordinary items. */
     listing: text("listing"),
+    /** Discounted / clearance price in paise. When set, shown instead of `price` and the item appears in the "Discounted" section. */
+    salePrice: integer("sale_price"),
     /** Facts shown as a list, e.g. BHK, area, furnishing (property listings). */
     details: jsonb("details").$type<ItemDetail[]>().notNull().default([]),
     createdAt: timestamp("created_at", { withTimezone: true }).notNull().defaultNow(),

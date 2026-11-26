@@ -123,7 +123,7 @@ export async function createOrder(
   const lines: OrderLine[] = data.lines.map((line) => {
     const item = byId.get(line.itemId)!;
     const option = optionOf(line);
-    const price = option ? option.price : item.price;
+    const price = option ? option.price : (item.salePrice ?? item.price);
     const max = option ? option.maxPrice : item.maxPrice;
     return {
       itemId: item.id,

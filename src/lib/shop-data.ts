@@ -41,6 +41,7 @@ async function loadShopPage(slug: string) {
         imageUrl: items.imageUrl,
         imageUrls: items.imageUrls,
         maxPrice: items.maxPrice,
+        salePrice: items.salePrice,
         options: items.options,
         listing: items.listing,
         details: items.details,
