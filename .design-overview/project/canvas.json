@@ -1,0 +1,23 @@
+{
+  "v": 3,
+  "attachments": {},
+  "createdOnFiles": {
+    "at": "2026-11-26T05:37:00.661Z",
+    "v": 1
+  },
+  "title": "ApnaCatalog Design Overview",
+  "launch": { "view": "canvas" },
+  "pages": [],
+  "boards": {
+    "Main.dc.html": { "x": 0, "y": 0, "w": 1280, "h": 860, "title": "Landing Page" },
+    "Login.dc.html": { "x": 1360, "y": 0, "w": 480, "h": 700, "title": "Login" },
+    "Dashboard.dc.html": { "x": 0, "y": 980, "w": 1280, "h": 1000, "title": "Dashboard Home" },
+    "CatalogMobile.dc.html": { "x": 1360, "y": 980, "w": 390, "h": 844, "title": "Shop Catalog (Mobile)" }
+  },
+  "order": ["Main.dc.html", "Login.dc.html", "Dashboard.dc.html", "CatalogMobile.dc.html"],
+  "notes": {
+    "header": { "x": 0, "y": -180, "text": "ApnaCatalog — Complete Design Overview", "kind": "title1", "maxW": 1840 },
+    "note1": { "x": 0, "y": -80, "w": 500, "text": "Indian bazaar inspired SaaS — navy brand, orange tags, cream background.\nFonts: Baloo 2 (headings) + Mukta (body).\nCards 12px radius, inputs 8px, pills for badges.", "fill": "blue" }
+  },
+  "designSystems": []
+}

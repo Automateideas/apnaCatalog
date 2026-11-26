@@ -668,7 +668,7 @@ export function ItemsManager({
                           d ? { ...d, options: d.options.map((x, j) => (j === i ? { ...x, ...patch } : x)) } : d,
                         );
                       return (
-                        <li key={o.id ?? `new-${i}`} className="grid grid-cols-[1fr_5.5rem_5.5rem_auto] items-end gap-2">
+                        <li key={o.id ?? `new-${i}`} className="grid grid-cols-[1fr_4.5rem_4.5rem_auto] items-end gap-1.5 sm:grid-cols-[1fr_5.5rem_5.5rem_auto] sm:gap-2">
                           <div>
                             <Label htmlFor={`opt-name-${i}`} className="text-xs">Option</Label>
                             <Input

@@ -9,8 +9,7 @@ export default async function ThemePage() {
   const { theme, accent } = resolveTheme(shop);
 
   return (
-    <div className="space-y-4">
-      <h1 className="text-xl font-bold text-slate-900">Theme</h1>
+    <div>
       <ThemeForm
         paid={paid}
         shopName={shop.name}

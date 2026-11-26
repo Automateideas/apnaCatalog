@@ -2,7 +2,6 @@
 
 import {
   useCallback,
-  useEffect,
   useMemo,
   useState,
   useTransition,
@@ -79,6 +78,7 @@ type Props = {
   look: { items: ItemStyle; center: boolean; chips: Theme["chips"] };
   items: CatalogItem[];
   categories: CatalogCategory[];
+  serverNow?: number;
 };
 
 type Cart = Record<string, number>;
@@ -110,6 +110,7 @@ export function Catalog({
   items,
   categories,
   mode = "cart",
+  serverNow,
 }: Props) {
   const enquiry = mode === "enquiry";
   const pageOf = (item: CatalogItem) =>
@@ -135,12 +136,7 @@ export function Catalog({
   const [query, setQuery] = useState("");
   const [sort, setSort] = useState<string>("default");
   const [showFavs, setShowFavs] = useState(false);
-  const [now, setNow] = useState<number | null>(null);
-
-  useEffect(() => {
-    const timer = window.setTimeout(() => setNow(Date.now()), 0);
-    return () => window.clearTimeout(timer);
-  }, []);
+  const now = serverNow ?? null;
 
   const favs: Set<string> = useMemo(() => {
     if (!rawFavs) return new Set();
@@ -537,8 +533,8 @@ export function Catalog({
           className={cx(
             "grid",
             tall
-              ? "grid-cols-2 gap-x-3 gap-y-6 sm:grid-cols-3"
-              : "grid-cols-2 gap-2.5 sm:grid-cols-3 lg:grid-cols-4",
+              ? "grid-cols-2 gap-x-3 gap-y-8 sm:grid-cols-3"
+              : "grid-cols-2 gap-3 sm:grid-cols-3 lg:grid-cols-4",
           )}
         >
           {list.map((item) => {
@@ -547,7 +543,7 @@ export function Catalog({
               <article
                 key={item.id}
                 className={cx(
-                  "group flex flex-col",
+                  "group flex flex-col transition-transform duration-200 hover:-translate-y-0.5",
                   !tall && "t-card overflow-hidden",
                   look.center && "text-center",
                   !item.inStock && "opacity-60",
@@ -556,84 +552,57 @@ export function Catalog({
                 {/* Photo */}
                 <div
                   className={cx(
-                    tall ? "t-photo  aspect-ratio: 3/4" : "aspect-square",
-                    "relative bg-(--ps)",
+                    tall ? "aspect-[3/4]" : "aspect-[4/3]",
+                    "relative overflow-hidden bg-(--ps)",
+                    tall && "t-photo",
                   )}
                 >
                   {item.imageUrl
                     ? photo(item, "h-full w-full", true)
                     : noPhoto("h-8 w-8")}
 
-                  {/* Top-left badges */}
-                  <div className="absolute top-1.5 left-1.5 flex flex-col gap-1">
+                  {/* Badges */}
+                  <div className="absolute top-2 left-2 flex flex-col gap-1">
                     {pct && pct >= 5 && (
-                      <span className="rounded bg-red-500 px-1.5 py-0.5 text-[10px] font-bold text-white leading-tight">
+                      <span className="rounded-full bg-red-500 px-2 py-0.5 text-[10px] font-bold text-white shadow-sm">
                         {pct}% off
                       </span>
                     )}
                     {isNew(item) && (
-                      <span className="rounded-full bg-(--p) px-1.5 py-0.5 text-[10px] font-semibold text-(--pt) leading-tight">
+                      <span className="rounded-full bg-(--p) px-2 py-0.5 text-[10px] font-semibold text-(--pt) shadow-sm">
                         New
                       </span>
                     )}
                   </div>
 
-                  {/* Top-right actions */}
-                  <div className="absolute top-1.5 right-1.5 flex flex-col gap-1 opacity-0 transition-opacity group-hover:opacity-100 sm:flex">
+                  {/* Actions — hover on desktop, always on mobile */}
+                  <div className="absolute top-2 right-2 flex flex-col gap-1.5">
                     <button
                       type="button"
                       onClick={() => toggleFav(item.id)}
-                      aria-label={
+                      aria-label={favs.has(item.id) ? "Remove from favorites" : "Add to favorites"}
+                      className={cx(
+                        "flex size-7 items-center justify-center rounded-full shadow-md transition-all",
                         favs.has(item.id)
-                          ? "Remove from favorites"
-                          : "Add to favorites"
-                      }
-                      className="flex size-7 items-center justify-center rounded-full bg-white/90 text-slate-600 shadow-sm hover:bg-white"
+                          ? "bg-white text-red-500"
+                          : "bg-white/80 text-slate-500 opacity-0 group-hover:opacity-100 sm:flex",
+                      )}
                     >
-                      <Heart
-                        className={cx(
-                          "size-3.5",
-                          favs.has(item.id) && "fill-red-500 text-red-500",
-                        )}
-                      />
+                      <Heart className={cx("size-3.5", favs.has(item.id) && "fill-red-500")} />
                     </button>
                     <button
                       type="button"
                       onClick={() => shareItem(item)}
                       aria-label={`Share ${item.name}`}
-                      className="flex size-7 items-center justify-center rounded-full bg-white/90 text-slate-600 shadow-sm hover:bg-white"
+                      className="hidden size-7 items-center justify-center rounded-full bg-white/80 text-slate-500 shadow-md opacity-0 transition-all group-hover:opacity-100 sm:flex"
                     >
                       <Share2 className="size-3.5" />
                     </button>
                   </div>
-
-                  {/* Mobile fav always visible */}
-                  <button
-                    type="button"
-                    onClick={() => toggleFav(item.id)}
-                    aria-label={
-                      favs.has(item.id)
-                        ? "Remove from favorites"
-                        : "Add to favorites"
-                    }
-                    className="absolute top-1.5 right-1.5 flex size-7 items-center justify-center rounded-full bg-white/90 text-slate-600 shadow-sm sm:hidden"
-                  >
-                    <Heart
-                      className={cx(
-                        "size-3.5",
-                        favs.has(item.id) && "fill-red-500 text-red-500",
-                      )}
-                    />
-                  </button>
                 </div>
 
                 {/* Info */}
-                <div
-                  className={cx(
-                    "flex flex-1 flex-col",
-                    tall ? "pt-2.5" : "p-2.5 pb-3",
-                  )}
-                >
+                <div className={cx("flex flex-1 flex-col", tall ? "pt-3" : "p-3")}>
                   {title(
                     item,
                     cx(
@@ -642,32 +611,19 @@ export function Catalog({
                     ),
                   )}
                   {item.unit && (
-                    <p className="mt-0.5 text-xs text-(--t-muted)">
-                      {item.unit}
-                    </p>
+                    <p className="mt-0.5 text-xs text-(--t-muted)">{item.unit}</p>
                   )}
-
-                  {/* Price row */}
                   <div className="mt-1.5 flex flex-wrap items-baseline gap-x-1.5 gap-y-0.5">
                     <span className="text-base font-bold text-(--t-text)">
                       {enquiry
                         ? listingPrice(item)
-                        : (() => {
-                            const { min, max } = itemPriceSpan(item);
-                            return formatPriceRange(min, max);
-                          })()}
+                        : (() => { const { min, max } = itemPriceSpan(item); return formatPriceRange(min, max); })()}
                     </span>
-                    {item.mrp &&
-                      item.mrp > item.price &&
-                      item.options.length === 0 &&
-                      !item.maxPrice && (
-                        <span className="text-xs text-(--t-muted) line-through">
-                          {formatPrice(item.mrp)}
-                        </span>
-                      )}
+                    {item.mrp && item.mrp > item.price && item.options.length === 0 && !item.maxPrice && (
+                      <span className="text-xs text-(--t-muted) line-through">{formatPrice(item.mrp)}</span>
+                    )}
                   </div>
-
-                  <div className="mt-auto pt-2.5">{stepper(item)}</div>
+                  <div className="mt-auto pt-3">{stepper(item)}</div>
                 </div>
               </article>
             );
@@ -685,14 +641,12 @@ export function Catalog({
               <article
                 key={item.id}
                 className={cx(
-                  "flex items-center gap-3 p-3",
+                  "group flex items-center gap-3.5 p-3.5 transition-colors hover:bg-(--ps)/40",
                   !item.inStock && "opacity-60",
                 )}
               >
-                <div className="t-photo relative h-20 w-20 shrink-0 bg-(--ps)">
-                  {item.imageUrl
-                    ? photo(item, "h-full w-full")
-                    : noPhoto("h-6 w-6")}
+                <div className="t-photo relative h-[72px] w-[72px] shrink-0 overflow-hidden bg-(--ps)">
+                  {item.imageUrl ? photo(item, "h-full w-full") : noPhoto("h-6 w-6")}
                   {pct && pct >= 5 && (
                     <span className="absolute bottom-0 left-0 right-0 bg-red-500 py-0.5 text-center text-[9px] font-bold text-white">
                       {pct}% off
@@ -705,44 +659,23 @@ export function Catalog({
                   )}
                 </div>
                 <div className="min-w-0 flex-1">
-                  {title(
-                    item,
-                    "line-clamp-2 text-sm font-medium leading-snug text-(--t-text)",
-                  )}
+                  {title(item, "line-clamp-2 text-sm font-medium leading-snug text-(--t-text)")}
                   <div className="mt-1 flex flex-wrap items-baseline gap-x-1.5">
-                    <span className="text-sm font-bold text-(--t-text)">
-                      {price(item)}
-                    </span>
-                    {item.mrp &&
-                      item.mrp > item.price &&
-                      item.options.length === 0 &&
-                      !item.maxPrice && (
-                        <span className="text-xs text-(--t-muted) line-through">
-                          {formatPrice(item.mrp)}
-                        </span>
-                      )}
+                    <span className="text-sm font-bold text-(--t-text)">{price(item)}</span>
+                    {item.mrp && item.mrp > item.price && item.options.length === 0 && !item.maxPrice && (
+                      <span className="text-xs text-(--t-muted) line-through">{formatPrice(item.mrp)}</span>
+                    )}
                   </div>
-                  {item.unit && (
-                    <p className="text-xs text-(--t-muted)">{item.unit}</p>
-                  )}
+                  {item.unit && <p className="text-xs text-(--t-muted)">{item.unit}</p>}
                 </div>
-                <div className="flex shrink-0 flex-col items-end gap-1.5">
+                <div className="flex shrink-0 flex-col items-end gap-2">
                   <button
                     type="button"
                     onClick={() => toggleFav(item.id)}
-                    aria-label={
-                      favs.has(item.id)
-                        ? "Remove from favorites"
-                        : "Add to favorites"
-                    }
-                    className="text-(--t-muted) hover:text-(--t-text)"
+                    aria-label={favs.has(item.id) ? "Remove from favorites" : "Add to favorites"}
+                    className="text-(--t-muted) transition-colors hover:text-(--t-text)"
                   >
-                    <Heart
-                      className={cx(
-                        "size-4",
-                        favs.has(item.id) && "fill-red-500 text-red-500",
-                      )}
-                    />
+                    <Heart className={cx("size-4", favs.has(item.id) && "fill-red-500 text-red-500")} />
                   </button>
                   {stepper(item, true)}
                 </div>
@@ -753,59 +686,65 @@ export function Catalog({
       );
     }
 
+    // menu layout
     return (
-      <div className="t-card divide-y divide-dashed divide-(--t-border) px-4">
-        {list.map((item) => (
+      <div className="t-card overflow-hidden">
+        {list.map((item, i) => (
           <article
             key={item.id}
-            className={cx("flex gap-3 py-3.5", !item.inStock && "opacity-60")}
+            className={cx(
+              "group flex gap-4 px-5 py-4 transition-colors hover:bg-(--ps)/30",
+              i > 0 && "border-t border-dashed border-(--t-border)",
+              !item.inStock && "opacity-60",
+            )}
           >
             <div className="min-w-0 flex-1">
-              <div className="flex items-baseline gap-2">
-                {isNew(item) && (
-                  <span className="rounded-full bg-(--ps) px-1.5 py-0.5 text-[10px] font-semibold text-(--pa)">
-                    New
-                  </span>
-                )}
-                {title(item, "t-head text-[1.05rem] text-(--t-text)")}
-                <span className="mb-1 hidden flex-1 border-b border-dotted border-(--t-muted) opacity-60 sm:block" />
-                {price(item)}
+              <div className="flex items-start justify-between gap-3">
+                <div className="min-w-0 flex-1">
+                  {isNew(item) && (
+                    <span className="mb-1 inline-block rounded-full bg-(--ps) px-2 py-0.5 text-[10px] font-semibold text-(--pa)">
+                      New
+                    </span>
+                  )}
+                  {title(item, "t-head text-[1.05rem] leading-snug text-(--t-text)")}
+                  {(item.description || item.unit) && (
+                    <p className="mt-0.5 line-clamp-2 text-sm text-(--t-muted)">
+                      {[item.unit, item.description].filter(Boolean).join(" · ")}
+                    </p>
+                  )}
+                </div>
+                <div className="shrink-0 text-right">
+                  <p className="text-base font-bold" style={{ color: "var(--p)" }}>{price(item)}</p>
+                  {item.mrp && item.mrp > item.price && item.options.length === 0 && !item.maxPrice && (
+                    <p className="text-xs text-(--t-muted) line-through">{formatPrice(item.mrp)}</p>
+                  )}
+                </div>
               </div>
-              {(item.description || item.unit) && (
-                <p className="mt-0.5 line-clamp-2 text-sm text-(--t-muted)">
-                  {[item.unit, item.description].filter(Boolean).join(" · ")}
-                </p>
-              )}
-              <div className="mt-2 flex items-center gap-2">
+              <div className="mt-2.5 flex items-center gap-2">
                 {stepper(item, true)}
                 <button
                   type="button"
                   onClick={() => toggleFav(item.id)}
-                  aria-label={
-                    favs.has(item.id)
-                      ? "Remove from favorites"
-                      : "Add to favorites"
-                  }
-                  className="text-(--t-muted) hover:text-(--t-text)"
+                  aria-label={favs.has(item.id) ? "Remove from favorites" : "Add to favorites"}
+                  className="text-(--t-muted) transition-colors hover:text-(--t-text)"
                 >
-                  <Heart
-                    className={cx(
-                      "size-4",
-                      favs.has(item.id) && "fill-red-500 text-red-500",
-                    )}
-                  />
+                  <Heart className={cx("size-4", favs.has(item.id) && "fill-red-500 text-red-500")} />
                 </button>
                 <button
                   type="button"
                   onClick={() => shareItem(item)}
                   aria-label={`Share ${item.name}`}
-                  className="text-(--t-muted) hover:text-(--t-text)"
+                  className="text-(--t-muted) transition-colors hover:text-(--t-text)"
                 >
                   <Share2 className="size-4" />
                 </button>
               </div>
             </div>
-            {item.imageUrl && photo(item, "t-photo h-20 w-20 shrink-0")}
+            {item.imageUrl && (
+              <div className="t-photo relative h-20 w-20 shrink-0 overflow-hidden bg-(--ps)">
+                {photo(item, "h-full w-full")}
+              </div>
+            )}
           </article>
         ))}
       </div>
@@ -1216,7 +1155,7 @@ export function Catalog({
         <Dialog open onOpenChange={(open) => !open && setDetail(null)}>
           <DialogContent className="t-page max-h-[92dvh] gap-0 overflow-y-auto bg-(--t-surface) p-0 sm:max-w-md">
             {detail.imageUrls.length > 0 && (
-              <div className="aspect-square w-full overflow-hidden bg-(--ps)">
+              <div className="relative w-full bg-(--ps)" style={{ aspectRatio: "4/3" }}>
                 <ItemCarousel
                   urls={detail.imageUrls}
                   name={detail.name}

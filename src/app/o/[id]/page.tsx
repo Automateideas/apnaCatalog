@@ -42,7 +42,7 @@ export default async function OrderPage({ params }: PageProps<"/o/[id]">) {
   return (
     <main className="mx-auto w-full max-w-2xl flex-1 px-4 py-6 sm:px-6">
       <Card className="p-5 print:border-0 print:shadow-none">
-        <div className="flex items-start justify-between gap-4 border-b border-slate-200 pb-4">
+        <div className="flex flex-col gap-3 border-b border-slate-200 pb-4 sm:flex-row sm:items-start sm:justify-between sm:gap-4">
           <div>
             <h1 className="text-xl font-bold text-slate-900">{row.shopName}</h1>
             <p className="text-sm text-slate-600">
@@ -50,7 +50,7 @@ export default async function OrderPage({ params }: PageProps<"/o/[id]">) {
             </p>
             <p className="text-sm text-slate-600">+91 {row.shopPhone}</p>
           </div>
-          <div className="text-right text-sm">
+          <div className="text-sm sm:text-right">
             <p className="font-semibold text-slate-900">Order #{order.id.toUpperCase()}</p>
             <p className="text-slate-500">{formatDateTime(order.createdAt)}</p>
           </div>
@@ -71,6 +71,7 @@ export default async function OrderPage({ params }: PageProps<"/o/[id]">) {
           </div>
         )}
 
+        <div className="overflow-x-auto">
         <Table className="mt-3 w-full text-sm">
           <TableHeader>
             <TableRow className="border-b border-slate-200 text-left text-slate-500">
@@ -109,6 +110,7 @@ export default async function OrderPage({ params }: PageProps<"/o/[id]">) {
             </TableRow>
           </TableFooter>
         </Table>
+        </div>
 
         <p className="mt-5 text-xs text-slate-500">
           This is an order request, not a bill. No payment has been made. The shop will confirm the

@@ -12,6 +12,7 @@ export default async function ShopDetailsPage() {
           name: shop.name,
           businessType: shop.businessType,
           description: shop.description ?? "",
+          state: shop.state ?? "",
           city: shop.city,
           address: shop.address ?? "",
           phone: shop.phone ?? "",

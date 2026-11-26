@@ -1,0 +1,165 @@
+<!doctype html>
+<html lang="en">
+<head>
+<meta charset="utf-8">
+<title>Dashboard Home</title>
+<script src="./support.js"></script>
+</head>
+<body>
+<x-dc>
+<helmet>
+<link rel="preconnect" href="https://fonts.googleapis.com">
+<link href="https://fonts.googleapis.com/css2?family=Baloo+2:wght@600;700;800&family=Mukta:wght@400;500;600;700&display=swap" rel="stylesheet">
+<style>
+body { margin: 0; font-family: 'Mukta', system-ui, sans-serif; color: #1b2340; }
+a { color: #1b2340; } a:hover { color: #10162b; }
+</style>
+</helmet>
+
+<div style="width: 1280px; min-height: 1000px; background: #f8fafc; display: flex; flex-direction: column">
+
+  <!-- Header -->
+  <header style="background: white; border-bottom: 1px solid #e2e8f0">
+    <div style="max-width: 896px; margin: 0 auto; display: flex; align-items: center; justify-content: space-between; height: 56px; padding: 0 24px">
+      <div style="display: flex; align-items: center; gap: 8px">
+        <div style="width: 28px; height: 28px; border-radius: 6px; background: #1b2340; display: flex; align-items: center; justify-content: center">
+          <span style="color: white; font-weight: 700; font-size: 14px; font-family: 'Baloo 2', sans-serif">A</span>
+        </div>
+        <span style="font-family: 'Baloo 2', sans-serif; font-weight: 700; font-size: 18px; color: #1b2340">ApnaCatalog</span>
+      </div>
+      <div style="display: flex; align-items: center; gap: 8px">
+        <!-- Bell -->
+        <button aria-label="Notifications" style="width: 36px; height: 36px; border: none; background: none; cursor: pointer; display: flex; align-items: center; justify-content: center; border-radius: 6px; position: relative">
+          <svg width="20" height="20" viewBox="0 0 24 24" fill="none" stroke="#475569" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"><path d="M6 8a6 6 0 0 1 12 0c0 7 3 9 3 9H3s3-2 3-9"/><path d="M10.3 21a1.94 1.94 0 0 0 3.4 0"/></svg>
+          <span style="position: absolute; top: 2px; right: 2px; width: 18px; height: 18px; background: #dc2626; border-radius: 50%; font-size: 10px; font-weight: 700; color: white; display: flex; align-items: center; justify-content: center">3</span>
+        </button>
+        <!-- View shop -->
+        <a href="#" style="display: inline-flex; align-items: center; gap: 6px; padding: 6px 12px; border: 1px solid #e2e8f0; border-radius: 8px; font-size: 14px; font-weight: 500; text-decoration: none; color: #475569">
+          View shop
+          <svg width="14" height="14" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round" aria-hidden="true"><path d="M7 7h10v10"/><path d="M7 17 17 7"/></svg>
+        </a>
+        <!-- Log out -->
+        <a href="#" style="padding: 6px 12px; font-size: 14px; font-weight: 500; text-decoration: none; color: #64748b; border-radius: 6px">Log out</a>
+      </div>
+    </div>
+    <!-- Nav tabs -->
+    <div style="max-width: 896px; margin: 0 auto; display: flex; gap: 4px; padding: 0 24px; overflow-x: auto">
+      <a href="#" style="padding: 8px 14px; font-size: 14px; font-weight: 600; color: #1b2340; text-decoration: none; border-bottom: 2px solid #1b2340">Home</a>
+      <a href="#" style="padding: 8px 14px; font-size: 14px; font-weight: 500; color: #64748b; text-decoration: none; border-bottom: 2px solid transparent">Items</a>
+      <a href="#" style="padding: 8px 14px; font-size: 14px; font-weight: 500; color: #64748b; text-decoration: none; border-bottom: 2px solid transparent">Orders</a>
+      <a href="#" style="padding: 8px 14px; font-size: 14px; font-weight: 500; color: #64748b; text-decoration: none; border-bottom: 2px solid transparent">Reviews</a>
+      <a href="#" style="padding: 8px 14px; font-size: 14px; font-weight: 500; color: #64748b; text-decoration: none; border-bottom: 2px solid transparent">Theme</a>
+      <a href="#" style="padding: 8px 14px; font-size: 14px; font-weight: 500; color: #64748b; text-decoration: none; border-bottom: 2px solid transparent">Shop</a>
+      <a href="#" style="padding: 8px 14px; font-size: 14px; font-weight: 500; color: #64748b; text-decoration: none; border-bottom: 2px solid transparent">Analytics</a>
+      <a href="#" style="padding: 8px 14px; font-size: 14px; font-weight: 500; color: #64748b; text-decoration: none; border-bottom: 2px solid transparent">Plan</a>
+    </div>
+  </header>
+
+  <!-- Content -->
+  <main style="max-width: 896px; margin: 0 auto; width: 100%; padding: 24px; box-sizing: border-box; display: flex; flex-direction: column; gap: 20px">
+
+    <!-- Shop info card -->
+    <div style="background: white; border: 1px solid #e2e8f0; border-radius: 12px; padding: 20px">
+      <h1 style="margin: 0; font-family: 'Baloo 2', sans-serif; font-size: 22px; font-weight: 700; color: #0f172a">Fresh Mart Grocery</h1>
+      <p style="margin: 12px 0 0; font-size: 14px; color: #64748b">Your catalog link</p>
+      <a href="#" style="font-size: 15px; font-weight: 600; color: #1b2340; text-decoration: none; word-break: break-all">apnacatalog.com/fresh-mart</a>
+      <div style="display: flex; flex-wrap: wrap; gap: 8px; margin-top: 12px">
+        <button style="display: inline-flex; align-items: center; gap: 6px; padding: 8px 16px; background: white; border: 1px solid #e2e8f0; border-radius: 8px; font-size: 14px; font-weight: 500; cursor: pointer; font-family: 'Mukta', sans-serif; color: #334155">
+          <svg width="14" height="14" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round" aria-hidden="true"><rect x="9" y="9" width="13" height="13" rx="2"/><path d="M5 15H4a2 2 0 0 1-2-2V4a2 2 0 0 1 2-2h9a2 2 0 0 1 2 2v1"/></svg>
+          Copy link
+        </button>
+        <button style="display: inline-flex; align-items: center; gap: 6px; padding: 8px 16px; background: #128c4a; border: none; border-radius: 8px; font-size: 14px; font-weight: 600; cursor: pointer; font-family: 'Mukta', sans-serif; color: white">Share on WhatsApp</button>
+        <button style="display: inline-flex; align-items: center; gap: 6px; padding: 8px 16px; background: white; border: 1px solid #e2e8f0; border-radius: 8px; font-size: 14px; font-weight: 500; cursor: pointer; font-family: 'Mukta', sans-serif; color: #334155">Send to number</button>
+      </div>
+    </div>
+
+    <!-- Stats row -->
+    <div style="display: grid; grid-template-columns: repeat(3, minmax(0, 1fr)); gap: 12px">
+      <a href="#" style="background: white; border: 1px solid #e2e8f0; border-radius: 12px; padding: 16px; text-decoration: none">
+        <div style="font-size: 26px; font-weight: 700; color: #0f172a; font-variant-numeric: tabular-nums">24/50</div>
+        <div style="font-size: 14px; color: #64748b; margin-top: 2px">Items</div>
+      </a>
+      <a href="#" style="background: white; border: 1px solid #e2e8f0; border-radius: 12px; padding: 16px; text-decoration: none">
+        <div style="font-size: 26px; font-weight: 700; color: #0f172a; font-variant-numeric: tabular-nums">12</div>
+        <div style="font-size: 14px; color: #64748b; margin-top: 2px">Orders</div>
+      </a>
+      <a href="#" style="background: white; border: 1px solid #e2e8f0; border-radius: 12px; padding: 16px; text-decoration: none">
+        <div style="font-size: 26px; font-weight: 700; color: #0f172a; font-variant-numeric: tabular-nums">4.5 / 5</div>
+        <div style="font-size: 14px; color: #64748b; margin-top: 2px">Rating</div>
+      </a>
+    </div>
+
+    <!-- Get listed card -->
+    <div style="background: white; border: 1px solid #e2e8f0; border-radius: 12px; padding: 20px">
+      <h2 style="margin: 0; font-family: 'Baloo 2', sans-serif; font-size: 17px; font-weight: 700; color: #0f172a">Your business is on the home page</h2>
+      <p style="margin: 4px 0 12px; font-size: 14px; color: #64748b">People searching for businesses in Lucknow can find you.</p>
+      <div style="display: flex; flex-direction: column; gap: 8px">
+        <div style="display: flex; align-items: center; gap: 8px; font-size: 14px">
+          <span style="width: 20px; height: 20px; border-radius: 50%; background: #22c55e; display: flex; align-items: center; justify-content: center">
+            <svg width="12" height="12" viewBox="0 0 24 24" fill="none" stroke="white" stroke-width="3" stroke-linecap="round" aria-hidden="true"><path d="M20 6L9 17l-5-5"/></svg>
+          </span>
+          <span style="color: #64748b; text-decoration: line-through">Add at least 5 items (5/5)</span>
+        </div>
+        <div style="display: flex; align-items: center; gap: 8px; font-size: 14px">
+          <span style="width: 20px; height: 20px; border-radius: 50%; background: #22c55e; display: flex; align-items: center; justify-content: center">
+            <svg width="12" height="12" viewBox="0 0 24 24" fill="none" stroke="white" stroke-width="3" stroke-linecap="round" aria-hidden="true"><path d="M20 6L9 17l-5-5"/></svg>
+          </span>
+          <span style="color: #64748b; text-decoration: line-through">Add your logo or one item photo</span>
+        </div>
+      </div>
+    </div>
+
+    <!-- Two column: QR + Review -->
+    <div style="display: grid; grid-template-columns: repeat(2, minmax(0, 1fr)); gap: 20px">
+      <!-- QR Card -->
+      <div style="background: white; border: 1px solid #e2e8f0; border-radius: 12px; padding: 20px">
+        <h2 style="margin: 0; font-family: 'Baloo 2', sans-serif; font-size: 17px; font-weight: 700; color: #0f172a">QR code for your counter</h2>
+        <p style="margin: 4px 0 16px; font-size: 14px; color: #64748b">Print it and display it. Customers scan it to open your catalog.</p>
+        <!-- QR placeholder -->
+        <div style="width: 160px; height: 160px; margin: 0 auto; background: white; border: 2px solid #e2e8f0; border-radius: 8px; display: grid; grid-template-columns: repeat(7, minmax(0, 1fr)); grid-template-rows: repeat(7, minmax(0, 1fr)); gap: 2px; padding: 8px">
+          <div style="background: #1b2340; grid-column: span 3; grid-row: span 3; border-radius: 2px"></div>
+          <div></div>
+          <div style="background: #1b2340; grid-column: span 3; grid-row: span 3; border-radius: 2px"></div>
+          <div style="background: #1b2340; border-radius: 1px"></div>
+          <div></div>
+          <div style="background: #1b2340; border-radius: 1px"></div>
+          <div></div>
+          <div style="background: #1b2340; border-radius: 1px"></div>
+          <div></div>
+          <div style="background: #1b2340; border-radius: 1px"></div>
+          <div style="background: #1b2340; grid-column: span 3; grid-row: span 3; border-radius: 2px"></div>
+          <div></div>
+          <div style="background: #1b2340; border-radius: 1px"></div>
+          <div></div>
+          <div style="background: #1b2340; border-radius: 1px"></div>
+        </div>
+        <a href="#" style="display: block; width: 100%; margin-top: 12px; padding: 10px; border: 1px solid #e2e8f0; border-radius: 8px; text-align: center; font-size: 14px; font-weight: 500; text-decoration: none; color: #334155; box-sizing: border-box">Download QR code</a>
+      </div>
+
+      <!-- Review Card -->
+      <div style="background: white; border: 1px solid #e2e8f0; border-radius: 12px; padding: 20px">
+        <h2 style="margin: 0; font-family: 'Baloo 2', sans-serif; font-size: 17px; font-weight: 700; color: #0f172a">Ask customers for a review</h2>
+        <p style="margin: 4px 0 16px; font-size: 14px; color: #64748b">Only people who get this link from you can write a review. Send it to happy customers.</p>
+        <div style="display: flex; flex-direction: column; gap: 8px">
+          <button style="width: 100%; padding: 10px; background: #128c4a; border: none; border-radius: 8px; font-size: 14px; font-weight: 600; cursor: pointer; font-family: 'Mukta', sans-serif; color: white">Send review link on WhatsApp</button>
+          <button style="width: 100%; padding: 10px; background: white; border: 1px solid #e2e8f0; border-radius: 8px; font-size: 14px; font-weight: 500; cursor: pointer; font-family: 'Mukta', sans-serif; color: #334155">Copy review link</button>
+        </div>
+      </div>
+    </div>
+
+    <!-- Plan banner -->
+    <div style="background: #fffbeb; border-radius: 12px; padding: 12px 16px; font-size: 14px; color: #92400e">
+      Paid plan is active until <strong>15 Jan 2027</strong>.
+      <a href="#" style="font-weight: 600; text-decoration: underline; color: #92400e; margin-left: 4px">See plan</a>
+    </div>
+  </main>
+</div>
+
+</x-dc>
+<script type="text/x-dc" data-dc-script data-props='{"$preview":{"width":1280,"height":1000}}'>
+class Component extends DCLogic {
+  renderVals() { return {}; }
+}
+</script>
+</body>
+</html>

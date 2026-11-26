@@ -7,6 +7,7 @@ import { ImageUpload } from "@/components/ImageUpload";
 import { ItemPhotos } from "@/components/ItemPhotos";
 import type { BusinessHour } from "@/db/schema";
 import { BUSINESS_TYPES, MAX_SHOP_PHOTOS } from "@/lib/catalog-config";
+import { STATE_NAMES, citiesOfState } from "@/lib/india-geo";
 import { discardUploads } from "@/lib/upload";
 import { Icon } from "@/components/Icon";
 import { Card } from "@/components/ui/card";
@@ -21,6 +22,7 @@ type Values = {
   name: string;
   businessType: string;
   description: string;
+  state: string;
   city: string;
   address: string;
   phone: string;
@@ -49,6 +51,7 @@ export function ShopForm({ initial }: { initial: Values }) {
   const [locating, setLocating] = useState(false);
   const [pending, startTransition] = useTransition();
   const [uploading, setUploading] = useState(false);
+  const [customCity, setCustomCity] = useState(!citiesOfState(initial.state).includes(initial.city));
   // Shop photos the database has. Others in the list were uploaded here and not saved yet.
   const [savedShopPhotos, setSavedShopPhotos] = useState(initial.shopPhotoUrls);
 
@@ -249,15 +252,15 @@ export function ShopForm({ initial }: { initial: Values }) {
           return (
             <div className="space-y-2">
               {hours.map((h, i) => (
-                <div key={h.day} className="flex flex-wrap items-center gap-2 text-sm">
-                  <span className="w-20 font-medium text-slate-700">{h.day.slice(0, 3)}</span>
+                <div key={h.day} className="flex flex-wrap items-center gap-x-2 gap-y-1 text-sm">
+                  <span className="w-12 font-medium text-slate-700 sm:w-20">{h.day.slice(0, 3)}</span>
                   {h.closed ? (
                     <span className="text-slate-400">Closed</span>
                   ) : (
                     <>
-                      <input type="time" value={h.open} onChange={(e) => setHour(i, { open: e.target.value })} className="rounded border border-slate-300 px-2 py-1" />
+                      <input type="time" value={h.open} onChange={(e) => setHour(i, { open: e.target.value })} className="min-h-9 rounded border border-slate-300 px-2 py-1.5" />
                       <span className="text-slate-400">to</span>
-                      <input type="time" value={h.close} onChange={(e) => setHour(i, { close: e.target.value })} className="rounded border border-slate-300 px-2 py-1" />
+                      <input type="time" value={h.close} onChange={(e) => setHour(i, { close: e.target.value })} className="min-h-9 rounded border border-slate-300 px-2 py-1.5" />
                     </>
                   )}
                   <label className="ml-auto flex items-center gap-1.5 text-xs text-slate-500">
@@ -335,30 +338,78 @@ export function ShopForm({ initial }: { initial: Values }) {
         <h2 className="font-bold text-slate-900">Location</h2>
         <div className="grid gap-4 sm:grid-cols-2">
           <div>
+            <Label htmlFor="s-state">
+              State
+            </Label>
+            <NativeSelect
+              id="s-state"
+              value={v.state}
+              onChange={(e) => {
+                set("state", e.target.value);
+                set("city", "");
+                setCustomCity(false);
+              }}
+            >
+              <option value="">Choose state</option>
+              {STATE_NAMES.map((s) => (
+                <option key={s} value={s}>
+                  {s}
+                </option>
+              ))}
+            </NativeSelect>
+          </div>
+          <div>
             <Label htmlFor="s-city">
               City
             </Label>
-            <Input
-              id="s-city"
-              value={v.city}
-              onChange={(e) => set("city", e.target.value)}
-              required
-              minLength={2}
-              maxLength={40}
-            />
+            {v.state && !customCity && citiesOfState(v.state).length > 0 ? (
+              <NativeSelect
+                id="s-city"
+                value={v.city}
+                onChange={(e) => {
+                  if (e.target.value === "__other") {
+                    set("city", "");
+                    setCustomCity(true);
+                  } else {
+                    set("city", e.target.value);
+                  }
+                }}
+                required
+              >
+                <option value="" disabled>
+                  Choose city
+                </option>
+                {citiesOfState(v.state).map((c) => (
+                  <option key={c} value={c}>
+                    {c}
+                  </option>
+                ))}
+                <option value="__other">Other city...</option>
+              </NativeSelect>
+            ) : (
+              <Input
+                id="s-city"
+                value={v.city}
+                onChange={(e) => set("city", e.target.value)}
+                required
+                minLength={2}
+                maxLength={40}
+                placeholder={v.state ? "Type your city" : "Choose state first"}
+              />
+            )}
           </div>
-          <div>
-            <Label htmlFor="s-address">
-              Address
-            </Label>
-            <Input
-              id="s-address"
-              value={v.address}
-              onChange={(e) => set("address", e.target.value)}
-              maxLength={200}
-              placeholder="Shop no., market, area"
-            />
-          </div>
+        </div>
+        <div>
+          <Label htmlFor="s-address">
+            Address
+          </Label>
+          <Input
+            id="s-address"
+            value={v.address}
+            onChange={(e) => set("address", e.target.value)}
+            maxLength={200}
+            placeholder="Shop no., market, area"
+          />
         </div>
 
         <div>

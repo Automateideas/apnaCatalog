@@ -125,7 +125,7 @@ export default async function DashboardHome({ searchParams }: PageProps<"/dashbo
         />
       )}
 
-      <section className="grid grid-cols-3 gap-3">
+      <section className="grid grid-cols-3 gap-2 sm:gap-3">
         {[
           {
             label: "Items",

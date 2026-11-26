@@ -11,7 +11,7 @@ export default async function AnalyticsPage() {
     <div className="space-y-5">
       <h1 className="text-xl font-bold">Analytics</h1>
 
-      <section className="grid grid-cols-3 gap-3">
+      <section className="grid grid-cols-3 gap-2 sm:gap-3">
         {[
           { label: "Today", value: stats.today, icon: Eye },
           { label: "This week", value: stats.week, icon: TrendingUp },

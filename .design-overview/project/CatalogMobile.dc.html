@@ -1,0 +1,166 @@
+<!doctype html>
+<html lang="en">
+<head>
+<meta charset="utf-8">
+<title>Shop Catalog Mobile</title>
+<script src="./support.js"></script>
+</head>
+<body>
+<x-dc>
+<helmet>
+<link rel="preconnect" href="https://fonts.googleapis.com">
+<link href="https://fonts.googleapis.com/css2?family=Baloo+2:wght@600;700;800&family=Mukta:wght@400;500;600;700&display=swap" rel="stylesheet">
+<style>
+body { margin: 0; font-family: 'Mukta', system-ui, sans-serif; }
+a { color: #1b2340; } a:hover { color: #10162b; }
+</style>
+</helmet>
+
+<div style="width: 390px; min-height: 844px; background: #fbf7f0; display: flex; flex-direction: column; position: relative">
+
+  <!-- Shop header -->
+  <div style="background: #1b2340; padding: 20px 16px 16px; color: white">
+    <div style="display: flex; align-items: center; gap: 12px; margin-bottom: 12px">
+      <div style="width: 48px; height: 48px; border-radius: 12px; background: white; display: flex; align-items: center; justify-content: center; flex-shrink: 0">
+        <span style="font-family: 'Baloo 2', sans-serif; font-weight: 800; font-size: 22px; color: #1b2340">F</span>
+      </div>
+      <div style="min-width: 0">
+        <h1 style="margin: 0; font-family: 'Baloo 2', sans-serif; font-size: 20px; font-weight: 700; line-height: 1.2">Fresh Mart Grocery</h1>
+        <p style="margin: 2px 0 0; font-size: 13px; opacity: 0.7">Lucknow &middot; Open now</p>
+      </div>
+    </div>
+    <!-- Action buttons -->
+    <div style="display: grid; grid-template-columns: repeat(3, minmax(0, 1fr)); gap: 8px">
+      <button style="display: flex; align-items: center; justify-content: center; gap: 6px; padding: 8px; background: rgba(255,255,255,0.15); border: none; border-radius: 8px; color: white; font-size: 13px; font-weight: 500; cursor: pointer; font-family: 'Mukta', sans-serif">
+        <svg width="14" height="14" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round" aria-hidden="true"><path d="M22 16.92v3a2 2 0 0 1-2.18 2 19.79 19.79 0 0 1-8.63-3.07 19.5 19.5 0 0 1-6-6 19.79 19.79 0 0 1-3.07-8.67A2 2 0 0 1 4.11 2h3a2 2 0 0 1 2 1.72c.127.96.361 1.903.7 2.81a2 2 0 0 1-.45 2.11L8.09 9.91a16 16 0 0 0 6 6l1.27-1.27a2 2 0 0 1 2.11-.45c.907.339 1.85.573 2.81.7A2 2 0 0 1 22 16.92z"/></svg>
+        Call
+      </button>
+      <button style="display: flex; align-items: center; justify-content: center; gap: 6px; padding: 8px; background: #128c4a; border: none; border-radius: 8px; color: white; font-size: 13px; font-weight: 600; cursor: pointer; font-family: 'Mukta', sans-serif">
+        <svg width="14" height="14" viewBox="0 0 24 24" fill="currentColor" aria-hidden="true"><path d="M17.472 14.382c-.297-.149-1.758-.867-2.03-.967-.273-.099-.471-.148-.67.15-.197.297-.767.966-.94 1.164-.173.199-.347.223-.644.075-.297-.15-1.255-.463-2.39-1.475-.883-.788-1.48-1.761-1.653-2.059-.173-.297-.018-.458.13-.606.134-.133.298-.347.446-.52.149-.174.198-.298.298-.497.099-.198.05-.371-.025-.52-.075-.149-.669-1.612-.916-2.207-.242-.579-.487-.5-.669-.51-.173-.008-.371-.01-.57-.01-.198 0-.52.074-.792.372-.272.297-1.04 1.016-1.04 2.479 0 1.462 1.065 2.875 1.213 3.074.149.198 2.096 3.2 5.077 4.487.709.306 1.262.489 1.694.625.712.227 1.36.195 1.871.118.571-.085 1.758-.719 2.006-1.413.248-.694.248-1.289.173-1.413-.074-.124-.272-.198-.57-.347z"/><path d="M12 0C5.373 0 0 5.373 0 12c0 2.625.846 5.059 2.284 7.034L.789 23.492a.5.5 0 00.609.609l4.458-1.495A11.945 11.945 0 0012 24c6.627 0 12-5.373 12-12S18.627 0 12 0zm0 22a9.94 9.94 0 01-5.39-1.584l-.376-.244-2.643.886.886-2.643-.244-.376A9.94 9.94 0 012 12C2 6.477 6.477 2 12 2s10 4.477 10 10-4.477 10-10 10z"/></svg>
+        WhatsApp
+      </button>
+      <button style="display: flex; align-items: center; justify-content: center; gap: 6px; padding: 8px; background: rgba(255,255,255,0.15); border: none; border-radius: 8px; color: white; font-size: 13px; font-weight: 500; cursor: pointer; font-family: 'Mukta', sans-serif">
+        <svg width="14" height="14" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round" aria-hidden="true"><circle cx="18" cy="5" r="3"/><circle cx="6" cy="12" r="3"/><circle cx="18" cy="19" r="3"/><line x1="8.59" y1="13.51" x2="15.42" y2="17.49"/><line x1="15.41" y1="6.51" x2="8.59" y2="10.49"/></svg>
+        Share
+      </button>
+    </div>
+  </div>
+
+  <!-- Category chips -->
+  <div style="display: flex; gap: 8px; padding: 12px 16px; overflow-x: auto; background: rgba(251,247,240,0.95)">
+    <span style="flex-shrink: 0; padding: 6px 14px; background: #1b2340; color: white; border-radius: 999px; font-size: 13px; font-weight: 600">All</span>
+    <span style="flex-shrink: 0; padding: 6px 14px; background: white; color: #475569; border: 1px solid #e2e8f0; border-radius: 999px; font-size: 13px; font-weight: 500">Fruits</span>
+    <span style="flex-shrink: 0; padding: 6px 14px; background: white; color: #475569; border: 1px solid #e2e8f0; border-radius: 999px; font-size: 13px; font-weight: 500">Dairy</span>
+    <span style="flex-shrink: 0; padding: 6px 14px; background: white; color: #475569; border: 1px solid #e2e8f0; border-radius: 999px; font-size: 13px; font-weight: 500">Bakery</span>
+    <span style="flex-shrink: 0; padding: 6px 14px; background: white; color: #475569; border: 1px solid #e2e8f0; border-radius: 999px; font-size: 13px; font-weight: 500">Snacks</span>
+  </div>
+
+  <!-- Product grid -->
+  <div style="padding: 12px 16px; display: grid; grid-template-columns: repeat(2, minmax(0, 1fr)); gap: 12px; flex: 1">
+    <!-- Item 1 -->
+    <div style="background: white; border-radius: 12px; overflow: hidden; border: 1px solid #f1f5f9">
+      <div style="height: 120px; background: #fdf1dc; display: flex; align-items: center; justify-content: center; position: relative">
+        <span style="font-size: 48px">🍎</span>
+        <span style="position: absolute; top: 8px; left: 8px; background: #1b2340; color: white; font-size: 10px; font-weight: 600; padding: 2px 8px; border-radius: 999px">New</span>
+      </div>
+      <div style="padding: 10px">
+        <div style="font-size: 14px; font-weight: 600; color: #0f172a; line-height: 1.3">Kashmir Apples</div>
+        <div style="display: flex; align-items: center; justify-content: space-between; margin-top: 6px">
+          <span style="font-size: 16px; font-weight: 700; color: #1b2340">&#8377;180/kg</span>
+          <button aria-label="Add to cart" style="width: 32px; height: 32px; background: #1b2340; border: none; border-radius: 8px; color: white; font-size: 20px; cursor: pointer; display: flex; align-items: center; justify-content: center; line-height: 1">+</button>
+        </div>
+      </div>
+    </div>
+
+    <!-- Item 2 -->
+    <div style="background: white; border-radius: 12px; overflow: hidden; border: 1px solid #f1f5f9">
+      <div style="height: 120px; background: #fdf1dc; display: flex; align-items: center; justify-content: center">
+        <span style="font-size: 48px">🥛</span>
+      </div>
+      <div style="padding: 10px">
+        <div style="font-size: 14px; font-weight: 600; color: #0f172a; line-height: 1.3">Amul Taza Milk 1L</div>
+        <div style="display: flex; align-items: center; justify-content: space-between; margin-top: 6px">
+          <span style="font-size: 16px; font-weight: 700; color: #1b2340">&#8377;68</span>
+          <button aria-label="Add to cart" style="width: 32px; height: 32px; background: #1b2340; border: none; border-radius: 8px; color: white; font-size: 20px; cursor: pointer; display: flex; align-items: center; justify-content: center; line-height: 1">+</button>
+        </div>
+      </div>
+    </div>
+
+    <!-- Item 3 -->
+    <div style="background: white; border-radius: 12px; overflow: hidden; border: 1px solid #f1f5f9">
+      <div style="height: 120px; background: #fdf1dc; display: flex; align-items: center; justify-content: center">
+        <span style="font-size: 48px">🍞</span>
+      </div>
+      <div style="padding: 10px">
+        <div style="font-size: 14px; font-weight: 600; color: #0f172a; line-height: 1.3">Wheat Bread</div>
+        <div style="display: flex; align-items: center; justify-content: space-between; margin-top: 6px">
+          <span style="font-size: 16px; font-weight: 700; color: #1b2340">&#8377;45</span>
+          <button aria-label="Add to cart" style="width: 32px; height: 32px; background: #1b2340; border: none; border-radius: 8px; color: white; font-size: 20px; cursor: pointer; display: flex; align-items: center; justify-content: center; line-height: 1">+</button>
+        </div>
+      </div>
+    </div>
+
+    <!-- Item 4 -->
+    <div style="background: white; border-radius: 12px; overflow: hidden; border: 1px solid #f1f5f9">
+      <div style="height: 120px; background: #fdf1dc; display: flex; align-items: center; justify-content: center">
+        <span style="font-size: 48px">🥚</span>
+      </div>
+      <div style="padding: 10px">
+        <div style="font-size: 14px; font-weight: 600; color: #0f172a; line-height: 1.3">Farm Eggs (12pc)</div>
+        <div style="display: flex; align-items: center; justify-content: space-between; margin-top: 6px">
+          <span style="font-size: 16px; font-weight: 700; color: #1b2340">&#8377;84</span>
+          <button aria-label="Add to cart" style="width: 32px; height: 32px; background: #1b2340; border: none; border-radius: 8px; color: white; font-size: 20px; cursor: pointer; display: flex; align-items: center; justify-content: center; line-height: 1">+</button>
+        </div>
+      </div>
+    </div>
+
+    <!-- Item 5 -->
+    <div style="background: white; border-radius: 12px; overflow: hidden; border: 1px solid #f1f5f9">
+      <div style="height: 120px; background: #fdf1dc; display: flex; align-items: center; justify-content: center">
+        <span style="font-size: 48px">🧈</span>
+      </div>
+      <div style="padding: 10px">
+        <div style="font-size: 14px; font-weight: 600; color: #0f172a; line-height: 1.3">Amul Butter 100g</div>
+        <div style="display: flex; align-items: center; justify-content: space-between; margin-top: 6px">
+          <span style="font-size: 16px; font-weight: 700; color: #1b2340">&#8377;56</span>
+          <button aria-label="Add to cart" style="width: 32px; height: 32px; background: #1b2340; border: none; border-radius: 8px; color: white; font-size: 20px; cursor: pointer; display: flex; align-items: center; justify-content: center; line-height: 1">+</button>
+        </div>
+      </div>
+    </div>
+
+    <!-- Item 6 -->
+    <div style="background: white; border-radius: 12px; overflow: hidden; border: 1px solid #f1f5f9">
+      <div style="height: 120px; background: #fdf1dc; display: flex; align-items: center; justify-content: center">
+        <span style="font-size: 48px">🍌</span>
+      </div>
+      <div style="padding: 10px">
+        <div style="font-size: 14px; font-weight: 600; color: #0f172a; line-height: 1.3">Banana (1 dozen)</div>
+        <div style="display: flex; align-items: center; justify-content: space-between; margin-top: 6px">
+          <span style="font-size: 16px; font-weight: 700; color: #1b2340">&#8377;40</span>
+          <button aria-label="Add to cart" style="width: 32px; height: 32px; background: #1b2340; border: none; border-radius: 8px; color: white; font-size: 20px; cursor: pointer; display: flex; align-items: center; justify-content: center; line-height: 1">+</button>
+        </div>
+      </div>
+    </div>
+  </div>
+
+  <!-- Cart bar -->
+  <div style="position: absolute; bottom: 0; left: 0; right: 0; background: #128c4a; padding: 14px 16px; display: flex; align-items: center; justify-content: space-between; color: white; box-shadow: 0 -4px 16px rgba(0,0,0,0.12)">
+    <div>
+      <div style="font-size: 15px; font-weight: 700">3 items &middot; &#8377;293</div>
+      <div style="font-size: 12px; opacity: 0.8">Tap to view cart</div>
+    </div>
+    <span style="font-size: 14px; font-weight: 600; display: flex; align-items: center; gap: 4px">
+      Order on WhatsApp
+      <svg width="16" height="16" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2.5" stroke-linecap="round" stroke-linejoin="round" aria-hidden="true"><path d="M5 12h14"/><path d="M12 5l7 7-7 7"/></svg>
+    </span>
+  </div>
+</div>
+
+</x-dc>
+<script type="text/x-dc" data-dc-script data-props='{"$preview":{"width":390,"height":844}}'>
+class Component extends DCLogic {
+  renderVals() { return {}; }
+}
+</script>
+</body>
+</html>

@@ -3,6 +3,7 @@
 import { useState, useTransition } from "react";
 import { createShop } from "@/app/actions/shop";
 import { BUSINESS_TYPES } from "@/lib/catalog-config";
+import { STATE_NAMES, citiesOfState } from "@/lib/india-geo";
 import { slugify } from "@/lib/utils";
 import { Label } from "@/components/ui/label";
 import { Input } from "@/components/ui/input";
@@ -13,7 +14,9 @@ import { Button } from "@/components/ui/button";
 export function OnboardingForm({ host }: { host: string }) {
   const [name, setName] = useState("");
   const [businessType, setBusinessType] = useState("");
+  const [state, setState] = useState("");
   const [city, setCity] = useState("");
+  const [customCity, setCustomCity] = useState(false);
   const [whatsapp, setWhatsapp] = useState("");
   const [customSlug, setCustomSlug] = useState<string | null>(null);
   const [error, setError] = useState<string | null>(null);
@@ -29,6 +32,7 @@ export function OnboardingForm({ host }: { host: string }) {
       const result = await createShop({
         name,
         businessType,
+        state,
         city,
         whatsapp,
         slug: customSlug ? slugify(customSlug) : undefined,
@@ -79,19 +83,71 @@ export function OnboardingForm({ host }: { host: string }) {
 
       <div className="grid gap-4 sm:grid-cols-2">
         <div>
+          <Label htmlFor="shop-state">
+            State
+          </Label>
+          <NativeSelect
+            id="shop-state"
+            value={state}
+            onChange={(e) => {
+              setState(e.target.value);
+              setCity("");
+              setCustomCity(false);
+            }}
+            required
+          >
+            <option value="" disabled>
+              Choose state
+            </option>
+            {STATE_NAMES.map((s) => (
+              <option key={s} value={s}>
+                {s}
+              </option>
+            ))}
+          </NativeSelect>
+        </div>
+        <div>
           <Label htmlFor="shop-city">
             City
           </Label>
-          <Input
-            id="shop-city"
-            value={city}
-            onChange={(e) => setCity(e.target.value)}
-            required
-            minLength={2}
-            maxLength={40}
-            placeholder="Dehradun"
-            autoComplete="address-level2"
-          />
+          {state && !customCity && citiesOfState(state).length > 0 ? (
+            <>
+              <NativeSelect
+                id="shop-city"
+                value={city}
+                onChange={(e) => {
+                  if (e.target.value === "__other") {
+                    setCity("");
+                    setCustomCity(true);
+                  } else {
+                    setCity(e.target.value);
+                  }
+                }}
+                required
+              >
+                <option value="" disabled>
+                  Choose city
+                </option>
+                {citiesOfState(state).map((c) => (
+                  <option key={c} value={c}>
+                    {c}
+                  </option>
+                ))}
+                <option value="__other">Other city...</option>
+              </NativeSelect>
+            </>
+          ) : (
+            <Input
+              id="shop-city"
+              value={city}
+              onChange={(e) => setCity(e.target.value)}
+              required
+              minLength={2}
+              maxLength={40}
+              placeholder={state ? "Type your city" : "Choose state first"}
+              autoComplete="address-level2"
+            />
+          )}
         </div>
         <div>
           <Label htmlFor="shop-whatsapp">

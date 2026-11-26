@@ -1,6 +1,6 @@
 import type { Metadata } from "next";
 import Link from "next/link";
-import { Bell } from "lucide-react";
+import { Bell, LogOut } from "lucide-react";
 import { and, count, eq, isNull } from "drizzle-orm";
 import { db } from "@/db";
 import { reports } from "@/db/schema";
@@ -70,13 +70,15 @@ export default async function DashboardLayout({
                 href={`/${shop.slug}`}
                 target="_blank"
                 className={buttonVariants({ variant: "outline", size: "sm" })}
+                aria-label="View shop"
               >
-                View shop <Icon name="external" />
+                <span className="hidden sm:inline">View shop</span> <Icon name="external" />
               </Link>
             )}
             <form action="/auth/signout" method="post">
-              <Button type="submit" variant="ghost" size="sm">
-                Log out
+              <Button type="submit" variant="ghost" size="sm" aria-label="Log out">
+                <LogOut className="size-4 sm:hidden" />
+                <span className="hidden sm:inline">Log out</span>
               </Button>
             </form>
           </div>

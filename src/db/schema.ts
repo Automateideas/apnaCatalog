@@ -48,6 +48,7 @@ export const shops = pgTable(
     name: text("name").notNull(),
     businessType: text("business_type").notNull(),
     description: text("description"),
+    state: text("state"),
     city: text("city").notNull(),
     citySlug: text("city_slug").notNull(),
     address: text("address"),
