@@ -29,6 +29,7 @@ export default async function ItemsPage() {
         imageUrl: items.imageUrl,
         imageUrls: items.imageUrls,
         inStock: items.inStock,
+        salePrice: items.salePrice,
         categoryId: items.categoryId,
       })
       .from(items)
